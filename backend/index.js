@@ -1,5 +1,6 @@
 const express = require('express');
 const { sequelize } = require('./config/database');
+require('./Model/relaciones'); // Importar relaciones para que se sincronicen
 //const userRoutes = require('./Router/userRouter');
 
 const app = express();
@@ -20,7 +21,7 @@ const startServer = async () => {
     
     // Sincronizar modelos (crear tablas si no existen)
     await sequelize.sync({ force: false }); // force: true recrea las tablas
-    console.log('Modelos sincronizados');
+    console.log('Modelos sincronizados y migracion completada');
     
     app.listen(PORT, () => {
       console.log(`Servidor corriendo en puerto ${PORT}`);
