@@ -1,5 +1,6 @@
 const express = require('express');
 const { sequelize } = require('./config/database');
+//const rutas = require('./Ruters/user.ruter'); // Importar rutas de usuario
 require('./Model/relaciones'); // Importar relaciones para que se sincronicen
 //const userRoutes = require('./Router/userRouter');
 
@@ -23,9 +24,14 @@ const startServer = async () => {
     await sequelize.sync({ force: false }); // force: true recrea las tablas
     console.log('Modelos sincronizados y migracion completada');
     
+    const userRouter = require('./Ruters/user.ruter');
+    app.use('/api/personas', userRouter); // Usar las rutas de usuario
+
     app.listen(PORT, () => {
       console.log(`Servidor corriendo en puerto ${PORT}`);
     });
+
+
   } catch (error) {
     console.error('Error al conectar con la base de datos:', error);
   }
