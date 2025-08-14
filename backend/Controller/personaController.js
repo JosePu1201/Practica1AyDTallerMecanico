@@ -1,5 +1,7 @@
-const {Persona, ContactoPersona, Usuario, sequelize} = require('../Model');
+const {Persona, ContactoPersona, Usuario, TokenAutenticacion,sequelize} = require('../Model');
 const bcrypt = require('bcrypt');
+const EmailService = require('../services/emailService');
+
 //Obtener todas las personas
 const obtenerPersonas = async (req, res) => {
     try {
@@ -141,6 +143,7 @@ const crearContactoUsuario = async (req, res) => {
                 usuario: nuevoUsuario.id_usuario
             }
         });
+  
         
     } catch (error) {
         // Si hay cualquier error - REVERTIR TODO
@@ -148,9 +151,66 @@ const crearContactoUsuario = async (req, res) => {
         console.error('Error al crear contacto y usuario:', error);
         return res.status(500).json({ error: 'Error al crear contacto y usuario' });
     }
+          
 }
+
+//Login de usuario
+const loginUsuario = async (req, res) => {
+    try {
+        const { nombre_usuario, contrasena } = req.body;
+        if (!nombre_usuario || !contrasena) {
+            return res.status(400).json({ error: 'Faltan datos obligatorios' });
+        }
+
+        // Buscar usuario por nombre de usuario
+        const usuario = await Usuario.findOne({ where: { nombre_usuario } });
+        if (!usuario) {
+            return res.status(404).json({ error: 'Usuario no encontrado' });
+        }
+
+        // Verificar la contraseña
+        const esValida = await bcrypt.compare(contrasena, usuario.contrasena);
+        if (!esValida) {
+            return res.status(401).json({ error: 'Contraseña incorrecta' });
+        }
+
+        // Obtener el correo del usuario desde ContactoPersona
+        const contacto = await ContactoPersona.findOne({ where: { id_persona: usuario.id_persona } });
+        if (!contacto || !contacto.correo) {
+            return res.status(404).json({ error: 'No se encontró correo asociado al usuario' });
+        }
+
+        // Generar código de verificación (6 dígitos)
+        const codigoVerificacion = Math.floor(100000 + Math.random() * 900000).toString();
+
+        // Crear token en la base de datos
+        const fechaExpiracion = new Date(Date.now() + 15 * 60 * 1000); // 15 minutos
+        await TokenAutenticacion.create({
+            id_usuario: usuario.id_usuario,
+            token: codigoVerificacion,
+            tipo_token: '2FA',
+            fecha_creacion: new Date(),
+            fecha_expiracion: fechaExpiracion,
+            estado: 'ACTIVO',
+            codigo_verificacion: codigoVerificacion
+        });
+
+        // Enviar el código por correo
+        await EmailService.sendVerificationCode({
+            to: contacto.correo,
+            codigoVerificacion
+        });
+
+        return res.status(200).json({ mensaje: 'Código de verificación enviado al correo' });
+    } catch (error) {
+        console.error('Error en el login:', error);
+        return res.status(500).json({ error: 'Error en el login' });
+    }
+}
+
 module.exports = {
     obtenerPersonas,
     crearPersona,
-    crearContactoUsuario 
+    crearContactoUsuario,
+    loginUsuario 
 };
