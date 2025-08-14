@@ -1,9 +1,9 @@
 const sequelize = require('../config/sequelize');
 
-const Persona = require('./Persona');
+const Persona = require('./persona');
 const ContactoPersona = require('./ContactoPersona');
-const Rol = require('./Rol');
-const Usuario = require('./Usuario');
+const Rol = require('./rol');
+const Usuario = require('./usuario');
 const TokenAutenticacion = require('./TokenAutenticacion');
 const HistorialLogin = require('./HistorialLogin');
 

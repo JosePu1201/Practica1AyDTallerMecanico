@@ -17,5 +17,7 @@ POST /crear
 */
 // Obtener todas las personas
 router.get('/obtener', personaController.obtenerPersonas);
+// Crear contactoPersona, usuario y persona al mismo tiempo
+router.post('/crear-contacto-usuario', personaController.crearContactoUsuario);
 
 module.exports = router;
