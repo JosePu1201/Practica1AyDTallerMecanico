@@ -1,7 +1,7 @@
+require('dotenv').config();
 const express = require('express');
-const { sequelize } = require('./config/database');
 //const rutas = require('./Ruters/user.ruter'); // Importar rutas de usuario
-require('./Model/relaciones'); // Importar relaciones para que se sincronicen
+require('./Model/index.js'); // Importar relaciones para que se sincronicen
 //const userRoutes = require('./Router/userRouter');
 
 const app = express();
@@ -17,18 +17,19 @@ app.use(express.json());
 const startServer = async () => {
   try {
     // Conectar a la base de datos
-    await sequelize.authenticate();
-    console.log('Conexión a la base de datos establecida');
+    //await sequelize.authenticate();
+    //console.log('Conexión a la base de datos establecida');
     
     // Sincronizar modelos (crear tablas si no existen)
-    await sequelize.sync({ force: false }); // force: true recrea las tablas
-    console.log('Modelos sincronizados y migracion completada');
+    //await sequelize.sync({ force: false }); // force: true recrea las tablas
+    //console.log('Modelos sincronizados y migracion completada');
     
     const userRouter = require('./Ruters/user.ruter');
     app.use('/api/personas', userRouter); // Usar las rutas de usuario
 
+    const PORT = process.env.PORT || 3000;
     app.listen(PORT, () => {
-      console.log(`Servidor corriendo en puerto ${PORT}`);
+    console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
     });
 
 

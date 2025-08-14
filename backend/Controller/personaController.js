@@ -1,7 +1,17 @@
-const personas = require('../Model/persona');
-const usuarios = require('../Model/usuario');
-const contactos = require('../Model/contacto_persona');
+const {Persona, ContactoPersona, Usuario} = require('../Model');
 
+//Obtener todas las personas
+const obtenerPersonas = async (req, res) => {
+    try {
+        const personas = await Persona.findAll();
+        return res.status(200).json(personas);
+    } catch (error) {
+        console.error('Error al obtener personas:', error);
+        return res.status(500).json({ error: 'Error al obtener personas' });
+    }
+}
+
+//Crear Personas
 const crearPersona = async (req, res) => {
     try {
         const { nombre, apellido, dpi, fecha_nacimiento, direccion } = req.body;
@@ -10,12 +20,12 @@ const crearPersona = async (req, res) => {
         }
 
         // Verificar si el DPI ya existe
-        const existe = await personas.findOne({ where: { dpi } });
+        const existe = await Persona.findOne({ where: { dpi } });
         if (existe) {
             return res.status(409).json({ error: 'El DPI ya está registrado' });
         }
 
-        const nuevaPersona = await personas.create({
+        const nuevaPersona = await Persona.create({
             nombre,
             apellido,
             dpi,
@@ -30,5 +40,6 @@ const crearPersona = async (req, res) => {
 }
 
 module.exports = {
+    obtenerPersonas,
     crearPersona
 };

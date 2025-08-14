@@ -1,16 +1,19 @@
-const { Sequelize } = require('sequelize');
+require('dotenv').config();
 
-const sequelize = new Sequelize('Mecanico', 'root', 'admin', {
-  host: 'localhost',
-  dialect: 'mysql', 
-  logging: false, 
-  pool: {  
-        max: 5, 
-        min: 0, 
-        acquire: 30000, 
-        idle: 10000 
+module.exports = {
+  development: {
+    username: process.env.DB_USER,
+    password: process.env.DB_PASS,
+    database: process.env.DB_NAME,
+    host:     process.env.DB_HOST,
+    port:     process.env.DB_PORT,
+    dialect:  process.env.DB_DIALECT || 'mysql',
+    dialectOptions: {
+      charset: 'utf8mb4',
+    },
+    logging: false
+  },
+  production: {
+    //onfig de producción
   }
-
-});
-
-module.exports = { sequelize };
+};
