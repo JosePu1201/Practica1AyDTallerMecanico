@@ -51,6 +51,25 @@ const ComentariosVehiculoEspecialista = require('./ComentariosVehiculoEspecialis
 const RecomendacionesVehiculo = require('./RecomendacionesVehiculo');
 const SugerirRepuesto = require('./SugerirRepuesto');
 
+
+// FUNCIONALIDADES CLIENTES
+const ComentariosSeguimientoCliente = require('./ComentariosSeguimientoCliente');
+const ServiciosAdicionales = require('./ServiciosAdicionales');
+const CotizacionServicioVehiculo = require('./CotizacionServicioVehiculo');
+const TrabajosCotizacion = require('./TrabajosCotizacion');
+
+
+//FUNCIONALIDADES DE PROVEEDORES
+const CatalogoProveedor = require('./CatalogoProveedor');
+const PedidoProveedor = require('./PedidoProveedor');
+const DetallePedido = require('./DetallePedido');
+const EntregaPedido = require('./EntregaPedido');
+const PagosProveedor = require('./PagosProveedor');
+const ArticulosSugeridos = require('./ArticulosSugeridos');
+const CotizacionProductos = require('./CotizacionProductos');
+const DetalleCotizacion = require('./DetalleCotizacion');
+
+
 // Definición de relaciones
 
 //Una persona tiene muchos contactos
@@ -214,6 +233,72 @@ Inventario.hasMany(SugerirRepuesto, { foreignKey: 'id_inventario_repuesto', sour
 SugerirRepuesto.belongsTo(Inventario, { foreignKey: 'id_inventario_repuesto', targetKey: 'id_inventario_repuesto' });
 
 
+/*
+-- =================================================================
+-- FUNCIONALIDADES DE CLIENTES
+-- =================================================================
+*/
+
+RegistroServicioVehiculo.hasMany(ComentariosSeguimientoCliente, { foreignKey: 'id_registro', sourceKey: 'id_registro' });
+ComentariosSeguimientoCliente.belongsTo(RegistroServicioVehiculo, { foreignKey: 'id_registro', targetKey: 'id_registro' });
+Usuario.hasMany(ComentariosSeguimientoCliente, { foreignKey: 'id_cliente', sourceKey: 'id_usuario' });
+ComentariosSeguimientoCliente.belongsTo(Usuario, { foreignKey: 'id_cliente', targetKey: 'id_usuario' });
+
+RegistroServicioVehiculo.hasMany(ServiciosAdicionales, { foreignKey: 'id_registro', sourceKey: 'id_registro' });
+ServiciosAdicionales.belongsTo(RegistroServicioVehiculo, { foreignKey: 'id_registro', targetKey: 'id_registro' });
+TipoMantenimiento.hasMany(ServiciosAdicionales, { foreignKey: 'id_tipo_trabajo', sourceKey: 'id_tipo_trabajo' });
+ServiciosAdicionales.belongsTo(TipoMantenimiento, { foreignKey: 'id_tipo_trabajo', targetKey: 'id_tipo_trabajo' });
+
+Vehiculo.hasMany(CotizacionServicioVehiculo, { foreignKey: 'id_vehiculo', sourceKey: 'id_vehiculo' });
+CotizacionServicioVehiculo.belongsTo(Vehiculo, { foreignKey: 'id_vehiculo', targetKey: 'id_vehiculo' });
+
+TipoMantenimiento.hasMany(TrabajosCotizacion, { foreignKey: 'id_tipo_trabajo', sourceKey: 'id_tipo_trabajo' });
+TrabajosCotizacion.belongsTo(TipoMantenimiento, { foreignKey: 'id_tipo_trabajo', targetKey: 'id_tipo_trabajo' });
+CotizacionServicioVehiculo.hasMany(TrabajosCotizacion, { foreignKey: 'id_registro_cotizacion', sourceKey: 'id_registro_cotizacion' });
+TrabajosCotizacion.belongsTo(CotizacionServicioVehiculo, { foreignKey: 'id_registro_cotizacion', targetKey: 'id_registro_cotizacion' });
+
+
+/*
+-- =================================================================
+-- FUNCIONALIDADES DE PROVEEDORES
+-- =================================================================
+*/
+Proveedor.hasMany(CatalogoProveedor, { foreignKey: 'id_proveedor', sourceKey: 'id_proveedor' });
+CatalogoProveedor.belongsTo(Proveedor, { foreignKey: 'id_proveedor', targetKey: 'id_proveedor' });
+Repuesto.hasMany(CatalogoProveedor, { foreignKey: 'id_repuesto', sourceKey: 'id_repuesto' });
+CatalogoProveedor.belongsTo(Repuesto, { foreignKey: 'id_repuesto', targetKey: 'id_repuesto' });
+
+Proveedor.hasMany(PedidoProveedor, { foreignKey: 'id_proveedor', sourceKey: 'id_proveedor' });
+PedidoProveedor.belongsTo(Proveedor, { foreignKey: 'id_proveedor', targetKey: 'id_proveedor' });
+
+PedidoProveedor.hasMany(DetallePedido, { foreignKey: 'id_pedido', sourceKey: 'id_pedido' });
+DetallePedido.belongsTo(PedidoProveedor, { foreignKey: 'id_pedido', targetKey: 'id_pedido' });
+CatalogoProveedor.hasMany(DetallePedido, { foreignKey: 'id_catalogo', sourceKey: 'id_catalogo' });
+DetallePedido.belongsTo(CatalogoProveedor, { foreignKey: 'id_catalogo', targetKey: 'id_catalogo' });
+
+PedidoProveedor.hasMany(EntregaPedido, { foreignKey: 'id_pedido', sourceKey: 'id_pedido' });
+EntregaPedido.belongsTo(PedidoProveedor, { foreignKey: 'id_pedido', targetKey: 'id_pedido' });
+Usuario.hasMany(EntregaPedido, { foreignKey: 'id_usuario_recibe', sourceKey: 'id_usuario' });
+EntregaPedido.belongsTo(Usuario, { foreignKey: 'id_usuario_recibe', targetKey: 'id_usuario' });
+
+PedidoProveedor.hasMany(PagosProveedor, { foreignKey: 'id_pedido', sourceKey: 'id_pedido' });
+PagosProveedor.belongsTo(PedidoProveedor, { foreignKey: 'id_pedido', targetKey: 'id_pedido' });
+Usuario.hasMany(PagosProveedor, { foreignKey: 'id_usuario_registro', sourceKey: 'id_usuario' });
+PagosProveedor.belongsTo(Usuario, { foreignKey: 'id_usuario_registro', targetKey: 'id_usuario' });
+
+Proveedor.hasMany(ArticulosSugeridos, { foreignKey: 'id_proveedor', sourceKey: 'id_proveedor' });
+ArticulosSugeridos.belongsTo(Proveedor, { foreignKey: 'id_proveedor', targetKey: 'id_proveedor' });
+
+Proveedor.hasMany(CotizacionProductos, { foreignKey: 'id_proveedor', sourceKey: 'id_proveedor' });
+CotizacionProductos.belongsTo(Proveedor, { foreignKey: 'id_proveedor', targetKey: 'id_proveedor' });
+Usuario.hasMany(CotizacionProductos, { foreignKey: 'id_usuario_solicita', sourceKey: 'id_usuario' });
+CotizacionProductos.belongsTo(Usuario, { foreignKey: 'id_usuario_solicita', targetKey: 'id_usuario' });
+
+CotizacionProductos.hasMany(DetalleCotizacion, { foreignKey: 'id_cotizacion', sourceKey: 'id_cotizacion' });
+DetalleCotizacion.belongsTo(CotizacionProductos, { foreignKey: 'id_cotizacion', targetKey: 'id_cotizacion' });
+CatalogoProveedor.hasMany(DetalleCotizacion, { foreignKey: 'id_catalogo', sourceKey: 'id_catalogo' });
+DetalleCotizacion.belongsTo(CatalogoProveedor, { foreignKey: 'id_catalogo', targetKey: 'id_catalogo' });
+
 
 module.exports = {
   sequelize,
@@ -246,5 +331,17 @@ module.exports = {
   SolucionPropuesta,
   ComentariosVehiculoEspecialista,
   RecomendacionesVehiculo,
-  SugerirRepuesto
+  SugerirRepuesto,
+  ComentariosSeguimientoCliente,
+  ServiciosAdicionales,
+  CotizacionServicioVehiculo,
+  TrabajosCotizacion,
+  CatalogoProveedor,
+  PedidoProveedor,
+  DetallePedido,
+  EntregaPedido,
+  PagosProveedor,
+  ArticulosSugeridos,
+  CotizacionProductos,
+  DetalleCotizacion
 };
