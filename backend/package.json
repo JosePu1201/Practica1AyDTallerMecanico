@@ -5,18 +5,30 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "dev": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "migrate": "sequelize db:migrate",
+    "migrate:undo": "sequelize db:migrate:undo:all",
+    "db:migrate": "sequelize db:migrate --config sequelize.config.js --migrations-path migrations",
+    "db:migrate:undo": "sequelize db:migrate:undo --config sequelize.config.js --migrations-path migrations",
+    "db:seed": "sequelize db:seed:all --config sequelize.config.js --seeders-path seeders",
+    "db:seed:undo": "sequelize db:seed:undo:all --config sequelize.config.js --seeders-path seeders",
+    "create:migration": "npx sequelize-cli migration:generate --name",
+    "create:seed": "npx sequelize-cli seed:generate --name"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "bcrypt": "^6.0.0",
     "dotenv": "^17.2.1",
     "express": "^5.1.0",
     "mysql2": "^3.14.3",
-    "sequelize": "^6.37.7"
+    "nodemailer": "^7.0.5",
+    "sequelize": "^6.37.7",
+    "sequelize-cli": "^6.6.1"
   },
   "devDependencies": {
-    "nodemon": "^3.1.10"
+    "nodemon": "^3.1.10",
+    "sequelize-cli": "^6.6.3"
   }
 }
