@@ -65,13 +65,13 @@ backend/
 #### Ejecutar todas las migraciones pendientes
 
 ```bash
-npm run migrate
+npm run db:migrate
 ```
 
 #### Deshacer todas las migraciones
 
 ```bash
-npm run migrate:undo
+npm run db:migrate:undo
 ```
 
 #### Crear una nueva migración
