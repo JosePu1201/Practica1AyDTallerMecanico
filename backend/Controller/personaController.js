@@ -183,11 +183,14 @@ const loginUsuario = async (req, res) => {
         // Generar código de verificación (6 dígitos)
         const codigoVerificacion = Math.floor(100000 + Math.random() * 900000).toString();
 
+        //crear un token de 20 caracteres random
+        const token1 = Math.random().toString(36).substring(2, 22);
+
         // Crear token en la base de datos
         const fechaExpiracion = new Date(Date.now() + 15 * 60 * 1000); // 15 minutos
         await TokenAutenticacion.create({
             id_usuario: usuario.id_usuario,
-            token: codigoVerificacion,
+            token: token1,
             tipo_token: '2FA',
             fecha_creacion: new Date(),
             fecha_expiracion: fechaExpiracion,
@@ -201,10 +204,51 @@ const loginUsuario = async (req, res) => {
             codigoVerificacion
         });
 
-        return res.status(200).json({ mensaje: 'Código de verificación enviado al correo' });
+        return res.status(200).json({ mensaje: 'Código de verificación enviado al correo', user: usuario.id_usuario, token: token1 });
     } catch (error) {
         console.error('Error en el login:', error);
         return res.status(500).json({ error: 'Error en el login' });
+    }
+}
+
+//Autenticacion de codigo de verificacion
+const autenticarCodigoVerificacion = async (req, res) => {
+    try {
+        const { token, codigo_verificacion } = req.body;
+        if (!token || !codigo_verificacion) {
+            return res.status(400).json({ error: 'Faltan datos obligatorios' });
+        }
+
+        // Buscar el token en la base de datos
+        const tokenAutenticacion = await TokenAutenticacion.findOne({ where: { token, estado: 'ACTIVO' } });
+        if (!tokenAutenticacion) {
+            return res.status(404).json({ error: 'Token no encontrado o no activo' });
+        }
+
+        // Verificar el código de verificación
+        if (tokenAutenticacion.codigo_verificacion !== codigo_verificacion) {
+            return res.status(401).json({ error: 'Código de verificación incorrecto' });
+        }
+
+        // Verificar si el token ha expirado
+        if (new Date() > tokenAutenticacion.fecha_expiracion) {
+            tokenAutenticacion.estado = 'EXPIRADO';
+            await tokenAutenticacion.save();
+            return res.status(410).json({ error: 'Token expirado' });
+        }
+
+        // Marcar el token como usado
+        tokenAutenticacion.estado = 'USADO';
+        await tokenAutenticacion.save();
+
+        return res.status(200).json({ mensaje: 'Código de verificación autenticado correctamente',
+            id_usuario: tokenAutenticacion.id_usuario,
+            rol: (await Usuario.findByPk(tokenAutenticacion.id_usuario)).id_rol,
+            nombre_usuario: (await Usuario.findByPk(tokenAutenticacion.id_usuario)).nombre_usuario
+         });
+    } catch (error) {
+        console.error('Error al autenticar código de verificación:', error);
+        return res.status(500).json({ error: 'Error al autenticar código de verificación' });
     }
 }
 
@@ -212,5 +256,7 @@ module.exports = {
     obtenerPersonas,
     crearPersona,
     crearContactoUsuario,
-    loginUsuario 
+    loginUsuario,
+    autenticarCodigoVerificacion
+ 
 };

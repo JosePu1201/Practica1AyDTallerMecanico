@@ -19,5 +19,9 @@ POST /crear
 router.get('/obtener', personaController.obtenerPersonas);
 // Crear contactoPersona, usuario y persona al mismo tiempo
 router.post('/crear-contacto-usuario', personaController.crearContactoUsuario);
+// Login de usuario
+router.post('/login', personaController.loginUsuario);
+// Autenticar código de verificación
+router.post('/autenticar-codigo-verificacion', personaController.autenticarCodigoVerificacion);
 
 module.exports = router;
