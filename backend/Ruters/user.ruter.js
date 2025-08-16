@@ -23,5 +23,6 @@ router.post('/crear-contacto-usuario', personaController.crearContactoUsuario);
 router.post('/login', personaController.loginUsuario);
 // Autenticar código de verificación
 router.post('/autenticar-codigo-verificacion', personaController.autenticarCodigoVerificacion);
-
+//recuperar contraseña
+router.post('/recuperar-contrasena', personaController.recuperarContrasena);
 module.exports = router;

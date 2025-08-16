@@ -1,4 +1,4 @@
-const {Persona, ContactoPersona, Usuario, TokenAutenticacion,sequelize} = require('../Model');
+const {Persona, ContactoPersona, Usuario, TokenAutenticacion,sequelize,HistorialLogin} = require('../Model');
 const bcrypt = require('bcrypt');
 const EmailService = require('../services/emailService');
 
@@ -24,6 +24,7 @@ const crearPersona = async (req, res) => {
         // Verificar si el DPI ya existe
         const existe = await Persona.findOne({ where: { dpi } });
         if (existe) {
+            
             return res.status(409).json({ error: 'El DPI ya está registrado' });
         }
 
@@ -165,13 +166,31 @@ const loginUsuario = async (req, res) => {
         // Buscar usuario por nombre de usuario
         const usuario = await Usuario.findOne({ where: { nombre_usuario } });
         if (!usuario) {
+            await HistorialLogin.create({
+                id_usuario: null,
+                fecha_intento: new Date(),
+                ip_address:null,
+                navegador: req.headers['user-agent'] || 'Desconocido',
+                resultado: 'FALLIDO',
+                tipo_fallo: 'USUARIO_INACTIVO'
+                
+            });
             return res.status(404).json({ error: 'Usuario no encontrado' });
         }
 
         // Verificar la contraseña
         const esValida = await bcrypt.compare(contrasena, usuario.contrasena);
         if (!esValida) {
-            return res.status(401).json({ error: 'Contraseña incorrecta' });
+            await HistorialLogin.create({
+                id_usuario: usuario.id_usuario,
+                fecha_intento: new Date(),
+                ip_address:null,
+                navegador: req.headers['user-agent'] || 'Desconocido',
+                resultado: 'FALLIDO',
+                tipo_fallo: 'PASSWORD_INCORRECTO'
+                
+            });
+            return res.status(401).json({ error: 'Las credenciales no son correctas, intenta de nuevo' });
         }
 
         // Obtener el correo del usuario desde ContactoPersona
@@ -222,11 +241,30 @@ const autenticarCodigoVerificacion = async (req, res) => {
         // Buscar el token en la base de datos
         const tokenAutenticacion = await TokenAutenticacion.findOne({ where: { token, estado: 'ACTIVO' } });
         if (!tokenAutenticacion) {
+            await HistorialLogin.create({
+                id_usuario: tokenAutenticacion ? tokenAutenticacion.id_usuario : null,
+                fecha_intento: new Date(),
+                ip_address:null,
+                navegador: req.headers['user-agent'] || 'Desconocido',
+                resultado: 'FALLIDO',
+                tipo_fallo: '2FA_FALLIDO'
+                
+            });
             return res.status(404).json({ error: 'Token no encontrado o no activo' });
+
         }
 
         // Verificar el código de verificación
         if (tokenAutenticacion.codigo_verificacion !== codigo_verificacion) {
+            await HistorialLogin.create({
+                id_usuario: tokenAutenticacion.id_usuario,
+                fecha_intento: new Date(),
+                ip_address:null,
+                navegador: req.headers['user-agent'] || 'Desconocido',
+                resultado: 'FALLIDO',
+                tipo_fallo: '2FA_FALLIDO'
+                
+            });
             return res.status(401).json({ error: 'Código de verificación incorrecto' });
         }
 
@@ -234,13 +272,29 @@ const autenticarCodigoVerificacion = async (req, res) => {
         if (new Date() > tokenAutenticacion.fecha_expiracion) {
             tokenAutenticacion.estado = 'EXPIRADO';
             await tokenAutenticacion.save();
+            await HistorialLogin.create({
+                id_usuario: tokenAutenticacion.id_usuario,
+                fecha_intento: new Date(),
+                ip_address:null,
+                navegador: req.headers['user-agent'] || 'Desconocido',
+                resultado: 'FALLIDO',
+                tipo_fallo: '2FA_FALLIDO'
+                
+            });
             return res.status(410).json({ error: 'Token expirado' });
         }
 
         // Marcar el token como usado
         tokenAutenticacion.estado = 'USADO';
         await tokenAutenticacion.save();
-
+        await HistorialLogin.create({
+            id_usuario: tokenAutenticacion.id_usuario,
+            fecha_intento: new Date(),
+            ip_address: null,
+            navegador: req.headers['user-agent'] || 'Desconocido',
+            resultado: 'EXITOSO'
+            
+        });
         return res.status(200).json({ mensaje: 'Código de verificación autenticado correctamente',
             id_usuario: tokenAutenticacion.id_usuario,
             rol: (await Usuario.findByPk(tokenAutenticacion.id_usuario)).id_rol,
@@ -252,11 +306,62 @@ const autenticarCodigoVerificacion = async (req, res) => {
     }
 }
 
+//recuperar Contraseña
+
+const recuperarContrasena = async (req, res) => {
+    try{
+        const {username} = req.body;
+        if (!username) {
+            return res.status(400).json({ error: 'Falta el nombre de usuario' });
+        }
+        //buscar usuario por nombre de usuario
+        const usuario = await Usuario.findOne({ where: { nombre_usuario: username } });
+        if (!usuario) {
+            return res.status(404).json({ error: 'Usuario no encontrado' });
+        }
+        //obtener el correo del usuario
+        const contacto = await ContactoPersona.findOne({ where: { id_persona: usuario.id_persona } });
+        if (!contacto || !contacto.correo) {
+            return res.status(404).json({ error: 'No se encontró correo asociado al usuario' });
+        }
+        // Generar código de verificación (6 dígitos)
+        const codigoVerificacion = Math.floor(100000 + Math.random() * 900000).toString();
+        //crear un token de 20 caracteres random
+        const token1 = Math.random().toString(36).substring(2, 22);
+        // Crear token en la base de datos
+        const fechaExpiracion = new Date(Date.now() + 15 * 60 * 1000); // 15 minutos
+        await TokenAutenticacion.create({
+            id_usuario: usuario.id_usuario,
+            token: token1,
+            tipo_token: 'RECUPERACION_PASSWORD',
+            fecha_creacion: new Date(),
+            fecha_expiracion: fechaExpiracion,
+            estado: 'ACTIVO',
+            codigo_verificacion: codigoVerificacion
+        });
+        // Enviar el código por correo
+        const emailSent = await EmailService.sendRecupeartionCode({
+            to: contacto.correo,
+            codigoVerificacion: codigoVerificacion
+        });
+        //responder con el token y el id del usuario
+        return res.status(200).json({ mensaje: 'Código de recuperación enviado al correo',
+            user: usuario.id_usuario,
+            token: token1
+        });
+        // Si el correo no se envió, responder con error
+
+    } catch (error) {
+        console.error('Error al recuperar contraseña:', error);
+        return res.status(500).json({ error: 'Error al recuperar contraseña' });
+    }
+}
+
 module.exports = {
     obtenerPersonas,
     crearPersona,
     crearContactoUsuario,
     loginUsuario,
-    autenticarCodigoVerificacion
- 
+    autenticarCodigoVerificacion,
+    recuperarContrasena
 };
