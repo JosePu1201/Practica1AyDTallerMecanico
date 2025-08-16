@@ -189,8 +189,8 @@ AsignacionTrabajo.hasMany(SolicitudUsoRepuesto, { foreignKey: 'id_asignacion_tra
 SolicitudUsoRepuesto.belongsTo(AsignacionTrabajo, { foreignKey: 'id_asignacion_trabajo', targetKey: 'id_asignacion' });
 Usuario.hasMany(SolicitudUsoRepuesto, { foreignKey: 'id_usuario_aceptacion', sourceKey: 'id_usuario' });
 SolicitudUsoRepuesto.belongsTo(Usuario, { foreignKey: 'id_usuario_aceptacion', targetKey: 'id_usuario' });
-Inventario.hasMany(SolicitudUsoRepuesto, { foreignKey: 'id_inventario_repuesto', sourceKey: 'id_inventario' });
-SolicitudUsoRepuesto.belongsTo(Inventario, { foreignKey: 'id_inventario_repuesto', targetKey: 'id_inventario' });
+Inventario.hasMany(SolicitudUsoRepuesto, { foreignKey: 'id_inventario_repuesto', sourceKey: 'id_inventario_repuesto' });
+SolicitudUsoRepuesto.belongsTo(Inventario, { foreignKey: 'id_inventario_repuesto', targetKey: 'id_inventario_repuesto' });
 
 /*
 -- =================================================================
