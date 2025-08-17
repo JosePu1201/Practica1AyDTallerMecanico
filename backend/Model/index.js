@@ -343,5 +343,6 @@ module.exports = {
   PagosProveedor,
   ArticulosSugeridos,
   CotizacionProductos,
-  DetalleCotizacion
+  DetalleCotizacion,
+  Proveedor
 };
