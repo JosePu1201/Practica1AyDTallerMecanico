@@ -27,6 +27,9 @@ const startServer = async () => {
     const userRouter = require('./Ruters/user.ruter');
     app.use('/api/personas', userRouter); // Usar las rutas de usuario
 
+    const managementUsersRouter = require('./Ruters/management_users.router');
+    app.use('/api/management', managementUsersRouter);
+
     const PORT = process.env.PORT || 3000;
     app.listen(PORT, () => {
     console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
