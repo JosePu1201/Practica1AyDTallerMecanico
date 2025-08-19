@@ -79,7 +79,7 @@ export default function VerifyCode() {
         navigate('/no-autorizado', { replace: true });
       }
     } catch (err) {
-      alert(err.response?.data?.message || 'Código inválido');
+      alert(err.response?.data?.error || 'Código inválido');
     }
   };
 

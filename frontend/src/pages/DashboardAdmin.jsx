@@ -113,19 +113,54 @@ export default function DashboardAdmin() {
             children={[
               { label: 'Listado', to: '/admin/usuarios' },
               { label: 'Roles', to: '/admin/usuarios/roles' },
+              { label: 'Especialistas', to: '/admin/usuarios/especialistas' },
             ]}
           />
           <SidebarItem
-            icon="bi-person-badge"
-            label="Vehiculos"
-            to="/admin/clientes"
+            icon="bi-car-front"
+            label="Vehículos"
             collapsed={collapsed}
             children={[
-              { label: 'Listado', to: '/admin/usuarios' },
-              { label: 'Crear', to: '/admin/usuarios/roles' },
+              { label: 'Listado', to: '/admin/vehiculos' },
+              { label: 'Registro', to: '/admin/vehiculos/nuevo' },
+              { label: 'Servicios', to: '/admin/vehiculos/servicios' },
             ]}
           />
-          {/* Más opciones… */}
+          <SidebarItem
+            icon="bi-boxes"
+            label="Inventario"
+            collapsed={collapsed}
+            children={[
+              { label: 'Repuestos', to: '/admin/inventario/repuestos' },
+              { label: 'Proveedores', to: '/admin/inventario/proveedores' },
+            ]}
+          />
+          <SidebarItem
+            icon="bi-clipboard-check"
+            label="Trabajos"
+            collapsed={collapsed}
+            children={[
+              { label: 'Asignaciones', to: '/admin/trabajos/asignaciones' },
+              { label: 'Tipos', to: '/admin/trabajos/tipos' },
+              { label: 'Seguimiento', to: '/admin/trabajos/seguimiento' },
+            ]}
+          />
+          <SidebarItem
+            icon="bi-cash-coin"
+            label="Facturación"
+            collapsed={collapsed}
+            children={[
+              { label: 'Facturas', to: '/admin/facturacion/facturas' },
+              { label: 'Pagos', to: '/admin/facturacion/pagos' },
+              { label: 'Reportes', to: '/admin/facturacion/reportes' },
+            ]}
+          />
+          <SidebarItem
+            icon="bi-gear"
+            label="Configuración"
+            to="/admin/configuracion"
+            collapsed={collapsed}
+          />
         </nav>
 
         {!collapsed && <div className="sidebar-footer">v1.0</div>}
@@ -149,10 +184,10 @@ export default function DashboardAdmin() {
               onClick={() => setMenuOpen(v => !v)}
               aria-haspopup="menu"
               aria-expanded={menuOpen}
-              title={user?.nombre_usuario || 'Usuario'}
+              title={user?.username || 'Usuario'}
             >
-              <div className="avatar">{initials(user?.nombre_usuario)}</div>
-              <span className="profile-name">{user?.nombre_usuario || 'Usuario'}</span>
+              <div className="avatar">{initials(user?.username)}</div>
+              <span className="profile-name">{user?.username || 'Usuario'}</span>
               <i className={`bi ${menuOpen ? 'bi-caret-up-fill' : 'bi-caret-down-fill'}`} />
             </button>
 
