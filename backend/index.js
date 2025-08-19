@@ -3,13 +3,19 @@ const express = require('express');
 //const rutas = require('./Ruters/user.ruter'); // Importar rutas de usuario
 require('./Model/index.js'); // Importar relaciones para que se sincronicen
 //const userRoutes = require('./Router/userRouter');
+const session = require('express-session');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware
+// Middleware json y session
 app.use(express.json());
-
+app.use(session({
+  secret: 'admin',
+  resave: false,
+  saveUninitialized: true,
+  cookie: { secure: false } // Usa true solo si tienes HTTPS
+}));
 // Rutas
 //app.use('/api/users', userRoutes);
 
@@ -37,5 +43,5 @@ const startServer = async () => {
     console.error('Error al conectar con la base de datos:', error);
   }
 };
-
+//console.log('Credenciales de sesión:', req.session.user);
 startServer();
