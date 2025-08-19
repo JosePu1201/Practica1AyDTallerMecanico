@@ -1,12 +1,11 @@
-import React, { useEffect, useState } from 'react';
-import { NavLink, Outlet, useLocation } from 'react-router-dom';
-import './admin.css';
+import React, { useEffect, useRef, useState } from 'react';
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import './stiles/admin.css';
 
 function SidebarItem({ icon, label, to, children, collapsed }) {
   const [open, setOpen] = useState(false);
   const location = useLocation();
 
-  // abre automáticamente si una subruta está activa
   useEffect(() => {
     if (children?.some(ch => location.pathname.startsWith(ch.to))) {
       setOpen(true);
@@ -41,12 +40,57 @@ function SidebarItem({ icon, label, to, children, collapsed }) {
 }
 
 export default function DashboardAdmin() {
+  const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(() => localStorage.getItem('adminSidebarCollapsed') === '1');
+  const [user, setUser] = useState(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    // Carga usuario de localStorage
+    const s = localStorage.getItem('user');
+    if (s) {
+      try {
+        const parsed = JSON.parse(s);
+        setUser(parsed);
+      } catch {
+        // si hay algo corrupto, limpiar y salir al login
+        localStorage.removeItem('user');
+        navigate('/login', { replace: true });
+      }
+    } else {
+      navigate('/login', { replace: true });
+    }
+  }, [navigate]);
+
+  // Cerrar menú al hacer clic fuera
+  useEffect(() => {
+    const onDown = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false);
+    };
+    document.addEventListener('mousedown', onDown);
+    return () => document.removeEventListener('mousedown', onDown);
+  }, []);
 
   const toggleSidebar = () => {
     const next = !collapsed;
     setCollapsed(next);
     localStorage.setItem('adminSidebarCollapsed', next ? '1' : '0');
+  };
+
+  const initials = (name) =>
+    (name || '')
+      .trim()
+      .split(/\s+/)
+      .map(w => w[0]?.toUpperCase())
+      .join('')
+      .slice(0, 2) || 'US';
+
+  const onLogout = () => {
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
+    localStorage.removeItem('adminSidebarCollapsed');
+    navigate('/', { replace: true });
   };
 
   return (
@@ -71,10 +115,17 @@ export default function DashboardAdmin() {
               { label: 'Roles', to: '/admin/usuarios/roles' },
             ]}
           />
-          <SidebarItem icon="bi-person-badge" label="Clientes" to="/admin/clientes" collapsed={collapsed} />
-          <SidebarItem icon="bi-building-gear" label="Taller" to="/admin/taller" collapsed={collapsed} />
-          <SidebarItem icon="bi-wrench-adjustable-circle" label="Servicios" to="/admin/servicios" collapsed={collapsed} />
-          <SidebarItem icon="bi-gear" label="Config" to="/admin/config" collapsed={collapsed} />
+          <SidebarItem
+            icon="bi-person-badge"
+            label="Vehiculos"
+            to="/admin/clientes"
+            collapsed={collapsed}
+            children={[
+              { label: 'Listado', to: '/admin/usuarios' },
+              { label: 'Crear', to: '/admin/usuarios/roles' },
+            ]}
+          />
+          {/* Más opciones… */}
         </nav>
 
         {!collapsed && <div className="sidebar-footer">v1.0</div>}
@@ -87,10 +138,32 @@ export default function DashboardAdmin() {
             <i className="bi bi-search" />
             <input placeholder="Buscar..." />
           </div>
-          <div className="top-actions">
+
+          {/* Perfil / menú */}
+          <div className="top-actions" ref={menuRef}>
             <button className="icon-btn" title="Notificaciones"><i className="bi bi-bell" /></button>
             <button className="icon-btn" title="Ajustes"><i className="bi bi-gear" /></button>
-            <div className="avatar" title="Admin">AD</div>
+
+            <button
+              className="profile-chip"
+              onClick={() => setMenuOpen(v => !v)}
+              aria-haspopup="menu"
+              aria-expanded={menuOpen}
+              title={user?.nombre_usuario || 'Usuario'}
+            >
+              <div className="avatar">{initials(user?.nombre_usuario)}</div>
+              <span className="profile-name">{user?.nombre_usuario || 'Usuario'}</span>
+              <i className={`bi ${menuOpen ? 'bi-caret-up-fill' : 'bi-caret-down-fill'}`} />
+            </button>
+
+            {menuOpen && (
+              <div className="profile-menu" role="menu">
+                <button className="profile-item" onClick={onLogout}>
+                  <i className="bi bi-box-arrow-right me-2" />
+                  Salir
+                </button>
+              </div>
+            )}
           </div>
         </header>
 

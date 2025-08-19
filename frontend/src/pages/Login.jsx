@@ -1,8 +1,9 @@
+// src/pages/Login.jsx
 import React, { useState } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { Nav } from 'react-bootstrap';
-import { useNavigate } from 'react-router-dom'; 
-
+import { useNavigate } from 'react-router-dom';
+import api from '../api';
 
 export default function Login() {
   const { login } = useAuth();
@@ -10,21 +11,42 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const navigate = useNavigate();             
-
+  const navigate = useNavigate();
 
   const onSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
     try {
-      const data =await login(email, password);
-      console.log(data)
+      const data = await login(email, password);
+      console.log(data);
       navigate('/verificacion', { replace: true });
     } catch (err) {
       setError(err.response?.data?.message || 'Error al iniciar sesión');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const onForgot = async (e) => {
+    e.preventDefault();
+    setError('');
+    if (!email.trim()) {
+      setError('Ingrese su nombre de usuario para recuperar la contraseña.');
+      return;
+    }
+    try {
+      const { data } = await api.post('/personas/recuperar-contrasena', {
+        username: email.trim(),
+      });
+      if (!data?.token) {
+        setError('No se recibió el token de recuperación.');
+        return;
+      }
+      localStorage.setItem('token', data.token);
+      navigate('/verificar-pass', { replace: true });
+    } catch (err) {
+      setError(err.response?.data?.message || 'No se pudo iniciar la recuperación.');
     }
   };
 
@@ -51,7 +73,7 @@ export default function Login() {
               className="form-control rounded-pill px-3"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="Correo electronico"
+              placeholder="Usuario"
               required
             />
           </div>
@@ -80,7 +102,9 @@ export default function Login() {
         </form>
 
         <div className="text-center mt-3">
-          <a href="#" className="text-decoration-none text-light">Olvidó el Password?</a>
+          <a href="#" className="text-decoration-none text-light" onClick={onForgot}>
+            Olvidó el Password?
+          </a>
         </div>
       </div>
     </div>

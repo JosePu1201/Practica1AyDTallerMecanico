@@ -17,6 +17,7 @@
   background: var(--bg);
 }
 
+/* ==== SIDEBAR ==== */
 .sidebar{
   background: linear-gradient(180deg, #0f1a3a 0%, #0c142c 100%);
   border-right: 1px solid var(--border);
@@ -24,6 +25,7 @@
   display: flex;
   flex-direction: column;
   transition: width .25s ease;
+  will-change: width;
 }
 .sidebar.collapsed{ width: 72px; }
 .sidebar:not(.collapsed){ width: 260px; }
@@ -36,24 +38,31 @@
   border: 1px solid var(--border);
   background: transparent; color: var(--text);
   width: 40px; height: 40px; border-radius: 10px;
+  display: grid; place-items: center;
+  transition: background .2s ease, border-color .2s ease;
 }
-.toggle-btn:hover{ background: rgba(255,255,255,.06); }
+.toggle-btn:hover{ background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.18); }
 
 .menu{ padding: 6px 8px; }
 .menu-link, .menu-btn{
   display: flex; align-items: center; gap: .75rem;
   color: var(--text); text-decoration: none;
   padding: 10px 12px; border-radius: 10px;
-  transition: background .2s ease, color .2s ease;
+  transition: background .2s ease, color .2s ease, border-color .2s ease;
   width: 100%;
 }
 .menu-link:hover, .menu-btn:hover{ background: rgba(255,255,255,.06); }
-.menu-link.active{ background: rgba(47,124,246,.15); color: #fff; border: 1px solid rgba(47,124,246,.35); }
+.menu-link.active{
+  background: rgba(47,124,246,.15);
+  color: #fff;
+  border: 1px solid rgba(47,124,246,.35);
+}
 .menu-btn{
   border: 1px solid transparent; background: transparent; cursor: pointer;
 }
 .menu-item.open > .menu-btn{ background: rgba(255,255,255,.06); }
 
+/* Submenú con animación suave por altura */
 .submenu{
   overflow: hidden; transition: height .25s ease;
   margin: 2px 0 8px 38px; border-left: 1px dashed var(--border);
@@ -69,13 +78,18 @@
   font-size: 12px;
 }
 
-/* Main area */
+/* ==== MAIN AREA ==== */
 .main{ display: flex; flex-direction: column; min-width: 0; }
+
+/* Topbar */
 .topbar{
   display: flex; align-items: center; justify-content: space-between;
   padding: 12px 16px; border-bottom: 1px solid var(--border);
   background: rgba(0,0,0,.15); backdrop-filter: blur(6px);
+  position: sticky; top: 0; z-index: 20;
 }
+
+/* Buscador */
 .search{
   display: flex; align-items: center; gap: 8px;
   background: var(--panel-2); border: 1px solid var(--border);
@@ -86,20 +100,79 @@
   background: transparent; border: none; outline: none; color: var(--text);
   width: 100%;
 }
+.search input::placeholder{ color: #96a1bf; }
 
-.top-actions{ display: flex; align-items: center; gap: 10px; }
+/* Acciones top-right */
+.top-actions{
+  position: relative;
+  display: flex; align-items: center; gap: 10px;
+}
 .icon-btn{
   width: 40px; height: 40px; border-radius: 10px;
   border: 1px solid var(--border); background: transparent; color: var(--text);
+  display: grid; place-items: center;
+  transition: background .2s ease, border-color .2s ease;
 }
-.icon-btn:hover{ background: rgba(255,255,255,.06); }
+.icon-btn:hover{ background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.18); }
+
+/* Avatar por defecto (se usa dentro del chip de perfil) */
 .avatar{
-  width: 36px; height: 36px; border-radius: 50%;
+  width: 28px; height: 28px; border-radius: 50%;
   display: grid; place-items: center; color: #fff;
   background: radial-gradient(85% 85% at 30% 25%, #3b82f6, #1d4ed8);
   font-size: 12px; font-weight: 700;
+  flex: 0 0 auto;
 }
 
+/* ==== CHIP DE PERFIL (nombre + caret) ==== */
+.profile-chip{
+  display: inline-flex; align-items: center; gap: .5rem;
+  padding: .35rem .6rem;
+  border: 1px solid var(--border);
+  border-radius: 9999px;
+  background: #0f1a2f; /* sutil sobre el topbar */
+  color: var(--text);
+  cursor: pointer;
+  transition: background .2s ease, border-color .2s ease, box-shadow .2s ease;
+}
+.profile-chip:hover{
+  background: rgba(255,255,255,.06);
+  border-color: rgba(255,255,255,.18);
+}
+.profile-name{
+  max-width: 180px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-weight: 600; font-size: 0.9rem;
+}
+
+/* ==== MENÚ PERFIL (dropdown) ==== */
+.profile-menu{
+  position: absolute;
+  right: 0; top: calc(100% + .4rem);
+  min-width: 200px;
+  background: #0f1a32;
+  border: 1px solid var(--border);
+  border-radius: .75rem;
+  box-shadow: 0 18px 30px rgba(0,0,0,.35);
+  padding: .25rem;
+  z-index: 50;
+  animation: menuIn .15s ease forwards;
+}
+@keyframes menuIn{
+  from{ transform: translateY(-6px); opacity: 0; }
+  to{ transform: translateY(0); opacity: 1; }
+}
+.profile-item{
+  width: 100%; text-align: left;
+  padding: .65rem .8rem;
+  border-radius: .55rem;
+  background: transparent; border: 0; color: var(--text);
+  cursor: pointer; display: flex; align-items: center; gap: .5rem;
+  transition: background .15s ease;
+}
+.profile-item:hover{ background: rgba(255,255,255,.06); }
+
+/* ==== CONTENIDO ==== */
 .content{
   padding: 18px; min-width: 0; flex: 1; overflow: auto;
 }
@@ -109,8 +182,21 @@
   box-shadow: var(--shadow);
 }
 
+/* Scrollbar sutil (webkit) */
+.content::-webkit-scrollbar{ height: 10px; width: 10px; }
+.content::-webkit-scrollbar-thumb{ background: rgba(255,255,255,.12); border-radius: 10px; }
+.content::-webkit-scrollbar-track{ background: transparent; }
+
+/* ==== FOCUS STATES ACCESIBLES ==== */
+.menu-link:focus, .menu-btn:focus, .icon-btn:focus, .profile-chip:focus, .profile-item:focus{
+  outline: 2px solid rgba(47,124,246,.7);
+  outline-offset: 2px;
+}
+
 /* Responsivo */
 @media (max-width: 992px){
   .admin-layout{ grid-template-columns: 72px 1fr; }
   .sidebar{ width: 72px !important; }
+  .search{ min-width: 180px; }
+  .profile-name{ max-width: 120px; }
 }

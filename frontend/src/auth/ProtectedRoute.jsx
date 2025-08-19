@@ -1,12 +1,19 @@
-import React from 'react';
+// src/auth/ProtectedRoute.jsx
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
+import { useAuth } from './AuthContext';
 
-export default function ProtectedRoute() {
-  const token = localStorage.getItem('token');
+export default function ProtectedRoute({ roles }) {
+  const { user, loading } = useAuth();
   const location = useLocation();
 
-  if (!token) {
-    return <Navigate to="/login" replace state={{ from: location }} />;
+  if (loading) return <div style={{padding:24,color:'#eaf0ff'}}>Cargando…</div>;
+  if (!user) return <Navigate to="/login" replace state={{ from: location }} />;
+
+  // roles puede no venir, ser número (1) o arreglo ([1,2])
+  if (roles !== undefined) {
+    const allowed = Array.isArray(roles) ? roles.includes(user.rol) : user.rol === roles;
+    if (!allowed) return <Navigate to="/" replace />;
   }
-  return <Outlet />; // renderiza la ruta protegida
+
+  return <Outlet />;
 }
