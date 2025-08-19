@@ -22,7 +22,7 @@ export default function Login() {
       console.log(data);
       navigate('/verificacion', { replace: true });
     } catch (err) {
-      setError(err.response?.data?.message || 'Error al iniciar sesión');
+      setError(err.response?.data?.error || 'Error al iniciar sesión');
     } finally {
       setLoading(false);
     }
@@ -46,7 +46,7 @@ export default function Login() {
       localStorage.setItem('token', data.token);
       navigate('/verificar-pass', { replace: true });
     } catch (err) {
-      setError(err.response?.data?.message || 'No se pudo iniciar la recuperación.');
+      setError(err.response?.data?.error || 'No se pudo iniciar la recuperación.');
     }
   };
 

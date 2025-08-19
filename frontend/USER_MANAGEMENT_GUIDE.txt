@@ -1,0 +1,96 @@
+# GUÍA DE ADMINISTRACIÓN DE USUARIOS
+
+Esta guía explica cómo utilizar el módulo de administración de usuarios implementado en el sistema.
+
+## FUNCIONALIDADES IMPLEMENTADAS
+
+### 1. Listado de Usuarios
+   - Visualización de todos los usuarios registrados
+   - Búsqueda y filtrado por nombre, apellido, usuario o rol
+   - Ordenación por diferentes campos
+   - Acciones rápidas: editar, ver detalles, eliminar
+
+### 2. Creación de Usuarios
+   - Formulario completo para registrar nuevos usuarios
+   - Validación de datos en tiempo real
+   - Selección de rol
+   - Datos personales y de contacto
+
+### 3. Edición de Usuarios
+   - Actualización de datos personales y de contacto
+   - Cambio de rol
+   - Cambio opcional de contraseña
+   - Validación de datos
+
+### 4. Detalles de Usuario
+   - Visualización completa de información del usuario
+   - Información personal y de contacto
+   - Datos de cuenta (rol, estado, etc.)
+   - Información adicional según el tipo de usuario
+
+### 5. Gestión de Roles
+   - Listado de roles disponibles
+   - Creación de nuevos roles
+   - Edición de roles existentes
+   - Eliminación de roles (excepto los predefinidos del sistema)
+
+### 6. Gestión de Especialistas
+   - Listado de técnicos/especialistas
+   - Asignación de área de especialidad
+   - Asignación de tipo de técnico
+   - Visualización de especialidades asignadas
+
+## ESTRUCTURA DE ARCHIVOS
+
+```
+frontend/
+  └── src/
+      ├── pages/
+      │   ├── admin/
+      │   │   ├── UserList.jsx       # Listado de usuarios
+      │   │   ├── UserForm.jsx       # Formulario para crear/editar usuarios
+      │   │   ├── UserDetail.jsx     # Página de detalles del usuario
+      │   │   ├── RoleList.jsx       # Gestión de roles
+      │   │   └── SpecialistList.jsx # Gestión de especialistas
+      │   └── DashboardAdmin.jsx     # Layout principal del admin
+      ├── services/
+      │   └── adminService.js        # Servicios para API de administración
+      └── utils/
+          └── notifications.js       # Utilidades para notificaciones
+```
+
+## FLUJOS DE USUARIO
+
+### Para crear un nuevo usuario:
+1. Navegar a "Usuarios" > "Listado" en el menú lateral
+2. Hacer clic en "Nuevo Usuario"
+3. Completar el formulario con todos los datos requeridos
+4. Hacer clic en "Crear"
+
+### Para editar un usuario existente:
+1. Navegar a "Usuarios" > "Listado"
+2. Encontrar el usuario deseado y hacer clic en el icono de editar (lápiz)
+3. Modificar los campos necesarios
+4. Hacer clic en "Actualizar"
+
+### Para eliminar un usuario:
+1. Navegar a "Usuarios" > "Listado"
+2. Encontrar el usuario deseado y hacer clic en el icono de eliminar (papelera)
+3. Confirmar la acción en el diálogo de confirmación
+
+### Para asignar una especialización a un técnico:
+1. Navegar a "Usuarios" > "Especialistas"
+2. Hacer clic en "Asignar Especialización"
+3. Seleccionar usuario, área y tipo de técnico
+4. Hacer clic en "Asignar Especialización"
+
+## CONSIDERACIONES TÉCNICAS
+
+- El sistema utiliza React Router para la navegación
+- Se implementó un enfoque de componentes reutilizables
+- Las llamadas a la API están centralizadas en servicios
+- Se utilizan notificaciones toast para feedback al usuario
+- La validación de formularios se realiza tanto en cliente como en servidor
+- Los datos se cargan de forma asíncrona con indicadores de carga
+- La autenticación y permisos están implementados mediante rutas protegidas
+- Todas las operaciones CRUD tienen confirmación y manejo de errores

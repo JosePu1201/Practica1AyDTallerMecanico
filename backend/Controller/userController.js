@@ -1,3 +1,4 @@
+const e = require('express');
 const {Persona, Usuario, UsuarioEspecialista, AreaEspecialista, TipoTecnico, ContactoPersona} = require('../Model');
 const {Rol, Proveedor, sequelize} = require('../Model');
 const bcrypt = require('bcrypt');
@@ -141,15 +142,25 @@ const updateUser = async (req, res) => {
     });
 
     // Actualizar usuario
-    await Usuario.update({
-      nombre_usuario,
-      contrasena: await bcrypt.hash(contrasena, 10),
-      id_rol
-    }, {
+    //si no se proporciona una nueva contraseña, no la actualizamos
+    if (!contrasena) {
+      await Usuario.update({
+        nombre_usuario,
+        id_rol
+      }, {
       where: { id_usuario: id },
       transaction
     });
-
+  }else {
+      await Usuario.update({
+        nombre_usuario,
+        contrasena: await bcrypt.hash(contrasena, 10),
+        id_rol
+      }, {
+        where: { id_usuario: id },
+        transaction
+      });
+    }
     await transaction.commit();
     res.json({ message: 'Usuario actualizado exitosamente' });
   } catch (error) {
@@ -295,6 +306,44 @@ const asignarEspecializacion = async (req, res) => {
     }
 }
 
+const getUserById = async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const user = await Usuario.findByPk(id, {
+            include: [
+                {
+                    model: Persona,
+                    include: [ContactoPersona]
+                },
+                {
+                    model: Rol
+                }
+            ]
+        });
+
+        if (!user) {
+            return res.status(404).json({ error: 'Usuario no encontrado' });
+        }
+
+        res.json(user);
+    } catch (error) {
+        console.error('Error al obtener usuario por ID:', error);
+        res.status(500).json({ error: 'Error al obtener usuario por ID' });
+    }
+}
+
+const createRol = async (req, res) => {
+  const { nombre_rol, descripcion } = req.body;
+  try {
+    const newRol = await Rol.create({ nombre_rol, descripcion });
+    res.status(201).json(newRol);
+  } catch (error) {
+    console.error('Error al crear rol:', error);
+    res.status(500).json({ error: 'Error al crear rol' });
+  }
+};
+
 module.exports = {
   getUsers,
   createUser,
@@ -304,5 +353,7 @@ module.exports = {
   getSpecialist,
   getAreasEspecialista,
   getTipoTecnico,
-  asignarEspecializacion
+  asignarEspecializacion,
+  getUserById,
+  createRol
 };

@@ -1,4 +1,4 @@
-const { Persona, ContactoPersona, Usuario, TokenAutenticacion, sequelize, HistorialLogin } = require('../Model');
+const { Persona, ContactoPersona, Usuario, TokenAutenticacion, sequelize, HistorialLogin, Rol } = require('../Model');
 const bcrypt = require('bcrypt');
 const EmailService = require('../services/emailService');
 
@@ -303,11 +303,22 @@ const autenticarCodigoVerificacion = async (req, res) => {
             rol: usuario.id_rol,
             nombre_usuario: usuario.nombre_usuario
         };
+
+        //Guardar ultimo inicio de sesion
+        await Usuario.update({
+            ultimo_acceso: new Date()
+        }, {
+            where: {
+                id_usuario: tokenAutenticacion.id_usuario
+            }
+        });
+
         console.log(req.session.user);
         return res.status(200).json({
             mensaje: 'Código de verificación autenticado correctamente',
             id_usuario: tokenAutenticacion.id_usuario,
             rol: (await Usuario.findByPk(tokenAutenticacion.id_usuario)).id_rol,
+            nombre_rol: (await Rol.findByPk((await Usuario.findByPk(tokenAutenticacion.id_usuario)).id_rol)).nombre_rol,
             nombre_usuario: (await Usuario.findByPk(tokenAutenticacion.id_usuario)).nombre_usuario
         });
     } catch (error) {
