@@ -18,6 +18,11 @@ import UserDetail from './pages/admin/UserDetail';
 import RoleList from './pages/admin/RoleList';
 import SpecialistList from './pages/admin/SpecialistList';
 
+// admin vehicles
+import VehiclesList from './pages/admin/vehicles/VehiclesList';
+import VehicleForm from './pages/admin/vehicles/VehicleForm';
+import VehicleHistory from './pages/admin/vehicles/VehicleHostory';
+
 export default function App() {
   return (
     <AuthProvider>
@@ -43,6 +48,13 @@ export default function App() {
               <Route path="usuarios/detalle/:id" element={<UserDetail />} />
               <Route path="usuarios/roles" element={<RoleList />} />
               <Route path="usuarios/especialistas" element={<SpecialistList />} />
+              
+                        {/* Vehicles */}
+              <Route path="vehicles" element={<VehiclesList />} />
+              <Route path="vehicles/new" element={<VehicleForm />} />
+              <Route path="vehicles/:id/edit" element={<VehicleForm />} />
+              <Route path="vehicles/:id/history" element={<VehicleHistory />} />
+
               
               {/* Default admin page */}
               <Route index element={<div className="p-4"><h1>Panel de Administración</h1><p>Seleccione una opción del menú</p></div>} />

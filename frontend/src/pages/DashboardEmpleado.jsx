@@ -1,6 +1,8 @@
 import React, { useMemo, useState, useEffect, useRef } from "react";
 import { NavLink } from "react-router-dom";
 import './stiles/empleado.css';
+import axios from "axios";
+
 
 const inicial = [
   { id: "SV-001", cliente: "Juan Pérez",  descripcion: "Cambio de aceite",           estado: "pendiente",   fecha: "2025-08-18" },
@@ -50,10 +52,24 @@ export default function DashboardEmpleado() {
     return () => document.removeEventListener("mousedown", onDown);
   }, []);
 
-  const logout = () => {
-    localStorage.removeItem("user");
-    localStorage.removeItem("token");
-    window.location.replace("/");
+const onLogout = async() => {
+    try {
+        const res = await axios.post("/api/personas/logout");
+
+        console.log(res.data.mensaje); 
+
+        localStorage.removeItem("user");
+        localStorage.removeItem("token");
+
+        navigate("/", { replace: true });
+
+      } catch (error) {
+        console.error("Error cerrando sesión:", error);
+
+        localStorage.removeItem("user");
+        localStorage.removeItem("token");
+        navigate("/", { replace: true });
+      }
   };
 
   return (

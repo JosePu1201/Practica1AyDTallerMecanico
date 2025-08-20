@@ -13,7 +13,7 @@ export default function ProtectedRoute({ roles }) {
   if (roles !== undefined) {
     const allowed = Array.isArray(roles) ? roles.includes(user.nombre_rol) : user.nombre_rol === roles;
     if (!allowed) return <Navigate to="/" replace />;
-    console.log(user);
+    //console.log(user);
   }
 
   return <Outlet />;

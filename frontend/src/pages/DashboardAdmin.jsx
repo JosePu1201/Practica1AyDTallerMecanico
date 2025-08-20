@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import './stiles/admin.css';
+import axios from "axios";
+
 
 function SidebarItem({ icon, label, to, children, collapsed }) {
   const [open, setOpen] = useState(false);
@@ -86,11 +88,26 @@ export default function DashboardAdmin() {
       .join('')
       .slice(0, 2) || 'US';
 
-  const onLogout = () => {
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
-    localStorage.removeItem('adminSidebarCollapsed');
-    navigate('/', { replace: true });
+  const onLogout = async() => {
+    try {
+        const res = await axios.post("/api/personas/logout");
+
+        console.log(res.data.mensaje); 
+
+        localStorage.removeItem("user");
+        localStorage.removeItem("token");
+        localStorage.removeItem("adminSidebarCollapsed");
+
+        navigate("/", { replace: true });
+
+      } catch (error) {
+        console.error("Error cerrando sesión:", error);
+
+        localStorage.removeItem("user");
+        localStorage.removeItem("token");
+        localStorage.removeItem("adminSidebarCollapsed");
+        navigate("/", { replace: true });
+      }
   };
 
   return (
@@ -121,8 +138,8 @@ export default function DashboardAdmin() {
             label="Vehículos"
             collapsed={collapsed}
             children={[
-              { label: 'Listado', to: '/admin/vehiculos' },
-              { label: 'Registro', to: '/admin/vehiculos/nuevo' },
+              { label: 'Listado', to: '/admin/vehicles' },
+              { label: 'Registro', to: '/admin/vehicles/new' },
               { label: 'Servicios', to: '/admin/vehiculos/servicios' },
             ]}
           />
