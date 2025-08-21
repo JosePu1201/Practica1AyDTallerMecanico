@@ -31,7 +31,9 @@ const startServer = async () => {
     //console.log('Modelos sincronizados y migracion completada');
     
     const userRouter = require('./Ruters/user.ruter');
+    const vehicleRouter = require('./Ruters/vehicle.ruter');
     app.use('/api/personas', userRouter); // Usar las rutas de usuario
+    app.use('/api/vehiculos', vehicleRouter); // Usar las rutas de vehículo
 
     const managementUsersRouter = require('./Ruters/management_users.router');
     app.use('/api/management', managementUsersRouter);

@@ -468,6 +468,27 @@ const logout = (req, res) => {
     req.session.destroy();
     return res.status(200).json({ mensaje: 'Sesión cerrada correctamente' });
 };
+
+const listarUsuariosClientes = async (req, res) => {
+    //validar que el rol de la sesion sea administrador (el rol es un id)
+    /*if (req.session.user.rol !== 1) {
+        return res.status(403).json({ error: 'No tienes permiso para realizar esta acción' });
+    }*/
+    //paginacion
+    const { page = 1, limit = 10 } = req.query;
+    const offset = (page - 1) * limit;
+    try {
+        const { count, rows } = await Usuario.findAndCountAll({
+            where: { id_rol: 3, estado: "ACTIVO" }, // 3 es el id del rol cliente
+            limit: Number(limit),
+            offset: Number(offset),
+            attributes:{exclude: ['contrasena']}, // Excluir la contraseña
+        });
+        return res.json({ total: count, usuarios: rows });
+    } catch (error) {
+        return res.status(500).json({ error: 'Error al listar usuarios clientes' });
+    }
+};
 module.exports = {
     obtenerPersonas,
     crearPersona,
@@ -477,5 +498,6 @@ module.exports = {
     recuperarContrasena,
     validarCodigoRecuperacion,
     logout,
-    cambiarContrasena
+    cambiarContrasena,
+    listarUsuariosClientes
 };

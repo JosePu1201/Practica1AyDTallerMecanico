@@ -31,4 +31,6 @@ router.post('/validar-codigo-recuperacion', personaController.validarCodigoRecup
 router.post('/logout', personaController.logout);
 //cambiar contraseña    
 router.put('/cambiar-contrasena', personaController.cambiarContrasena);
+// Listar usuarios clientes
+router.get('/listar-usuarios-clientes', personaController.listarUsuariosClientes);
 module.exports = router;
