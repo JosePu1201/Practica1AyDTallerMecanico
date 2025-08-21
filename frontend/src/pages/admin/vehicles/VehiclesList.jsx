@@ -1,36 +1,65 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Card, Table, Button, Spinner, Form, InputGroup, Badge } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 
-export default function VehiclesList() {
+export default function VehiclesList({ initialData }) {
+  const [allVehicles, setAllVehicles] = useState([]);
   const [vehicles, setVehicles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState('');
   const [error, setError] = useState(null);
 
-  useEffect(() => { fetchVehicles(); }, []);
+  const normalizedInitial = useMemo(() => {
+    if (!initialData) return null;
+    return Array.isArray(initialData) ? initialData : (initialData.vehiculos || []);
+  }, [initialData]);
 
-  const fetchVehicles = async () => {
-    try {
-      setLoading(true);
-     
-      const res = await axios.get('/api/vehicles', { params: { q } });
-      setVehicles(res.data || []);
-      setError(null);
-    } catch (err) {
-      const msg = err.response?.data?.error || err.message;
-      setError('Error al cargar vehículos: ' + msg);
-      toast.error('No se pudieron cargar los vehículos');
-    } finally {
-      setLoading(false);
+  useEffect(() => {
+    const loadOnce = async () => {
+      try {
+        setLoading(true);
+        let base = normalizedInitial;
+        if (!base) {
+          const res = await axios.get('/api/vehiculos/listar');
+          base = Array.isArray(res.data) ? res.data : (res.data?.vehiculos || []);
+        }
+        setAllVehicles(base);
+        setVehicles(base);
+        setError(null);
+      } catch (err) {
+        const msg = err.response?.data?.error || err.message;
+        setError('Error al cargar vehículos: ' + msg);
+        toast.error('No se pudieron cargar los vehículos');
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadOnce();
+  }, [normalizedInitial]);
+
+  // Filtro en memoria
+  const applyFilter = (term) => {
+    const t = term.trim().toLowerCase();
+    if (!t) {
+      setVehicles(allVehicles);
+      return;
     }
+    const filtered = allVehicles.filter(v => {
+      const placa  = (v.placa  || '').toLowerCase();
+      const marca  = (v.marca  || '').toLowerCase();
+      const modelo = (v.modelo || '').toLowerCase();
+      return placa.includes(t) || marca.includes(t) || modelo.includes(t);
+    });
+    setVehicles(filtered);
   };
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-    fetchVehicles();
+  // Filtro en cada tecla
+  const handleChange = (e) => {
+    const val = e.target.value;
+    setQ(val);
+    applyFilter(val);
   };
 
   if (loading) {
@@ -60,16 +89,25 @@ export default function VehiclesList() {
 
       <Card>
         <Card.Body>
-          <Form onSubmit={handleSearch} className="mb-3">
+          <Form className="mb-3">
             <InputGroup>
               <Form.Control
                 placeholder="Buscar por placa, marca o modelo..."
                 value={q}
-                onChange={(e) => setQ(e.target.value)}
+                onChange={handleChange}
               />
-              <Button type="submit" variant="outline-secondary">
-                <i className="bi bi-search" /> Buscar
-              </Button>
+              {!!q && (
+                <Button
+                  type="button"
+                  variant="outline-secondary"
+                  onClick={() => {
+                    setQ('');
+                    setVehicles(allVehicles);
+                  }}
+                >
+                  <i className="bi bi-x-circle" /> Limpiar
+                </Button>
+              )}
             </InputGroup>
           </Form>
 
@@ -102,11 +140,7 @@ export default function VehiclesList() {
                   <td>{v.anio || '-'}</td>
                   <td>{v.color || '-'}</td>
                   <td>{Number(v.kilometraje || 0).toLocaleString()}</td>
-                  <td>
-                    {v.cliente
-                      ? `${v.cliente?.nombre} ${v.cliente?.apellido}`
-                      : (v.nombre_cliente || '-')}
-                  </td>
+                  <td>{v.id_cliente}</td>
                   <td>
                     <Badge bg={v.estado === 'ACTIVO' ? 'success' : 'secondary'}>
                       {v.estado || 'ACTIVO'}
@@ -123,6 +157,7 @@ export default function VehiclesList() {
                       </Link>
                       <Link
                         to={`/admin/vehicles/${v.id_vehiculo}/edit`}
+                        state={{ vehicle: v }}
                         className="btn btn-outline-primary"
                         title="Editar"
                       >
