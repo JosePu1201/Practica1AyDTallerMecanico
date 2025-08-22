@@ -28,7 +28,7 @@ module.exports = {
     });
 
     await queryInterface.createTable('asignacion_trabajo', {
-      id_asignacion_trabajo: { type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true },
+      id_asignacion: { type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true },
       id_tipo_trabajo: { type: Sequelize.INTEGER, allowNull: false, references: { model: 'tipo_mantenimiento', key: 'id_tipo_trabajo' }, onDelete: 'CASCADE' },
       id_registro: { type: Sequelize.INTEGER, allowNull: false, references: { model: 'registro_servicio_vehiculo', key: 'id_registro' }, onDelete: 'CASCADE' },
       id_usuario_empleado: { type: Sequelize.INTEGER, allowNull: false, references: { model: 'usuario', key: 'id_usuario' }, onDelete: 'CASCADE' },
