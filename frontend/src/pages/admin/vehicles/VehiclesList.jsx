@@ -10,6 +10,7 @@ export default function VehiclesList({ initialData }) {
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState('');
   const [error, setError] = useState(null);
+  const [deletingId, setDeletingId] = useState(null); // ← id que se está eliminando
 
   const normalizedInitial = useMemo(() => {
     if (!initialData) return null;
@@ -60,6 +61,38 @@ export default function VehiclesList({ initialData }) {
     const val = e.target.value;
     setQ(val);
     applyFilter(val);
+  };
+
+  // Eliminar vehículo (PUT /api/vehiculos/eliminar/:id)
+  const handleDelete = async (veh) => {
+    const { id_vehiculo, placa } = veh;
+    const ok = window.confirm(`¿Eliminar el vehículo ${placa || '#'+id_vehiculo}?`);
+    if (!ok) return;
+
+    try {
+      setDeletingId(id_vehiculo);
+      const res = await axios.put(`/api/vehiculos/eliminar/${id_vehiculo}`);
+
+      const msg = res.data?.message || 'Vehículo eliminado';
+      toast.success(msg);
+
+      // Quitar de las listas en memoria
+      setAllVehicles(prev => prev.filter(x => x.id_vehiculo !== id_vehiculo));
+      setVehicles(prev => prev.filter(x => x.id_vehiculo !== id_vehiculo));
+    } catch (err) {
+      const apiErr = err.response?.data?.error || err.message;
+
+      if (apiErr?.toLowerCase().includes('ya está eliminado')) {
+        toast.info('El vehículo ya estaba eliminado');
+        // Aun así, sácalo de la tabla para reflejar el estado
+        setAllVehicles(prev => prev.filter(x => x.id_vehiculo !== id_vehiculo));
+        setVehicles(prev => prev.filter(x => x.id_vehiculo !== id_vehiculo));
+      } else {
+        toast.error('No se pudo eliminar el vehículo: ' + apiErr);
+      }
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   if (loading) {
@@ -163,6 +196,18 @@ export default function VehiclesList({ initialData }) {
                       >
                         <i className="bi bi-pencil-square" />
                       </Link>
+                      <Button
+                        type="button"
+                        variant="outline-danger"
+                        title="Eliminar"
+                        onClick={() => handleDelete(v)}
+                        disabled={deletingId === v.id_vehiculo}
+                      >
+                        {deletingId === v.id_vehiculo
+                          ? <i className="bi bi-hourglass-split" />
+                          : <i className="bi bi-trash" />
+                        }
+                      </Button>
                     </div>
                   </td>
                 </tr>
