@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, Row, Col, Badge, Button, Spinner, Tab, Tabs, Table, Alert } from 'react-bootstrap';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { serviceManagementService } from '../../../services/serviceManagementService';
+import './styles/ServiceDetail.css'; // Import the CSS
 
 export default function ServiceDetail() {
   const { id } = useParams();
@@ -18,7 +19,7 @@ export default function ServiceDetail() {
       try {
         setLoading(true);
         
-        // Get all services
+        // Get all services to find the current one
         const services = await serviceManagementService.getServices();
         const currentService = services.find(s => s.id_registro.toString() === id);
         
@@ -30,22 +31,10 @@ export default function ServiceDetail() {
         
         setService(currentService);
         
-        // Get assigned works for this service
-        const allEmployees = await serviceManagementService.getEmployees();
-        
-        // We'll need to fetch work assignments for each employee to find ones related to this service
-        const workPromises = allEmployees.map(employee => 
-          serviceManagementService.getWorksEmployee(employee.id_usuario)
-        );
-        
-        const allWorks = await Promise.all(workPromises);
-        
-        // Flatten the array and filter works for this service
-        const works = allWorks
-          .flat()
-          .filter(work => work.id_registro.toString() === id);
-        
+        // Get assigned works for this service using the new endpoint
+        const works = await serviceManagementService.getWorksByServiceId(id);
         setAssignedWorks(works);
+        
         setLoading(false);
       } catch (err) {
         setError('Error al cargar los detalles del servicio: ' + err.message);
@@ -102,6 +91,7 @@ export default function ServiceDetail() {
     });
   };
 
+  // Loading, error, and not found states
   if (loading) {
     return (
       <div className="text-center my-5">
@@ -144,17 +134,20 @@ export default function ServiceDetail() {
   }
 
   return (
-    <div>
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h1>Detalles del Servicio #{service.id_registro}</h1>
+    <div className="service-detail-container">
+      {/* Header with improved styling */}
+      <div className="d-flex justify-content-between align-items-center mb-4 bg-white p-3 rounded shadow-sm">
+        <h1 className="text-primary mb-0">
+          Servicio #{service.id_registro}
+        </h1>
         <div className="d-flex gap-2">
           <Link to="/admin/services/list" className="btn btn-outline-secondary">
             <i className="bi bi-arrow-left me-2"></i>
-            Volver a la lista
+            Volver
           </Link>
           <Link to={`/admin/services/edit/${service.id_registro}`} className="btn btn-outline-primary">
             <i className="bi bi-pencil me-2"></i>
-            Editar Servicio
+            Editar
           </Link>
           <Link to={`/admin/services/assign-work/${service.id_registro}`} className="btn btn-primary">
             <i className="bi bi-person-check me-2"></i>
@@ -163,29 +156,69 @@ export default function ServiceDetail() {
         </div>
       </div>
 
-      <div className="bg-light rounded p-4 mb-4">
-        <Row>
-          <Col md={8}>
-            <h2>
-              {service.Vehiculo?.marca} {service.Vehiculo?.modelo}
-              <span className="text-muted ms-2 fs-5">
-                Placa: {service.Vehiculo?.placa}
-              </span>
-            </h2>
-            <p className="mb-2 fs-5">
-              Cliente: {service.Vehiculo?.Usuario?.Persona?.nombre} {service.Vehiculo?.Usuario?.Persona?.apellido}
-            </p>
-          </Col>
-          <Col md={4} className="text-md-end">
-            <div className="mb-2">
-              Estado: {getStatusBadge(service.estado)}
-            </div>
-            <div>
-              Prioridad: {getPriorityBadge(service.prioridad)}
-            </div>
-          </Col>
-        </Row>
-      </div>
+      {/* Summary card with improved styling */}
+      <Card className="mb-4 shadow-sm">
+        <Card.Header className="bg-light">
+          <h5 className="mb-0">Resumen del Servicio</h5>
+        </Card.Header>
+        <Card.Body>
+          <Row>
+            <Col md={8}>
+              <div className="d-flex align-items-center mb-3">
+                <div className="vehicle-icon me-3 bg-light p-3 rounded-circle">
+                  <i className="bi bi-car-front fs-3 text-primary"></i>
+                </div>
+                <div>
+                  <h3 className="mb-1">
+                    {service.Vehiculo?.marca} {service.Vehiculo?.modelo}
+                  </h3>
+                  <p className="text-muted mb-0">
+                    Placa: <strong>{service.Vehiculo?.placa}</strong> | 
+                    Año: <strong>{service.Vehiculo?.anio}</strong> | 
+                    Color: <strong>{service.Vehiculo?.color}</strong>
+                  </p>
+                </div>
+              </div>
+              <div className="customer-info p-3 border-start ps-4">
+                <div className="d-flex align-items-center">
+                  <i className="bi bi-person-circle me-2 text-secondary fs-5"></i>
+                  <h5 className="mb-0">
+                    {service.Vehiculo?.Usuario?.Persona?.nombre} {service.Vehiculo?.Usuario?.Persona?.apellido}
+                  </h5>
+                </div>
+                <p className="text-muted mb-0 small">
+                  Cliente #{service.Vehiculo?.Usuario?.id_usuario} | 
+                  Usuario: {service.Vehiculo?.Usuario?.nombre_usuario}
+                </p>
+              </div>
+            </Col>
+            <Col md={4}>
+              <div className="service-status p-3 bg-light rounded text-center">
+                <div className="mb-3">
+                  <div className="mb-2">Estado Actual:</div>
+                  {getStatusBadge(service.estado)}
+                </div>
+                <div>
+                  <div className="mb-2">Prioridad:</div>
+                  {getPriorityBadge(service.prioridad)}
+                </div>
+              </div>
+              <div className="service-dates mt-3 text-center">
+                <div className="row">
+                  <div className="col-6 border-end">
+                    <small className="text-muted d-block">Ingreso</small>
+                    <span>{formatDate(service.fecha_ingreso)}</span>
+                  </div>
+                  <div className="col-6">
+                    <small className="text-muted d-block">Est. Finalización</small>
+                    <span>{formatDate(service.fecha_estimada_finalizacion)}</span>
+                  </div>
+                </div>
+              </div>
+            </Col>
+          </Row>
+        </Card.Body>
+      </Card>
 
       <Tabs
         activeKey={activeTab}
@@ -194,175 +227,181 @@ export default function ServiceDetail() {
         className="mb-4"
       >
         <Tab eventKey="details" title="Detalles del Servicio">
-          <Card>
+          <Card className="shadow-sm">
             <Card.Body>
-              <Row>
-                <Col md={6}>
-                  <h5 className="mb-3">Información del Servicio</h5>
-                  <dl className="row">
-                    <dt className="col-sm-4">ID del Servicio</dt>
-                    <dd className="col-sm-8">#{service.id_registro}</dd>
-
-                    <dt className="col-sm-4">Estado</dt>
-                    <dd className="col-sm-8">{getStatusBadge(service.estado)}</dd>
-                    
-                    <dt className="col-sm-4">Prioridad</dt>
-                    <dd className="col-sm-8">{getPriorityBadge(service.prioridad)}</dd>
-                    
-                    <dt className="col-sm-4">Fecha de Registro</dt>
-                    <dd className="col-sm-8">{formatDate(service.fecha_registro)}</dd>
-                    
-                    <dt className="col-sm-4">Fecha Estimada</dt>
-                    <dd className="col-sm-8">{formatDate(service.fecha_estimada_finalizacion)}</dd>
-                  </dl>
-
-                  <h5 className="mb-3 mt-4">Cambiar Estado</h5>
-                  <div className="d-flex gap-2 flex-wrap">
-                    <Button 
-                      variant="outline-warning" 
-                      onClick={() => handleStatusChange('PENDIENTE')}
-                      disabled={service.estado === 'PENDIENTE'}
-                    >
-                      Pendiente
-                    </Button>
-                    <Button 
-                      variant="outline-primary" 
-                      onClick={() => handleStatusChange('EN_PROCESO')}
-                      disabled={service.estado === 'EN_PROCESO'}
-                    >
-                      En Proceso
-                    </Button>
-                    <Button 
-                      variant="outline-success" 
-                      onClick={() => handleStatusChange('COMPLETADO')}
-                      disabled={service.estado === 'COMPLETADO'}
-                    >
-                      Completado
-                    </Button>
-                    <Button 
-                      variant="outline-danger" 
-                      onClick={() => handleStatusChange('CANCELADO')}
-                      disabled={service.estado === 'CANCELADO'}
-                    >
-                      Cancelado
-                    </Button>
-                  </div>
-                </Col>
-                
-                <Col md={6}>
-                  <h5 className="mb-3">Información del Vehículo</h5>
-                  <dl className="row">
-                    <dt className="col-sm-4">Marca</dt>
-                    <dd className="col-sm-8">{service.Vehiculo?.marca}</dd>
-                    
-                    <dt className="col-sm-4">Modelo</dt>
-                    <dd className="col-sm-8">{service.Vehiculo?.modelo}</dd>
-                    
-                    <dt className="col-sm-4">Año</dt>
-                    <dd className="col-sm-8">{service.Vehiculo?.anio}</dd>
-                    
-                    <dt className="col-sm-4">Placa</dt>
-                    <dd className="col-sm-8">{service.Vehiculo?.placa}</dd>
-                    
-                    <dt className="col-sm-4">Color</dt>
-                    <dd className="col-sm-8">{service.Vehiculo?.color}</dd>
-                    
-                    <dt className="col-sm-4">Cliente</dt>
-                    <dd className="col-sm-8">
-                      {service.Vehiculo?.Usuario?.Persona?.nombre} {service.Vehiculo?.Usuario?.Persona?.apellido}
-                    </dd>
-                  </dl>
-                </Col>
-              </Row>
-              
-              <hr />
-              
-              <Row>
+              <Row className="mb-4">
                 <Col md={12}>
-                  <h5>Descripción del Problema</h5>
-                  <p>{service.descripcion_problema}</p>
+                  <h5 className="border-bottom pb-2 mb-3">Descripción del Problema</h5>
+                  <div className="p-3 bg-light rounded">
+                    <p className="mb-0">{service.descripcion_problema}</p>
+                  </div>
                 </Col>
               </Row>
               
               {service.observaciones_iniciales && (
-                <Row>
+                <Row className="mb-4">
                   <Col md={12}>
-                    <h5>Observaciones Iniciales</h5>
-                    <p>{service.observaciones_iniciales}</p>
+                    <h5 className="border-bottom pb-2 mb-3">Observaciones Iniciales</h5>
+                    <div className="p-3 bg-light rounded">
+                      <p className="mb-0">{service.observaciones_iniciales}</p>
+                    </div>
                   </Col>
                 </Row>
               )}
+              
+              <Row>
+                <Col md={12}>
+                  <h5 className="border-bottom pb-2 mb-3">Acciones Disponibles</h5>
+                  <div className="d-flex flex-wrap gap-2 justify-content-center">
+                    <Button 
+                      variant={service.estado === 'PENDIENTE' ? 'warning' : 'outline-warning'}
+                      size="lg" 
+                      onClick={() => handleStatusChange('PENDIENTE')}
+                      disabled={service.estado === 'PENDIENTE'}
+                      className="action-button"
+                    >
+                      <i className="bi bi-hourglass me-2"></i>
+                      Pendiente
+                    </Button>
+                    <Button 
+                      variant={service.estado === 'EN_PROCESO' ? 'primary' : 'outline-primary'}
+                      size="lg" 
+                      onClick={() => handleStatusChange('EN_PROCESO')}
+                      disabled={service.estado === 'EN_PROCESO'}
+                      className="action-button"
+                    >
+                      <i className="bi bi-gear-fill me-2"></i>
+                      En Proceso
+                    </Button>
+                    <Button 
+                      variant={service.estado === 'COMPLETADO' ? 'success' : 'outline-success'}
+                      size="lg" 
+                      onClick={() => handleStatusChange('COMPLETADO')}
+                      disabled={service.estado === 'COMPLETADO'}
+                      className="action-button"
+                    >
+                      <i className="bi bi-check-circle-fill me-2"></i>
+                      Completado
+                    </Button>
+                    <Button 
+                      variant={service.estado === 'CANCELADO' ? 'danger' : 'outline-danger'}
+                      size="lg" 
+                      onClick={() => handleStatusChange('CANCELADO')}
+                      disabled={service.estado === 'CANCELADO'}
+                      className="action-button"
+                    >
+                      <i className="bi bi-x-circle-fill me-2"></i>
+                      Cancelado
+                    </Button>
+                  </div>
+                </Col>
+              </Row>
             </Card.Body>
           </Card>
         </Tab>
         
         <Tab eventKey="works" title="Trabajos Asignados">
-          <Card>
+          <Card className="shadow-sm">
             <Card.Body>
               {assignedWorks.length === 0 ? (
                 <div className="text-center py-5">
-                  <i className="bi bi-clipboard-x display-4 text-muted"></i>
-                  <h3 className="mt-3 text-muted">No hay trabajos asignados</h3>
-                  <p className="text-muted">
+                  <div className="empty-state-icon mb-3">
+                    <i className="bi bi-clipboard-x display-4 text-muted"></i>
+                  </div>
+                  <h3 className="text-muted">No hay trabajos asignados</h3>
+                  <p className="text-muted mb-4">
                     Este servicio no tiene trabajos asignados aún.
                   </p>
-                  <Link to={`/admin/services/assign-work/${service.id_registro}`} className="btn btn-primary mt-2">
+                  <Link to={`/admin/services/assign-work/${service.id_registro}`} className="btn btn-primary btn-lg">
                     <i className="bi bi-person-check me-2"></i>
                     Asignar Trabajo
                   </Link>
                 </div>
               ) : (
-                <div className="table-responsive">
-                  <Table hover bordered>
-                    <thead className="table-light">
-                      <tr>
-                        <th>ID</th>
-                        <th>Tipo de Trabajo</th>
-                        <th>Asignado a</th>
-                        <th>Descripción</th>
-                        <th>Precio</th>
-                        <th>Estado</th>
-                        <th>Acciones</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {assignedWorks.map(work => (
-                        <tr key={work.id_asignacion_trabajo}>
-                          <td>{work.id_asignacion_trabajo}</td>
-                          <td>{work.TipoMantenimiento?.nombre_tipo}</td>
-                          <td>
-                            {work.Usuario?.Persona?.nombre} {work.Usuario?.Persona?.apellido}
-                          </td>
-                          <td>
-                            <div style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                              {work.descripcion}
-                            </div>
-                          </td>
-                          <td>${work.precio.toFixed(2)}</td>
-                          <td>
-                            <Badge bg={
-                              work.estado === 'PENDIENTE' ? 'warning' :
-                              work.estado === 'EN_PROCESO' ? 'primary' :
-                              work.estado === 'COMPLETADO' ? 'success' :
-                              'secondary'
-                            }>
-                              {work.estado}
-                            </Badge>
-                          </td>
-                          <td>
-                            <div className="d-flex gap-1">
-                              <Button size="sm" variant="outline-primary">
-                                <i className="bi bi-eye"></i>
-                              </Button>
-                              <Button size="sm" variant="outline-secondary">
-                                <i className="bi bi-pencil"></i>
-                              </Button>
-                            </div>
-                          </td>
+                <div>
+                  <div className="d-flex justify-content-between align-items-center mb-3">
+                    <h5 className="mb-0">Trabajos asignados al servicio</h5>
+                    <Link to={`/admin/services/assign-work/${service.id_registro}`} className="btn btn-sm btn-primary">
+                      <i className="bi bi-plus-circle me-1"></i> Nuevo Trabajo
+                    </Link>
+                  </div>
+                  <div className="table-responsive">
+                    <Table hover bordered className="align-middle">
+                      <thead className="table-light">
+                        <tr>
+                          <th>ID</th>
+                          <th>Tipo de Trabajo</th>
+                          <th>Asignado a</th>
+                          <th>Descripción</th>
+                          <th>Precio</th>
+                          <th>Estado</th>
+                          <th>Acciones</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </Table>
+                      </thead>
+                      <tbody>
+                        {assignedWorks.map(work => (
+                          <tr key={work.id_asignacion}>
+                            <td>{work.id_asignacion}</td>
+                            <td>{work.TipoMantenimiento?.nombre_tipo}</td>
+                            <td>
+                              <div className="d-flex align-items-center">
+                                <div className="avatar-sm me-2 bg-light rounded-circle d-flex align-items-center justify-content-center">
+                                  <i className="bi bi-person text-secondary"></i>
+                                </div>
+                                <div>
+                                  {work.empleadoAsignado?.Persona?.nombre} {work.empleadoAsignado?.Persona?.apellido}
+                                  <small className="d-block text-muted">{work.empleadoAsignado?.nombre_usuario}</small>
+                                </div>
+                              </div>
+                            </td>
+                            <td>
+                              <div style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                {work.descripcion}
+                                <Button 
+                                  size="sm" 
+                                  variant="link" 
+                                  className="p-0 ms-2"
+                                  title="Ver descripción completa"
+                                >
+                                  <i className="bi bi-eye-fill"></i>
+                                </Button>
+                              </div>
+                            </td>
+                            <td className="text-end fw-bold">Q{Number(work.precio).toFixed(2)}</td>
+                            <td className="text-center">
+                              <Badge bg={
+                                work.estado === 'ASIGNADO' ? 'warning' :
+                                work.estado === 'EN_PROCESO' ? 'primary' :
+                                work.estado === 'COMPLETADO' ? 'success' :
+                                'secondary'
+                              }>
+                                {work.estado || 'ASIGNADO'}
+                              </Badge>
+                            </td>
+                            <td>
+                              <div className="d-flex gap-1 justify-content-center">
+                                <Button size="sm" variant="outline-primary" title="Ver detalles">
+                                  <i className="bi bi-eye"></i>
+                                </Button>
+                                <Button size="sm" variant="outline-secondary" title="Editar">
+                                  <i className="bi bi-pencil"></i>
+                                </Button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                      <tfoot className="table-light">
+                        <tr>
+                          <td colSpan="4" className="text-end fw-bold">Total:</td>
+                          <td className="text-end fw-bold">
+                            Q{assignedWorks.reduce((sum, work) => sum + Number(work.precio), 0).toFixed(2)}
+                          </td>
+                          <td colSpan="2"></td>
+                        </tr>
+                      </tfoot>
+                    </Table>
+                  </div>
                 </div>
               )}
             </Card.Body>
@@ -370,11 +409,13 @@ export default function ServiceDetail() {
         </Tab>
         
         <Tab eventKey="history" title="Historial">
-          <Card>
+          <Card className="shadow-sm">
             <Card.Body>
               <div className="text-center py-5">
-                <i className="bi bi-clock-history display-4 text-muted"></i>
-                <h3 className="mt-3 text-muted">Historial del Servicio</h3>
+                <div className="empty-state-icon mb-3">
+                  <i className="bi bi-clock-history display-4 text-muted"></i>
+                </div>
+                <h3 className="text-muted">Historial del Servicio</h3>
                 <p className="text-muted">
                   El historial detallado estará disponible próximamente.
                 </p>

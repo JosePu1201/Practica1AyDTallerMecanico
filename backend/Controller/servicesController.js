@@ -93,7 +93,7 @@ const getServices = async (req, res) => {
             include: [
                 {
                     model: Vehiculo,
-                    attributes: ['id_vehiculo', 'marca', 'modelo'],
+                    attributes: ['id_vehiculo', 'marca', 'modelo', 'anio', 'placa', 'color'],
                     include: [
                         {
                             model: Usuario,

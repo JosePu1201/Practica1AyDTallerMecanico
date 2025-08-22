@@ -157,6 +157,7 @@ export default function DashboardAdmin() {
             label="Trabajos"
             collapsed={collapsed}
             children={[
+              { label: 'Servicios', to: '/admin/services' },
               { label: 'Asignaciones', to: '/admin/trabajos/asignaciones' },
               { label: 'Tipos', to: '/admin/trabajos/tipos' },
               { label: 'Seguimiento', to: '/admin/trabajos/seguimiento' },

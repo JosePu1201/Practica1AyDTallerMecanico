@@ -120,11 +120,9 @@ const serviceManagementService = {
   },
 
   // Update service
-  updateService: async (id, data) => {
+  updateService: async (data) => {
     try {
-      // Combine the ID with the form data
-      const serviceData = { id_registro: id, ...data };
-      const response = await serviceApi.put('/actualizar_servicio', serviceData);
+      const response = await serviceApi.put('/actualizar_servicio', data);
       return response.data;
     } catch (error) {
       console.error('Error updating service:', error);
@@ -166,12 +164,23 @@ const serviceManagementService = {
   },
 
   // Get works for employee
-  getWorksEmployee: async (employeeId) => {
+  getWorksEmployee: async (id) => {
     try {
-      const response = await serviceApi.get(`/trabajos_empleados/${employeeId}`);
+      const response = await serviceApi.get(`/trabajos_empleados/${id}`);
       return response.data;
     } catch (error) {
-      console.error('Error fetching works for employee:', error);
+      console.error(`Error fetching works for employee ${id}:`, error);
+      throw error;
+    }
+  },
+
+  // Get works by service ID
+  getWorksByServiceId: async (id) => {
+    try {
+      const response = await serviceApi.get(`/trabajos_servicio/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching works for service ${id}:`, error);
       throw error;
     }
   }
