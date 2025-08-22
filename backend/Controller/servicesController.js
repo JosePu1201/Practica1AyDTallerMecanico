@@ -195,14 +195,15 @@ const getAllSpecialists = async (req, res) => {
 const assignWork = async (req, res) => {
     try {
         const transaction = await sequelize.transaction();
-        const { id_tipo_trabajo, id_registro, id_usuario_empleado, id_admin_asignacion, descripcion } = req.body;
+        const { id_tipo_trabajo, id_registro, id_usuario_empleado, id_admin_asignacion, descripcion, precio } = req.body;
         
         const newAssignment = await AsignacionTrabajo.create({
             id_tipo_trabajo,
             id_registro,
             id_usuario_empleado,
             id_admin_asignacion,
-            descripcion
+            descripcion,
+            precio
             //observaciones_finalizacion
         },{transaction} );
 
@@ -211,6 +212,60 @@ const assignWork = async (req, res) => {
     } catch (error) {
         await transaction.rollback();
         console.error('Error al asignar trabajo:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+}
+
+const getWorksServicesId = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const works = await AsignacionTrabajo.findAll({
+            where: { id_registro: id },
+            include: [
+                {
+                    model: TipoMantenimiento,
+                    attributes: ['id_tipo_trabajo', 'nombre_tipo']
+                },
+                {
+                    model: RegistroServicioVehiculo,
+                    attributes: ['id_registro', 'descripcion_problema'],
+                    include: [
+                        {
+                            model: Vehiculo,
+                            attributes: ['id_vehiculo', 'marca', 'modelo'],
+                            include: [
+                                {
+                                    model: Usuario,
+                                    attributes: ['id_usuario', 'nombre_usuario'],
+                                    include: [
+                                        {
+                                            model: Persona,
+                                            attributes: ['id_persona', 'nombre', 'apellido']
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },{
+                    //ocupo el usuario empleado me da el usuario administrador
+                    model: Usuario,
+                    as: 'empleadoAsignado',
+                    attributes: ['id_usuario', 'nombre_usuario'],
+                    include: [
+                        {
+                            model: Persona,
+                            attributes: ['id_persona', 'nombre', 'apellido']
+                        }
+                    ]
+                }
+            ]
+        });
+
+        res.json(works);
+    } catch (error) {
+        console.error('Error al obtener trabajos asignados a empleado:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 }
@@ -258,6 +313,30 @@ const getWorksEmployees = async (req, res) => {
     }
 }
 
+const updateService = async (req, res) => {
+    try {
+        const { id_registro, descripcion_problema, estado, fecha_estimada_finalizacion, observaciones_iniciales, prioridad } = req.body;
+
+        const service = await RegistroServicioVehiculo.findByPk(id_registro);
+        if (!service) {
+            return res.status(404).json({ error: 'Servicio no encontrado' });
+        }
+
+        // Update service fields
+        service.descripcion_problema = descripcion_problema;
+        service.estado = estado;
+        service.fecha_estimada_finalizacion = fecha_estimada_finalizacion;
+        service.observaciones_iniciales = observaciones_iniciales;
+        service.prioridad = prioridad;
+
+        await service.save();
+        res.json(service);
+    } catch (error) {
+        console.error('Error al actualizar el servicio:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+};
+
 module.exports = {
     getVehiclesWithClient,
     getTipoMantenimiento,
@@ -268,5 +347,7 @@ module.exports = {
     getAllEmployees,
     getAllSpecialists,
     assignWork,
-    getWorksEmployees
+    getWorksEmployees,
+    updateService,
+    getWorksServicesId
 };

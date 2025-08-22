@@ -140,7 +140,7 @@ export default function DashboardAdmin() {
             children={[
               { label: 'Listado', to: '/admin/vehicles' },
               { label: 'Registro', to: '/admin/vehicles/new' },
-              { label: 'Servicios', to: '/admin/vehiculos/servicios' },
+              { label: 'Servicios', to: '/admin/services' },
             ]}
           />
           <SidebarItem

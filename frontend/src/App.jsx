@@ -18,6 +18,15 @@ import UserDetail from './pages/admin/UserDetail';
 import RoleList from './pages/admin/RoleList';
 import SpecialistList from './pages/admin/SpecialistList';
 
+// Admin service management pages
+import ServicesDashboard from './pages/admin/services/ServicesDashboard';
+import ServicesList from './pages/admin/services/ServicesList';
+import RegisterService from './pages/admin/services/RegisterService';
+import ServiceDetail from './pages/admin/services/ServiceDetail';
+import ServiceEditForm from './pages/admin/services/ServiceEditForm';
+import AssignWork from './pages/admin/services/AssignWork';
+import MaintenanceTypes from './pages/admin/services/MaintenanceTypes';
+
 // admin vehicles
 import VehiclesList from './pages/admin/vehicles/VehiclesList';
 import VehicleForm from './pages/admin/vehicles/VehicleForm';
@@ -39,7 +48,7 @@ export default function App() {
           </Route>
 
           {/* Admin solo para rol ADMIN 1 */}
-         <Route element={<ProtectedRoute roles={'ADMINISTRADOR'} />}>
+          <Route element={<ProtectedRoute roles={'ADMINISTRADOR'} />}>
             <Route path="/admin" element={<DashboardAdmin />}>
               {/* User Management Routes */}
               <Route path="usuarios" element={<UserList />} />
@@ -49,25 +58,32 @@ export default function App() {
               <Route path="usuarios/roles" element={<RoleList />} />
               <Route path="usuarios/especialistas" element={<SpecialistList />} />
               
-                        {/* Vehicles */}
+              {/* Services Management Routes */}
+              <Route path="services" element={<ServicesDashboard />} />
+              <Route path="services/list" element={<ServicesList />} />
+              <Route path="services/register" element={<RegisterService />} />
+              <Route path="services/detail/:id" element={<ServiceDetail />} />
+              <Route path="services/edit/:id" element={<ServiceEditForm />} />
+              <Route path="services/assign-work/:id" element={<AssignWork />} />
+              <Route path="services/maintenance-types" element={<MaintenanceTypes />} />
+              
+              {/* Vehicles */}
               <Route path="vehicles" element={<VehiclesList />} />
               <Route path="vehicles/new" element={<VehicleForm />} />
               <Route path="vehicles/:id/edit" element={<VehicleForm />} />
               <Route path="vehicles/:id/history" element={<VehicleHistory />} />
-
               
               {/* Default admin page */}
               <Route index element={<div className="p-4"><h1>Panel de Administración</h1><p>Seleccione una opción del menú</p></div>} />
             </Route>
-         </Route>
+          </Route>
 
           {/* empleado solo para rol EMPLEADO 2 */}
-         <Route element={<ProtectedRoute roles={'EMPLEADO'} />}>
+          <Route element={<ProtectedRoute roles={'EMPLEADO'} />}>
             <Route path="/empleado" element={<DashboardEmpleado />}>
-             
             </Route>
-         </Route>
-         
+          </Route>
+          
           {/* Raíz */}
           <Route path="/" element={<HomePague />} />
         </Routes>
