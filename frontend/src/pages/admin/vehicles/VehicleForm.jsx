@@ -1,65 +1,66 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Card, Form, Row, Col, Button, Spinner } from 'react-bootstrap';
-import { useNavigate, useParams, Link } from 'react-router-dom';
+import { useNavigate, useParams, Link, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 
-// ⚠️ Temporal: lista estática de clientes (id_usuario, nombre, apellido, nombre_usuario)
-const CLIENTES_STATIC = [
-  { id_usuario: 7, nombre: 'Juan', apellido: 'Pérez', nombre_usuario: 'juanp' },
-  { id_usuario: 6, nombre: 'María', apellido: 'López', nombre_usuario: 'mlopez' },
-  { id_usuario: 5, nombre: 'Carlos', apellido: 'García', nombre_usuario: 'cgarcia' },
-];
-
-const ESTADOS = ['ACTIVO', 'INACTIVO'];
-
 export default function VehicleForm() {
-  const { id } = useParams(); // si existe => edición
+  const { id } = useParams();           // si existe => edición
   const navigate = useNavigate();
+  const location = useLocation();
+  const vehicleFromState = location.state?.vehicle || null;
 
+  // Prefill inmediato si vienes desde la lista; si entras directo, quedarán vacíos hasta el fetch
   const [formData, setFormData] = useState({
-    modelo: '',
-    marca: '',
-    placa: '',
-    anio: '',
-    color: '',
-    numero_serie: '',
-    kilometraje: 0,
-    id_cliente: '',
-    estado: 'ACTIVO',
+    placa:        vehicleFromState?.placa || '',
+    marca:        vehicleFromState?.marca || '',
+    modelo:       vehicleFromState?.modelo || '',
+    anio:         vehicleFromState?.anio ?? '',
+    numero_serie: vehicleFromState?.numero_serie || '',
+    color:        vehicleFromState?.color || '',
+    kilometraje:  vehicleFromState?.kilometraje ?? 0,
+    id_cliente:   vehicleFromState?.id_cliente ?? '',
   });
 
   const [errors, setErrors] = useState({});
-  const [loading, setLoading] = useState(!!id);
+  // Si hay id y NO hay vehículo en state, mostramos loading hasta traerlo
+  const [loading, setLoading] = useState(!!id && !vehicleFromState);
   const [submitting, setSubmitting] = useState(false);
+
+  // Clientes
+  const [clients, setClients] = useState([]);
+  const [loadingClients, setLoadingClients] = useState(true);
 
   const currentYear = useMemo(() => new Date().getFullYear(), []);
 
   useEffect(() => {
-    if (id) {
+    // Editar: si no trajiste el vehículo por state, lo cargamos del backend
+    if (id && !vehicleFromState) {
       loadVehicle();
     }
-    // Si más adelante cambias CLIENTES_STATIC por fetch a /api/users?role=CLIENTE,
-    // hazlo aquí en otro efecto.
-  }, [id]);
+  }, [id, vehicleFromState]);
+
+  useEffect(() => {
+    // Siempre cargamos TODOS los clientes
+    loadClients();
+  }, []);
 
   const loadVehicle = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(`/api/vehicles/${id}`);
-      const v = res.data;
-
-      setFormData({
-        modelo: v?.modelo || '',
-        marca: v?.marca || '',
-        placa: v?.placa || '',
-        anio: v?.anio || '',
-        color: v?.color || '',
+      const res = await axios.get(`/api/vehiculos/${id}`);
+      const v = res.data?.vehiculo || res.data;
+      setFormData(prev => ({
+        ...prev,
+        placa:        v?.placa || '',
+        marca:        v?.marca || '',
+        modelo:       v?.modelo || '',
+        anio:         v?.anio ?? '',
         numero_serie: v?.numero_serie || '',
-        kilometraje: v?.kilometraje ?? 0,
-        id_cliente: v?.id_cliente ?? '',
-        estado: v?.estado || 'ACTIVO',
-      });
+        color:        v?.color || '',
+        kilometraje:  v?.kilometraje ?? 0,
+        id_cliente:   v?.id_cliente ?? '',
+      }));
     } catch (err) {
       toast.error(err.response?.data?.error || 'No se pudo cargar el vehículo');
     } finally {
@@ -67,46 +68,46 @@ export default function VehicleForm() {
     }
   };
 
+  const loadClients = async () => {
+    try {
+      setLoadingClients(true);
+      const res = await axios.get('/api/personas/listar-usuarios-clientes');
+      setClients(res.data?.usuarios || []);
+    } catch (err) {
+      setClients([]);
+      toast.error(err.response?.data?.error || 'No se pudieron cargar los clientes');
+    } finally {
+      setLoadingClients(false);
+    }
+  };
+
   const onChange = (e) => {
     const { name, value } = e.target;
-
     let val = value;
-    if (name === 'placa') {
-      val = value.toUpperCase(); // normalizar a MAYÚSCULAS
-    }
-    if (name === 'kilometraje') {
-      val = value === '' ? '' : Math.max(0, Number(value));
-    }
-    if (name === 'anio') {
-      val = value === '' ? '' : Number(value);
-    }
+
+    if (name === 'placa')        val = value.toUpperCase();
+    if (name === 'kilometraje')  val = value === '' ? '' : Math.max(0, Number(value));
+    if (name === 'anio')         val = value === '' ? '' : Number(value);
+    if (name === 'id_cliente')   val = value === '' ? '' : Number(value);
 
     setFormData(prev => ({ ...prev, [name]: val }));
-
-    if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: undefined }));
-    }
+    if (errors[name]) setErrors(prev => ({ ...prev, [name]: undefined }));
   };
 
   const validate = () => {
     const e = {};
-
-    if (!formData.marca?.trim()) e.marca = 'La marca es obligatoria';
+    if (!formData.marca?.trim())  e.marca  = 'La marca es obligatoria';
     if (!formData.modelo?.trim()) e.modelo = 'El modelo es obligatorio';
 
-    if (!formData.placa?.trim()) {
-      e.placa = 'La placa es obligatoria';
-    } else if (!/^[A-Z0-9-]{3,20}$/.test(formData.placa)) {
+    if (!formData.placa?.trim())  e.placa  = 'La placa es obligatoria';
+    else if (!/^[A-Z0-9-]{3,20}$/.test(formData.placa))
       e.placa = 'Placa inválida (usa letras/números/guiones, 3-20)';
-    }
 
-    if (formData.anio !== '' && (formData.anio < 1900 || formData.anio > currentYear + 1)) {
+    if (formData.anio !== '' && (formData.anio < 1900 || formData.anio > currentYear + 1))
       e.anio = `Año inválido (1900 - ${currentYear + 1})`;
-    }
 
-    if (formData.kilometraje !== '' && Number.isNaN(Number(formData.kilometraje))) {
+    if (formData.kilometraje !== '' && Number.isNaN(Number(formData.kilometraje)))
       e.kilometraje = 'Kilometraje inválido';
-    }
 
     if (!formData.id_cliente) e.id_cliente = 'Debe seleccionar un cliente';
 
@@ -120,26 +121,28 @@ export default function VehicleForm() {
 
     setSubmitting(true);
     try {
+      const payload = {
+        placa:        formData.placa,
+        marca:        formData.marca,
+        modelo:       formData.modelo,
+        anio:         formData.anio === '' ? null : Number(formData.anio),
+        numero_serie: formData.numero_serie?.trim() || null,
+        color:        formData.color?.trim() || null,
+        kilometraje:  formData.kilometraje === '' ? 0 : Number(formData.kilometraje),
+        id_cliente:   Number(formData.id_cliente),
+      };
+
       if (id) {
-        await axios.put(`/api/vehicles/${id}`, {
-          ...formData,
-          anio: formData.anio === '' ? null : formData.anio,
-          kilometraje: formData.kilometraje === '' ? 0 : Number(formData.kilometraje),
-        });
+        await axios.put(`/api/vehiculos/actualizar/${id}`, payload);
         toast.success('Vehículo actualizado');
       } else {
-        await axios.post('/api/vehicles', {
-          ...formData,
-          anio: formData.anio === '' ? null : formData.anio,
-          kilometraje: formData.kilometraje === '' ? 0 : Number(formData.kilometraje),
-        });
+        await axios.post('/api/vehiculos/registrar', payload);
         toast.success('Vehículo registrado');
       }
       navigate('/admin/vehicles');
     } catch (err) {
       const msg = err.response?.data?.error || 'No se pudo guardar el vehículo';
       toast.error(msg);
-      // Manejo especial si backend devuelve conflicto por placa duplicada
       if (String(err.response?.status) === '409') {
         setErrors(prev => ({ ...prev, placa: 'La placa ya existe' }));
       }
@@ -251,7 +254,7 @@ export default function VehicleForm() {
                   />
                 </Form.Group>
               </Col>
-              <Col md={3}>
+              <Col md={6}>
                 <Form.Group>
                   <Form.Label>Kilometraje</Form.Label>
                   <Form.Control
@@ -266,34 +269,25 @@ export default function VehicleForm() {
                   <Form.Control.Feedback type="invalid">{errors.kilometraje}</Form.Control.Feedback>
                 </Form.Group>
               </Col>
-              <Col md={3}>
-                <Form.Group>
-                  <Form.Label>Estado</Form.Label>
-                  <Form.Select
-                    name="estado"
-                    value={formData.estado}
-                    onChange={onChange}
-                  >
-                    {ESTADOS.map(e => <option key={e} value={e}>{e}</option>)}
-                  </Form.Select>
-                </Form.Group>
-              </Col>
             </Row>
 
             <Row className="mb-4">
-              <Col md={6}>
+              <Col md={12}>
                 <Form.Group>
                   <Form.Label>Cliente <span className="text-danger">*</span></Form.Label>
                   <Form.Select
                     name="id_cliente"
-                    value={formData.id_cliente}
+                    value={formData.id_cliente}       // ← queda seleccionado el id_cliente del vehículo
                     onChange={onChange}
                     isInvalid={!!errors.id_cliente}
+                    disabled={loadingClients}
                   >
-                    <option value="">Seleccione un cliente</option>
-                    {CLIENTES_STATIC.map(c => (
+                    <option value="">
+                      {loadingClients ? 'Cargando clientes...' : 'Seleccione un cliente'}
+                    </option>
+                    {clients.map(c => (
                       <option key={c.id_usuario} value={c.id_usuario}>
-                        {c.nombre} {c.apellido} ({c.nombre_usuario})
+                        {c.nombre_usuario} (ID: {c.id_usuario})
                       </option>
                     ))}
                   </Form.Select>
