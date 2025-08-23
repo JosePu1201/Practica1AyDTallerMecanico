@@ -140,7 +140,7 @@ export default function DashboardAdmin() {
             children={[
               { label: 'Listado', to: '/admin/vehicles' },
               { label: 'Registro', to: '/admin/vehicles/new' },
-              { label: 'Servicios', to: '/admin/vehiculos/servicios' },
+              { label: 'Servicios', to: '/admin/services' },
             ]}
           />
           <SidebarItem
@@ -157,6 +157,7 @@ export default function DashboardAdmin() {
             label="Trabajos"
             collapsed={collapsed}
             children={[
+              { label: 'Servicios', to: '/admin/services' },
               { label: 'Asignaciones', to: '/admin/trabajos/asignaciones' },
               { label: 'Tipos', to: '/admin/trabajos/tipos' },
               { label: 'Seguimiento', to: '/admin/trabajos/seguimiento' },
