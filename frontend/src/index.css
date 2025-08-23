@@ -1,0 +1,29 @@
+.login-bg {
+  background: url('https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fimg.freepik.com%2Ffoto-gratis%2Ffondo-garaje_23-2147897922.jpg%3Fsize%3D626%26ext%3Djpg&f=1&nofb=1&ipt=d64d385af749611944f9f87f69a4def99d38f80d42c4f2d6368ac87364dc94c6') no-repeat center center/cover;
+}
+.login-card {
+  background-color: rgba(0, 0, 0, 0.6);
+  border-radius: 15px;
+  color: white;
+}
+.login-card input {
+  background-color: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+}
+.login-card input::placeholder {
+  color: #ddd;
+}
+.login-card .form-check-label {
+  color: #ddd;
+}
+.login-card .btn-primary {
+  border-radius: 25px;
+  font-weight: bold;
+}
+.login-tabs .nav-link {
+  color: white;
+}
+.login-tabs .nav-link.active {
+  border-bottom: 2px solid #0d6efd;
+}

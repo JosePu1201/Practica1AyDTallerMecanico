@@ -3,13 +3,19 @@ const express = require('express');
 //const rutas = require('./Ruters/user.ruter'); // Importar rutas de usuario
 require('./Model/index.js'); // Importar relaciones para que se sincronicen
 //const userRoutes = require('./Router/userRouter');
+const session = require('express-session');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware
+// Middleware json y session
 app.use(express.json());
-
+app.use(session({
+  secret: 'admin',
+  resave: false,
+  saveUninitialized: true,
+  cookie: { secure: false } // Usa true solo si tienes HTTPS
+}));
 // Rutas
 //app.use('/api/users', userRoutes);
 
@@ -25,7 +31,15 @@ const startServer = async () => {
     //console.log('Modelos sincronizados y migracion completada');
     
     const userRouter = require('./Ruters/user.ruter');
+    const vehicleRouter = require('./Ruters/vehicle.ruter');
     app.use('/api/personas', userRouter); // Usar las rutas de usuario
+    app.use('/api/vehiculos', vehicleRouter); // Usar las rutas de vehículo
+
+    const managementUsersRouter = require('./Ruters/management_users.router');
+    app.use('/api/management', managementUsersRouter);
+
+    const servicesVehicle = require('./Ruters/services.router');
+    app.use('/api/servicios', servicesVehicle);
 
     const PORT = process.env.PORT || 3000;
     app.listen(PORT, () => {
@@ -37,5 +51,5 @@ const startServer = async () => {
     console.error('Error al conectar con la base de datos:', error);
   }
 };
-
+//console.log('Credenciales de sesión:', req.session.user);
 startServer();

@@ -17,5 +17,20 @@ POST /crear
 */
 // Obtener todas las personas
 router.get('/obtener', personaController.obtenerPersonas);
-
+// Crear contactoPersona, usuario y persona al mismo tiempo
+router.post('/crear-contacto-usuario', personaController.crearContactoUsuario);
+// Login de usuario
+router.post('/login', personaController.loginUsuario);
+// Autenticar código de verificación
+router.post('/autenticar-codigo-verificacion', personaController.autenticarCodigoVerificacion);
+//recuperar contraseña
+router.post('/recuperar-contrasena', personaController.recuperarContrasena);
+//validar codigo de recuperacion
+router.post('/validar-codigo-recuperacion', personaController.validarCodigoRecuperacion);
+//logout
+router.post('/logout', personaController.logout);
+//cambiar contraseña    
+router.put('/cambiar-contrasena', personaController.cambiarContrasena);
+// Listar usuarios clientes
+router.get('/listar-usuarios-clientes', personaController.listarUsuariosClientes);
 module.exports = router;
