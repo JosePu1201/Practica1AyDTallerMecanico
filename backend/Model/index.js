@@ -158,36 +158,36 @@ PagosFactura.belongsTo(FacturaServicioVehiculo, { foreignKey: 'id_factura', targ
   Relaciones FUNCIONALIDADES DE EMPLEADOS
 ==================================================
 */
-AsignacionTrabajo.hasMany(ObservacionesProcesoTrabajo, { foreignKey: 'id_asignacion', sourceKey: 'id_asignacion_trabajo' });
-ObservacionesProcesoTrabajo.belongsTo(AsignacionTrabajo, { foreignKey: 'id_asignacion', targetKey: 'id_asignacion_trabajo' });
+AsignacionTrabajo.hasMany(ObservacionesProcesoTrabajo, { foreignKey: 'id_asignacion', sourceKey: 'id_asignacion' });
+ObservacionesProcesoTrabajo.belongsTo(AsignacionTrabajo, { foreignKey: 'id_asignacion', targetKey: 'id_asignacion' });
 
 Usuario.hasMany(ObservacionesProcesoTrabajo, { foreignKey: 'id_usuario_registro', sourceKey: 'id_usuario' });
 ObservacionesProcesoTrabajo.belongsTo(Usuario, { foreignKey: 'id_usuario_registro', targetKey: 'id_usuario' });
 
-AsignacionTrabajo.hasMany(SintomasDetectados, { foreignKey: 'id_asignacion_trabajo', sourceKey: 'id_asignacion_trabajo' });
-SintomasDetectados.belongsTo(AsignacionTrabajo, { foreignKey: 'id_asignacion_trabajo', targetKey: 'id_asignacion_trabajo' });
+AsignacionTrabajo.hasMany(SintomasDetectados, { foreignKey: 'id_asignacion_trabajo', sourceKey: 'id_asignacion' });
+SintomasDetectados.belongsTo(AsignacionTrabajo, { foreignKey: 'id_asignacion_trabajo', targetKey: 'id_asignacion' });
 
-AsignacionTrabajo.hasMany(ImprevistosTrabajo, { foreignKey: 'id_asignacion_trabajo', sourceKey: 'id_asignacion_trabajo' });
-ImprevistosTrabajo.belongsTo(AsignacionTrabajo, { foreignKey: 'id_asignacion_trabajo', targetKey: 'id_asignacion_trabajo' });
+AsignacionTrabajo.hasMany(ImprevistosTrabajo, { foreignKey: 'id_asignacion_trabajo', sourceKey: 'id_asignacion' });
+ImprevistosTrabajo.belongsTo(AsignacionTrabajo, { foreignKey: 'id_asignacion_trabajo', targetKey: 'id_asignacion' });
 
-AsignacionTrabajo.hasMany(DaniosAdicionales, { foreignKey: 'id_asignacion_trabajo', sourceKey: 'id_asignacion_trabajo' });
-DaniosAdicionales.belongsTo(AsignacionTrabajo, { foreignKey: 'id_asignacion_trabajo', targetKey: 'id_asignacion_trabajo' });
+AsignacionTrabajo.hasMany(DaniosAdicionales, { foreignKey: 'id_asignacion_trabajo', sourceKey: 'id_asignacion' });
+DaniosAdicionales.belongsTo(AsignacionTrabajo, { foreignKey: 'id_asignacion_trabajo', targetKey: 'id_asignacion' });
 
-AsignacionTrabajo.hasMany(AvancesTrabajo, { foreignKey: 'id_asignacion_trabajo', sourceKey: 'id_asignacion_trabajo' });
-AvancesTrabajo.belongsTo(AsignacionTrabajo, { foreignKey: 'id_asignacion_trabajo', targetKey: 'id_asignacion_trabajo' });
+AsignacionTrabajo.hasMany(AvancesTrabajo, { foreignKey: 'id_asignacion_trabajo', sourceKey: 'id_asignacion' });
+AvancesTrabajo.belongsTo(AsignacionTrabajo, { foreignKey: 'id_asignacion_trabajo', targetKey: 'id_asignacion' });
 
-AsignacionTrabajo.hasMany(SolicitudApoyo, { foreignKey: 'id_asignacion_trabajo', sourceKey: 'id_asignacion_trabajo' });
-SolicitudApoyo.belongsTo(AsignacionTrabajo, { foreignKey: 'id_asignacion_trabajo', targetKey: 'id_asignacion_trabajo' });
+AsignacionTrabajo.hasMany(SolicitudApoyo, { foreignKey: 'id_asignacion_trabajo', sourceKey: 'id_asignacion' });
+SolicitudApoyo.belongsTo(AsignacionTrabajo, { foreignKey: 'id_asignacion_trabajo', targetKey: 'id_asignacion' });
 Usuario.hasMany(SolicitudApoyo, { foreignKey: 'id_usuario_especialista', sourceKey: 'id_usuario' });
 SolicitudApoyo.belongsTo(Usuario, { foreignKey: 'id_usuario_especialista', targetKey: 'id_usuario' });
 
-AsignacionTrabajo.hasMany(MantenimientoAdicional, { foreignKey: 'id_asignacion_trabajo', sourceKey: 'id_asignacion_trabajo' });
-MantenimientoAdicional.belongsTo(AsignacionTrabajo, { foreignKey: 'id_asignacion_trabajo', targetKey: 'id_asignacion_trabajo' });
+AsignacionTrabajo.hasMany(MantenimientoAdicional, { foreignKey: 'id_asignacion_trabajo', sourceKey: 'id_asignacion' });
+MantenimientoAdicional.belongsTo(AsignacionTrabajo, { foreignKey: 'id_asignacion_trabajo', targetKey: 'id_asignacion' });
 TipoMantenimiento.hasMany(MantenimientoAdicional, { foreignKey: 'id_tipo_trabajo', sourceKey: 'id_tipo_trabajo' });
 MantenimientoAdicional.belongsTo(TipoMantenimiento, { foreignKey: 'id_tipo_trabajo', targetKey: 'id_tipo_trabajo' });
 
-AsignacionTrabajo.hasMany(SolicitudUsoRepuesto, { foreignKey: 'id_asignacion_trabajo', sourceKey: 'id_asignacion_trabajo' });
-SolicitudUsoRepuesto.belongsTo(AsignacionTrabajo, { foreignKey: 'id_asignacion_trabajo', targetKey: 'id_asignacion_trabajo' });
+AsignacionTrabajo.hasMany(SolicitudUsoRepuesto, { foreignKey: 'id_asignacion_trabajo', sourceKey: 'id_asignacion' });
+SolicitudUsoRepuesto.belongsTo(AsignacionTrabajo, { foreignKey: 'id_asignacion_trabajo', targetKey: 'id_asignacion' });
 Usuario.hasMany(SolicitudUsoRepuesto, { foreignKey: 'id_usuario_aceptacion', sourceKey: 'id_usuario' });
 SolicitudUsoRepuesto.belongsTo(Usuario, { foreignKey: 'id_usuario_aceptacion', targetKey: 'id_usuario' });
 Inventario.hasMany(SolicitudUsoRepuesto, { foreignKey: 'id_inventario_repuesto', sourceKey: 'id_inventario_repuesto' });
@@ -198,8 +198,8 @@ SolicitudUsoRepuesto.belongsTo(Inventario, { foreignKey: 'id_inventario_repuesto
 -- FUNCIONALIDADES DE ESPECIALISTAS
 -- =================================================================
 */
-AsignacionTrabajo.hasMany(DiagnosticoEspecialista, { foreignKey: 'id_asignacion_trabajo', sourceKey: 'id_asignacion_trabajo' });
-DiagnosticoEspecialista.belongsTo(AsignacionTrabajo, { foreignKey: 'id_asignacion_trabajo', targetKey: 'id_asignacion_trabajo' });
+AsignacionTrabajo.hasMany(DiagnosticoEspecialista, { foreignKey: 'id_asignacion_trabajo', sourceKey: 'id_asignacion' });
+DiagnosticoEspecialista.belongsTo(AsignacionTrabajo, { foreignKey: 'id_asignacion_trabajo', targetKey: 'id_asignacion' });
 Usuario.hasMany(DiagnosticoEspecialista, { foreignKey: 'id_usuario_especialista', sourceKey: 'id_usuario' });
 DiagnosticoEspecialista.belongsTo(Usuario, { foreignKey: 'id_usuario_especialista', targetKey: 'id_usuario' });
 
@@ -208,8 +208,8 @@ DetalleDiagnostico.belongsTo(DiagnosticoEspecialista, { foreignKey: 'id_diagnost
 
 Usuario.hasMany(PruebaTecnicaEspecialista, { foreignKey: 'id_usuario_especialista', sourceKey: 'id_usuario' });
 PruebaTecnicaEspecialista.belongsTo(Usuario, { foreignKey: 'id_usuario_especialista', targetKey: 'id_usuario' });
-AsignacionTrabajo.hasMany(PruebaTecnicaEspecialista, { foreignKey: 'id_asignacion_trabajo', sourceKey: 'id_asignacion_trabajo' });
-PruebaTecnicaEspecialista.belongsTo(AsignacionTrabajo, { foreignKey: 'id_asignacion_trabajo', targetKey: 'id_asignacion_trabajo' });
+AsignacionTrabajo.hasMany(PruebaTecnicaEspecialista, { foreignKey: 'id_asignacion_trabajo', sourceKey: 'id_asignacion' });
+PruebaTecnicaEspecialista.belongsTo(AsignacionTrabajo, { foreignKey: 'id_asignacion_trabajo', targetKey: 'id_asignacion' });
 
 
 PruebaTecnicaEspecialista.hasMany(ResultadoPruebaTecnica, { foreignKey: 'id_prueba_tecnica', sourceKey: 'id_prueba_tecnica' });
@@ -218,13 +218,13 @@ ResultadoPruebaTecnica.belongsTo(PruebaTecnicaEspecialista, { foreignKey: 'id_pr
 ResultadoPruebaTecnica.hasMany(SolucionPropuesta, { foreignKey: 'id_resultado_prueba', sourceKey: 'id_resultado_prueba' });
 SolucionPropuesta.belongsTo(ResultadoPruebaTecnica, { foreignKey: 'id_resultado_prueba', targetKey: 'id_resultado_prueba' });
 
-AsignacionTrabajo.hasMany(ComentariosVehiculoEspecialista, { foreignKey: 'id_asignacion_trabajo', sourceKey: 'id_asignacion_trabajo' });
-ComentariosVehiculoEspecialista.belongsTo(AsignacionTrabajo, { foreignKey: 'id_asignacion_trabajo', targetKey: 'id_asignacion_trabajo' });
+AsignacionTrabajo.hasMany(ComentariosVehiculoEspecialista, { foreignKey: 'id_asignacion_trabajo', sourceKey: 'id_asignacion' });
+ComentariosVehiculoEspecialista.belongsTo(AsignacionTrabajo, { foreignKey: 'id_asignacion_trabajo', targetKey: 'id_asignacion' });
 Usuario.hasMany(ComentariosVehiculoEspecialista, { foreignKey: 'id_especialista', sourceKey: 'id_usuario' });
 ComentariosVehiculoEspecialista.belongsTo(Usuario, { foreignKey: 'id_especialista', targetKey: 'id_usuario' });
 
-AsignacionTrabajo.hasMany(RecomendacionesVehiculo, { foreignKey: 'id_asignacion_trabajo', sourceKey: 'id_asignacion_trabajo' });
-RecomendacionesVehiculo.belongsTo(AsignacionTrabajo, { foreignKey: 'id_asignacion_trabajo', targetKey: 'id_asignacion_trabajo' });
+AsignacionTrabajo.hasMany(RecomendacionesVehiculo, { foreignKey: 'id_asignacion_trabajo', sourceKey: 'id_asignacion' });
+RecomendacionesVehiculo.belongsTo(AsignacionTrabajo, { foreignKey: 'id_asignacion_trabajo', targetKey: 'id_asignacion' });
 Usuario.hasMany(RecomendacionesVehiculo, { foreignKey: 'id_especialista', sourceKey: 'id_usuario' });
 RecomendacionesVehiculo.belongsTo(Usuario, { foreignKey: 'id_especialista', targetKey: 'id_usuario' });
 
