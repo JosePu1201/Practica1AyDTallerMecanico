@@ -171,8 +171,15 @@ ObservacionesProcesoTrabajo.belongsTo(Usuario, { foreignKey: 'id_usuario_registr
 AsignacionTrabajo.hasMany(SintomasDetectados, { foreignKey: 'id_asignacion_trabajo', sourceKey: 'id_asignacion' });
 SintomasDetectados.belongsTo(AsignacionTrabajo, { foreignKey: 'id_asignacion_trabajo', targetKey: 'id_asignacion' });
 
-AsignacionTrabajo.hasMany(ImprevistosTrabajo, { foreignKey: 'id_asignacion_trabajo', sourceKey: 'id_asignacion' });
-ImprevistosTrabajo.belongsTo(AsignacionTrabajo, { foreignKey: 'id_asignacion_trabajo', targetKey: 'id_asignacion' });
+AsignacionTrabajo.hasMany(ImprevistosTrabajo, { 
+  foreignKey: 'id_asignacion_trabajo',   // FK en imprevistos_trabajo
+  sourceKey: 'id_asignacion'             // PK en asignacion_trabajo
+});
+
+ImprevistosTrabajo.belongsTo(AsignacionTrabajo, { 
+  foreignKey: 'id_asignacion_trabajo',   // FK en imprevistos_trabajo
+  targetKey: 'id_asignacion'             // PK en asignacion_trabajo
+});
 
 AsignacionTrabajo.hasMany(DaniosAdicionales, { foreignKey: 'id_asignacion_trabajo', sourceKey: 'id_asignacion' });
 DaniosAdicionales.belongsTo(AsignacionTrabajo, { foreignKey: 'id_asignacion_trabajo', targetKey: 'id_asignacion' });

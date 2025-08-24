@@ -13,7 +13,7 @@ const sequelize = require('../config/sequelize');
 class ImprevistosTrabajo extends Model {}
 ImprevistosTrabajo.init({
   id_imprevisto: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-  id_asignacion_trabajo: { type: DataTypes.INTEGER, allowNull: false, references: { model: 'asignacion_trabajo', key: 'id_asignacion_trabajo' }, onDelete: 'CASCADE' },
+  id_asignacion_trabajo: { type: DataTypes.INTEGER, allowNull: false, references: { model: 'asignacion_trabajo', key: 'id_asignacion' }, onDelete: 'CASCADE' },
   fecha_imprevisto: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
   descripcion_imprevisto: { type: DataTypes.TEXT, allowNull: false },
   impacto_tiempo: { type: DataTypes.INTEGER },

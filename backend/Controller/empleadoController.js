@@ -1,5 +1,5 @@
-const { AsignacionTrabajo, Usuario, Rol,AvancesTrabajo , ObservacionesProcesoTrabajo} = require('../Model')
-
+const { AsignacionTrabajo, Usuario, Rol,AvancesTrabajo , ObservacionesProcesoTrabajo,ImprevistosTrabajo} = require('../Model')
+const{DaniosAdicionales} = require('../Model');
 //consultar asignaciones de trabajo por id_usuario 
 const consultarAsignacionesPorUsuario = async (req, res) => {
     try {
@@ -111,10 +111,58 @@ const crearObservacion = async (req, res) => {
         res.status(500).json({message: 'Error al registrar la observación.', error: error.message});
     }
 }
+//asignar imprevisto a una asignacion de trabajo
+const asignarImprevisto = async (req, res) => {
+    const { id_asignacion_trabajo, descripcion_imprevisto, impacto_tiempo, impacto_costo } = req.body;
+    try {
+        //verificar que la asignacion de trabajo existe
+        const asignacion = await AsignacionTrabajo.findOne({ where: { id_asignacion: id_asignacion_trabajo } });
+        if (!asignacion) {
+            return res.status(404).json({ message: 'No se encontró una asignación de trabajo con el ID proporcionado.' });
+        }
+        //registrar el imprevisto
+        const nuevoImprevisto = await ImprevistosTrabajo.create({       
+            id_asignacion_trabajo,
+            descripcion_imprevisto,
+            impacto_tiempo,
+            impacto_costo,
+            fecha_imprevisto: new Date()
+        });
+        res.status(201).json({ message: 'Imprevisto registrado exitosamente.', imprevisto: nuevoImprevisto });
+    } catch (error) {
+        res.status(500).json({ message: 'Error al registrar el imprevisto.', error: error.message });
+    }
+}   
+
+// Registar Danio Adicional
+const registrarDanioAdicional = async (req, res) => {
+    const { id_asignacion_trabajo, descripcion_danio, costo_estimado, requiere_autorizacion } = req.body;
+    try {
+        //verificar que la asignacion de trabajo existe
+        const asignacion = await AsignacionTrabajo.findOne({ where: { id_asignacion: id_asignacion_trabajo } });
+        if (!asignacion) {          
+            return res.status(404).json({ message: 'No se encontró una asignación de trabajo con el ID proporcionado.' });
+        }
+        //registrar el danio adicional
+        const nuevoDanio = await DaniosAdicionales.create({
+            id_asignacion_trabajo,
+            descripcion_danio,
+            costo_estimado,
+            requiere_autorizacion,
+            fecha_danio: new Date(),
+            autorizado: requiere_autorizacion ? false : true // Si requiere autorizacion, inicia como false
+        });
+        res.status(201).json({ message: 'Daño adicional registrado exitosamente.', danio: nuevoDanio });
+    } catch (error) {
+        res.status(500).json({ message: 'Error al registrar el daño adicional.', error: error.message });
+    }
+}
 
 module.exports = {
     consultarAsignacionesPorUsuario,
     registrarAvanceTrabajo,
     consultarAvancesPorAsignacion,
-    crearObservacion
+    crearObservacion,
+    asignarImprevisto,
+    registrarDanioAdicional
 };

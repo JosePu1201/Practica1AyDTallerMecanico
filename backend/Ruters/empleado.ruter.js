@@ -13,4 +13,10 @@ router.get('/avances/:id_asignacion', empleadoController.consultarAvancesPorAsig
 
 //ruta para crear nueva observacion
 router.post('/observacion', empleadoController.crearObservacion);
+
+//Asignar imprevist 
+router.post('/imprevisto', empleadoController.asignarImprevisto);
+
+//danio adicional
+router.post('/danioAdicional', empleadoController.registrarDanioAdicional);
 module.exports = router;
