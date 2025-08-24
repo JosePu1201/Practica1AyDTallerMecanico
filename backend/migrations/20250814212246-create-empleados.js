@@ -6,7 +6,7 @@ module.exports = {
     
     await queryInterface.createTable('observaciones_proceso_trabajo', {
       id_observacion: { type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true },
-      id_asignacion_trabajo: { type: Sequelize.INTEGER, allowNull: false, references: { model: 'asignacion_trabajo', key: 'id_asignacion' }, onDelete: 'CASCADE' },
+      id_asignacion: { type: Sequelize.INTEGER, allowNull: false, references: { model: 'asignacion_trabajo', key: 'id_asignacion' }, onDelete: 'CASCADE' },
       observacion: { type: Sequelize.TEXT, allowNull: false },
       fecha_observacion: { type: Sequelize.DATE, defaultValue: Sequelize.NOW }
     });

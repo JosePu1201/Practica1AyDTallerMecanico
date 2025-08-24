@@ -143,8 +143,8 @@ AsignacionTrabajo.belongsTo(Usuario, { foreignKey: 'id_admin_asignacion', target
 
 
 // Relación para el administrador que asignó el trabajo
-Usuario.hasMany(AsignacionTrabajo, { foreignKey: 'id_admin_asignacion', sourceKey: 'id_usuario', as: 'asignacionesAdmin' });
-AsignacionTrabajo.belongsTo(Usuario, { foreignKey: 'id_admin_asignacion', targetKey: 'id_usuario', as: 'adminAsignacion' });
+//Usuario.hasMany(AsignacionTrabajo, { foreignKey: 'id_admin_asignacion', sourceKey: 'id_usuario', as: 'asignacionesAdmin' });
+//AsignacionTrabajo.belongsTo(Usuario, { foreignKey: 'id_admin_asignacion', targetKey: 'id_usuario', as: 'adminAsignacion' });
 
 /*
 ==============================================

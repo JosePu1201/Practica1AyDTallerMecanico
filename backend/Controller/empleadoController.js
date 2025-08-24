@@ -1,4 +1,4 @@
-const { AsignacionTrabajo, Usuario, Rol,AvancesTrabajo } = require('../Model')
+const { AsignacionTrabajo, Usuario, Rol,AvancesTrabajo , ObservacionesProcesoTrabajo} = require('../Model')
 
 //consultar asignaciones de trabajo por id_usuario 
 const consultarAsignacionesPorUsuario = async (req, res) => {
@@ -86,8 +86,35 @@ const consultarAvancesPorAsignacion = async (req, res) => {
     }
 }
 
+//Crear nueva observacion
+const crearObservacion = async (req, res) => {
+    const { id_asignacion, observacion} = req.body;
+    try { 
+        //verificar que la asignacion de trabajo existe
+        const asignacion = await AsignacionTrabajo.findOne({where: {id_asignacion: id_asignacion}});
+        if(!asignacion){
+            return res.status(404).json({message: 'No se encontró una asignación de trabajo con el ID proporcionado.'});
+        }
+        console.log(asignacion.id_asignacion);
+        //registrar la observacion
+        const nuevaObservacion = await ObservacionesProcesoTrabajo.create({
+            id_asignacion,
+            observacion,
+            fecha_observacion: new Date(),
+            logging: console.log                 //imprimir consulta 
+
+            //id_usuario_registro: req.user.id_usuario //suponiendo que el id del usuario que registra la observacion viene en el token
+        });
+        res.status(201).json({message: 'Observación registrada exitosamente.', observacion: nuevaObservacion});
+
+    }catch (error) {
+        res.status(500).json({message: 'Error al registrar la observación.', error: error.message});
+    }
+}
+
 module.exports = {
     consultarAsignacionesPorUsuario,
     registrarAvanceTrabajo,
-    consultarAvancesPorAsignacion
+    consultarAvancesPorAsignacion,
+    crearObservacion
 };
