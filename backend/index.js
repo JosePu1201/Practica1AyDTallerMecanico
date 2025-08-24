@@ -32,8 +32,10 @@ const startServer = async () => {
     
     const userRouter = require('./Ruters/user.ruter');
     const vehicleRouter = require('./Ruters/vehicle.ruter');
+    const empleadoRouter = require('./Ruters/empleado.ruter');
     app.use('/api/personas', userRouter); // Usar las rutas de usuario
     app.use('/api/vehiculos', vehicleRouter); // Usar las rutas de vehículo
+    app.use('/api/empleados', empleadoRouter); // Usar las rutas de empleado
 
     const managementUsersRouter = require('./Ruters/management_users.router');
     app.use('/api/management', managementUsersRouter);
