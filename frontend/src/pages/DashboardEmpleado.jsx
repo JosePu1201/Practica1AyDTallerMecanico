@@ -1,120 +1,143 @@
-import React, { useMemo, useState, useEffect, useRef } from "react";
-import { NavLink } from "react-router-dom";
-import './stiles/empleado.css';
+// /employee/DashboardEmpleado.jsx
+import React, { useEffect, useRef, useState } from "react";
+import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import "./stiles/admin.css";
 import axios from "axios";
 
-
-const inicial = [
-  { id: "SV-001", cliente: "Juan Pérez",  descripcion: "Cambio de aceite",           estado: "pendiente",   fecha: "2025-08-18" },
-  { id: "SV-002", cliente: "María López",  descripcion: "Alineación y balanceo",     estado: "en_progreso", fecha: "2025-08-18" },
-  { id: "SV-003", cliente: "Carlos Díaz",  descripcion: "Revisión frenos",           estado: "completado",  fecha: "2025-08-17" },
-];
-
-const badgeTone = {
-  pendiente:   "badge badge-warn",
-  en_progreso: "badge badge-info",
-  completado:  "badge badge-ok",
-};
-
 export default function DashboardEmpleado() {
-  const [servicios, setServicios] = useState(inicial);
-  const [q, setQ] = useState("");
-  const [filtro, setFiltro] = useState("todos");
+  const navigate = useNavigate();
 
-  const filtrados = useMemo(() => {
-    const term = q.toLowerCase().trim();
-    return servicios.filter(s => {
-      const coincideTexto =
-        !term ||
-        [s.id, s.cliente, s.descripcion].join(" ").toLowerCase().includes(term);
-      const coincideEstado = filtro === "todos" || s.estado === filtro;
-      return coincideTexto && coincideEstado;
-    });
-  }, [servicios, q, filtro]);
+  // === Estado colapsable (igual que admin, pero con su propia key) ===
+  const [collapsed, setCollapsed] = useState(
+    () => localStorage.getItem("employeeSidebarCollapsed") === "1"
+  );
 
-  const actualizarEstado = (id, nuevoEstado) => {
-    setServicios(prev => prev.map(s => (s.id === id ? { ...s, estado: nuevoEstado } : s)));
-  };
-
-  // (Opcional) chip de perfil simple – si ya tienes el de admin puedes reutilizarlo
+  const [user, setUser] = useState(null);
   const [menuOpen, setMenuOpen] = useState(false);
-  const menuRef = useRef(null);
-  const user = (() => {
-    try { return JSON.parse(localStorage.getItem("user") || "null"); } catch { return null; }
-  })();
-  const initials = (name) =>
-    (name || "Usuario")
-      .trim().split(/\s+/).map(w => w[0]?.toUpperCase()).join("").slice(0,2);
+  const menuRef = useRef(null); // <-- igual que en Admin
 
+  // Cargar usuario (igual que admin)
   useEffect(() => {
-    const onDown = (e) => { if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false); };
+    const s = localStorage.getItem("user");
+    if (s) {
+      try {
+        setUser(JSON.parse(s));
+      } catch {
+        localStorage.removeItem("user");
+        navigate("/login", { replace: true });
+      }
+    } else {
+      navigate("/login", { replace: true });
+    }
+  }, [navigate]);
+
+  // Cerrar menú al hacer clic fuera (igual que admin)
+  useEffect(() => {
+    const onDown = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setMenuOpen(false);
+      }
+    };
     document.addEventListener("mousedown", onDown);
     return () => document.removeEventListener("mousedown", onDown);
   }, []);
 
-const onLogout = async() => {
+  const toggleSidebar = () => {
+    const next = !collapsed;
+    setCollapsed(next);
+    localStorage.setItem("employeeSidebarCollapsed", next ? "1" : "0");
+  };
+
+  const initials = (name) =>
+    (name || "")
+      .trim()
+      .split(/\s+/)
+      .map((w) => w[0]?.toUpperCase())
+      .join("")
+      .slice(0, 2) || "EM";
+
+  const onLogout = async () => {
     try {
-        const res = await axios.post("/api/personas/logout");
-
-        console.log(res.data.mensaje); 
-
-        localStorage.removeItem("user");
-        localStorage.removeItem("token");
-
-        navigate("/", { replace: true });
-
-      } catch (error) {
-        console.error("Error cerrando sesión:", error);
-
-        localStorage.removeItem("user");
-        localStorage.removeItem("token");
-        navigate("/", { replace: true });
-      }
+      await axios.post("/api/personas/logout");
+    } catch (_) {
+      // no-op
+    } finally {
+      localStorage.removeItem("user");
+      localStorage.removeItem("token");
+      localStorage.removeItem("employeeSidebarCollapsed");
+      navigate("/", { replace: true });
+    }
   };
 
   return (
     <div className="admin-layout">
-      {/* Sidebar (solo Servicios) */}
-      <aside className="sidebar">
+      {/* Sidebar */}
+      <aside className={`sidebar ${collapsed ? "collapsed" : ""}`}>
         <div className="sidebar-header">
-          <button className="toggle-btn" disabled>
-            <i className="bi bi-grid" />
+          <button className="toggle-btn" onClick={toggleSidebar} aria-label="Toggle sidebar">
+            <i className="bi bi-list" />
           </button>
-          <h5 className="m-0">Empleado</h5>
+          {!collapsed && <h5 className="m-0">Empleado</h5>}
         </div>
 
         <nav className="menu">
-          <NavLink to="/mecanico" end className="menu-link active">
+          {/* SOLO cambia el menú respecto a Admin */}
+          <NavLink
+            to="/employee/infopersonal"
+            end
+            className={({ isActive }) => `menu-link ${isActive ? "active" : ""}`}
+            title="Resumen"
+          >
+            <i className="bi bi-speedometer2 me-2" />
+            {!collapsed && <span>Resumen</span>}
+          </NavLink>
+
+          <NavLink
+            to="/employee/tasks"
+            end
+            className={({ isActive }) => `menu-link ${isActive ? "active" : ""}`}
+            title="Trabajos"
+          >
             <i className="bi bi-wrench-adjustable me-2" />
-            <span>Servicios</span>
+            {!collapsed && <span>Trabajos</span>}
           </NavLink>
         </nav>
 
-        <div className="sidebar-footer">v1.0</div>
+        {!collapsed && <div className="sidebar-footer">v1.0</div>}
       </aside>
 
-      {/* Main */}
+      {/* Área principal */}
       <div className="main">
         <header className="topbar">
           <div className="search">
             <i className="bi bi-search" />
-            <input
-              placeholder="Buscar (ID, cliente, descripción)"
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-            />
+            <input placeholder="Buscar..." />
           </div>
 
+          {/* Perfil / menú — igual que Admin */}
           <div className="top-actions" ref={menuRef}>
-            <div className="profile-chip" onClick={() => setMenuOpen(v => !v)} role="button">
-              <div className="avatar">{initials(user?.nombre_usuario)}</div>
-              <span className="profile-name">{user?.nombre_usuario || "Empleado"}</span>
+            <button className="icon-btn" title="Notificaciones">
+              <i className="bi bi-bell" />
+            </button>
+            <button className="icon-btn" title="Ajustes">
+              <i className="bi bi-gear" />
+            </button>
+
+            <button
+              className="profile-chip"
+              onClick={() => setMenuOpen((v) => !v)}
+              aria-haspopup="menu"
+              aria-expanded={menuOpen}
+              title={user?.username || "Empleado"}
+            >
+              <div className="avatar">{initials(user?.username)}</div>
+              <span className="profile-name">{user?.username || "Empleado"}</span>
               <i className={`bi ${menuOpen ? "bi-caret-up-fill" : "bi-caret-down-fill"}`} />
-            </div>
+            </button>
 
             {menuOpen && (
               <div className="profile-menu" role="menu">
-                <button className="profile-item" onClick={logout}>
+                <button className="profile-item" onClick={onLogout}>
                   <i className="bi bi-box-arrow-right me-2" />
                   Salir
                 </button>
@@ -125,85 +148,7 @@ const onLogout = async() => {
 
         <main className="content">
           <div className="card-surface">
-            <div className="card-head">
-              <h2 className="card-title">Servicios asignados</h2>
-              <div className="filters">
-                <select
-                  className="select"
-                  value={filtro}
-                  onChange={(e) => setFiltro(e.target.value)}
-                >
-                  <option value="todos">Todos</option>
-                  <option value="pendiente">Pendientes</option>
-                  <option value="en_progreso">En progreso</option>
-                  <option value="completado">Completados</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="table-wrap">
-              <table className="table">
-                <thead>
-                  <tr>
-                    <th>ID</th>
-                    <th>Cliente</th>
-                    <th>Descripción</th>
-                    <th>Estado</th>
-                    <th>Fecha</th>
-                    <th>Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filtrados.map((s) => (
-                    <tr key={s.id}>
-                      <td className="mono">{s.id}</td>
-                      <td>{s.cliente}</td>
-                      <td className="muted">{s.descripcion}</td>
-                      <td>
-                        <span className={badgeTone[s.estado]}>
-                          {s.estado.replace("_", " ")}
-                        </span>
-                      </td>
-                      <td>{s.fecha}</td>
-                      <td>
-                        <div className="actions">
-                          {s.estado !== "en_progreso" && s.estado !== "completado" && (
-                            <button
-                              className="btn-ghost"
-                              onClick={() => actualizarEstado(s.id, "en_progreso")}
-                              title="Marcar en progreso"
-                            >
-                              En progreso
-                            </button>
-                          )}
-                          {s.estado !== "completado" && (
-                            <button
-                              className="btn-ghost"
-                              onClick={() => actualizarEstado(s.id, "completado")}
-                              title="Marcar completado"
-                            >
-                              Completar
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-
-                  {filtrados.length === 0 && (
-                    <tr>
-                      <td colSpan={6} className="empty">
-                        No hay servicios que coincidan con el filtro/búsqueda.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-
-            <p className="fineprint">
-              *Listado de ejemplo con estado local. Conecta tu API para datos reales.
-            </p>
+            <Outlet />
           </div>
         </main>
       </div>
