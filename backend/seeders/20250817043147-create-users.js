@@ -41,7 +41,11 @@ module.exports = {
 
     await queryInterface.bulkInsert('contacto_persona', [
       {
+<<<<<<< HEAD
         id_persona: 1,
+=======
+        id_persona:1,
+>>>>>>> e985494acdac3f3ca68efd0960bc45e95def15dd
         correo: 'juan.perez@example.com',
         telefono: '1234-5678',
         fecha_creacion: new Date()

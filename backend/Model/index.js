@@ -134,12 +134,17 @@ AsignacionTrabajo.belongsTo(TipoMantenimiento, { foreignKey: 'id_tipo_trabajo', 
 RegistroServicioVehiculo.hasMany(AsignacionTrabajo, { foreignKey: 'id_registro', sourceKey: 'id_registro' });
 AsignacionTrabajo.belongsTo(RegistroServicioVehiculo, { foreignKey: 'id_registro', targetKey: 'id_registro' });
 
+
 Usuario.hasMany(AsignacionTrabajo, { foreignKey: 'id_usuario_empleado', sourceKey: 'id_usuario', as: 'empleadoAsignado' });
 AsignacionTrabajo.belongsTo(Usuario, { foreignKey: 'id_usuario_empleado', targetKey: 'id_usuario', as: 'empleadoAsignado' });
 
 Usuario.hasMany(AsignacionTrabajo, { foreignKey: 'id_admin_asignacion', sourceKey: 'id_usuario', as: 'adminAsignacion' });
 AsignacionTrabajo.belongsTo(Usuario, { foreignKey: 'id_admin_asignacion', targetKey: 'id_usuario', as: 'adminAsignacion' });
 
+
+// Relación para el administrador que asignó el trabajo
+Usuario.hasMany(AsignacionTrabajo, { foreignKey: 'id_admin_asignacion', sourceKey: 'id_usuario', as: 'asignacionesAdmin' });
+AsignacionTrabajo.belongsTo(Usuario, { foreignKey: 'id_admin_asignacion', targetKey: 'id_usuario', as: 'adminAsignacion' });
 
 /*
 ==============================================
