@@ -1,5 +1,5 @@
 const { AsignacionTrabajo, Usuario, Rol,AvancesTrabajo , ObservacionesProcesoTrabajo,ImprevistosTrabajo} = require('../Model')
-const{DaniosAdicionales} = require('../Model');
+const{DaniosAdicionales,SolicitudUsoRepuesto} = require('../Model');
 //consultar asignaciones de trabajo por id_usuario 
 const consultarAsignacionesPorUsuario = async (req, res) => {
     try {
@@ -157,6 +157,28 @@ const registrarDanioAdicional = async (req, res) => {
         res.status(500).json({ message: 'Error al registrar el daño adicional.', error: error.message });
     }
 }
+//Crear solicitud de uso de repuesto
+const solicitarUsoRepuesto = async (req, res) => {
+    const { id_asignacion_trabajo, descripcion, cantidad, id_inventario_repuesto } = req.body;
+    try {
+        //verificar que la asignacion de trabajo existe
+        const asignacion = await AsignacionTrabajo.findOne({ where: { id_asignacion: id_asignacion_trabajo } });
+        if (!asignacion) {
+            return res.status(404).json({ message: 'No se encontró una asignación de trabajo con el ID proporcionado.' });
+        }
+        //registrar la solicitud de uso de repuesto
+        const nuevaSolicitud = await SolicitudUsoRepuesto.create({
+            id_asignacion_trabajo,
+            descripcion,
+            cantidad,
+            id_inventario_repuesto,
+            fecha_uso: new Date()
+        });
+        res.status(201).json({ message: 'Solicitud de uso de repuesto registrada exitosamente.', solicitud: nuevaSolicitud });
+    } catch (error) {
+        res.status(500).json({ message: 'Error al registrar la solicitud de uso de repuesto.', error: error.message });
+    }
+}   
 
 module.exports = {
     consultarAsignacionesPorUsuario,
@@ -164,5 +186,6 @@ module.exports = {
     consultarAvancesPorAsignacion,
     crearObservacion,
     asignarImprevisto,
-    registrarDanioAdicional
+    registrarDanioAdicional,
+    solicitarUsoRepuesto
 };

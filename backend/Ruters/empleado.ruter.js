@@ -19,4 +19,7 @@ router.post('/imprevisto', empleadoController.asignarImprevisto);
 
 //danio adicional
 router.post('/danioAdicional', empleadoController.registrarDanioAdicional);
+
+//solicitud uso repuesto
+router.post('/solicitudUsoRepuesto', empleadoController.solicitarUsoRepuesto);
 module.exports = router;
