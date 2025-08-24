@@ -11,4 +11,15 @@ router.post('/avance', empleadoController.registrarAvanceTrabajo);
 //ruta para consultar avances de trabajo por id_asignacion
 router.get('/avances/:id_asignacion', empleadoController.consultarAvancesPorAsignacion);
 
+//ruta para crear nueva observacion
+router.post('/observacion', empleadoController.crearObservacion);
+
+//Asignar imprevist 
+router.post('/imprevisto', empleadoController.asignarImprevisto);
+
+//danio adicional
+router.post('/danioAdicional', empleadoController.registrarDanioAdicional);
+
+//solicitud uso repuesto
+router.post('/solicitudUsoRepuesto', empleadoController.solicitarUsoRepuesto);
 module.exports = router;

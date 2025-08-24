@@ -143,8 +143,8 @@ AsignacionTrabajo.belongsTo(Usuario, { foreignKey: 'id_admin_asignacion', target
 
 
 // Relación para el administrador que asignó el trabajo
-Usuario.hasMany(AsignacionTrabajo, { foreignKey: 'id_admin_asignacion', sourceKey: 'id_usuario', as: 'asignacionesAdmin' });
-AsignacionTrabajo.belongsTo(Usuario, { foreignKey: 'id_admin_asignacion', targetKey: 'id_usuario', as: 'adminAsignacion' });
+//Usuario.hasMany(AsignacionTrabajo, { foreignKey: 'id_admin_asignacion', sourceKey: 'id_usuario', as: 'asignacionesAdmin' });
+//AsignacionTrabajo.belongsTo(Usuario, { foreignKey: 'id_admin_asignacion', targetKey: 'id_usuario', as: 'adminAsignacion' });
 
 /*
 ==============================================
@@ -171,8 +171,15 @@ ObservacionesProcesoTrabajo.belongsTo(Usuario, { foreignKey: 'id_usuario_registr
 AsignacionTrabajo.hasMany(SintomasDetectados, { foreignKey: 'id_asignacion_trabajo', sourceKey: 'id_asignacion' });
 SintomasDetectados.belongsTo(AsignacionTrabajo, { foreignKey: 'id_asignacion_trabajo', targetKey: 'id_asignacion' });
 
-AsignacionTrabajo.hasMany(ImprevistosTrabajo, { foreignKey: 'id_asignacion_trabajo', sourceKey: 'id_asignacion' });
-ImprevistosTrabajo.belongsTo(AsignacionTrabajo, { foreignKey: 'id_asignacion_trabajo', targetKey: 'id_asignacion' });
+AsignacionTrabajo.hasMany(ImprevistosTrabajo, { 
+  foreignKey: 'id_asignacion_trabajo',   // FK en imprevistos_trabajo
+  sourceKey: 'id_asignacion'             // PK en asignacion_trabajo
+});
+
+ImprevistosTrabajo.belongsTo(AsignacionTrabajo, { 
+  foreignKey: 'id_asignacion_trabajo',   // FK en imprevistos_trabajo
+  targetKey: 'id_asignacion'             // PK en asignacion_trabajo
+});
 
 AsignacionTrabajo.hasMany(DaniosAdicionales, { foreignKey: 'id_asignacion_trabajo', sourceKey: 'id_asignacion' });
 DaniosAdicionales.belongsTo(AsignacionTrabajo, { foreignKey: 'id_asignacion_trabajo', targetKey: 'id_asignacion' });
