@@ -5,7 +5,7 @@ const sequelize = require('../config/sequelize');
 class MantenimientoAdicional extends Model {}
 MantenimientoAdicional.init({
   id_mantenimiento_adicional: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-  id_asignacion_trabajo: { type: DataTypes.INTEGER, allowNull: false, references: { model: 'asignacion_trabajo', key: 'id_asignacion_trabajo' }, onDelete: 'CASCADE' },
+  id_asignacion_trabajo: { type: DataTypes.INTEGER, allowNull: false, references: { model: 'asignacion_trabajo', key: 'id_asignacion' }, onDelete: 'CASCADE' },
   id_tipo_trabajo: { type: DataTypes.INTEGER, allowNull: false, references: { model: 'tipo_mantenimiento', key: 'id_tipo_trabajo' } },
   descripcion: { type: DataTypes.TEXT, allowNull: false },
   fecha_solicitud: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
