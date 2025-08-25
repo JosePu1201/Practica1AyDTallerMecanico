@@ -1,7 +1,7 @@
 // /employee/DashboardEmpleado.jsx
 import React, { useEffect, useRef, useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
-import "./stiles/admin.css";
+import "./stiles/empleado.css";
 import axios from "axios";
 
 export default function DashboardEmpleado() {

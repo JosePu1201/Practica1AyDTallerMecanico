@@ -4,54 +4,319 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 const badgeTone = {
-  pendiente: "badge badge-warn",
-  en_progreso: "badge badge-info",
-  completado: "badge badge-ok",
+  ASIGNADO: "badge badge-warn",
+  EN_PROCESO: "badge badge-info",
+  COMPLETADO: "badge badge-ok",
+  PAUSADO: "badge badge-neutral",
+  CANCELADO: "badge badge-error",
 };
 
-const fallback = [
-  { id:"SV-001", cliente:"Juan Pérez",  descripcion:"Cambio de aceite",      estado:"pendiente",   fecha:"2025-08-18" },
-  { id:"SV-002", cliente:"María López", descripcion:"Alineación y balanceo", estado:"en_progreso", fecha:"2025-08-18" },
-  { id:"SV-003", cliente:"Carlos Díaz", descripcion:"Revisión frenos",       estado:"completado",  fecha:"2025-08-17" },
-];
+const normEstado = (e) => (e ?? "").trim().toUpperCase();
+const humanEstado = (e) => (e ? e.replaceAll("_", " ").toLowerCase() : "—");
+const fmtFecha = (f) => {
+  if (!f) return "—";
+  try {
+    const d = new Date(f);
+    return isNaN(d.getTime()) ? "—" : d.toISOString().split("T")[0];
+  } catch { return "—"; }
+};
 
 export default function EmployeeTasks() {
-  const [servicios, setServicios] = useState(fallback);
+  const [servicios, setServicios] = useState([]);
   const [q, setQ] = useState("");
   const [filtro, setFiltro] = useState("todos");
+
+  // Dropdown state
+  const [menuOpenId, setMenuOpenId] = useState(null);
+  const [menuDropUp, setMenuDropUp] = useState(false);
+
+  // Modales
+  const [modal, setModal] = useState({ open: false, type: null, asgId: null });
+  const [loading, setLoading] = useState(false);
+
+  // Avances / Observaciones
+  const [avances, setAvances] = useState([]);
+  const [observaciones, setObservaciones] = useState([]);
+
+  // Forms
+  const [avanceForm, setAvanceForm] = useState({ descripcion: "", nombre: "", porcentaje: 0 });
+  const [obsForm, setObsForm] = useState({ observacion: "" });
+  const [impForm, setImpForm] = useState({ descripcion_imprevisto: "", impacto_tiempo: 0, impacto_costo: 0 });
+  const [danioForm, setDanioForm] = useState({ descripcion_danio: "", costo_estimado: 0, requiere_autorizacion: false });
+  const [repForm, setRepForm] = useState({ descripcion: "", cantidad: 1, id_inventario_repuesto: "" });
+
+  // Apoyo especialista
+  const [especialistas, setEspecialistas] = useState([]);
+  const [apoyoForm, setApoyoForm] = useState({ id_usuario_especialista: "", descripcion_apoyo: "" });
+
   const navigate = useNavigate();
 
   useEffect(() => {
-    // axios.get("/api/empleado/servicios-asignados")
-    //   .then(r => setServicios(r.data))
-    //   .catch(() => setServicios(fallback));
+    const cargar = async () => {
+      let user = null;
+      try {
+        const raw = localStorage.getItem("user");
+        user = raw ? JSON.parse(raw) : null;
+      } catch {
+        console.warn("JSON inválido en localStorage.user");
+      }
+
+      if (!user?.id_usuario) {
+        console.warn("No hay user o id_usuario en localStorage");
+        setServicios([]);
+        return;
+      }
+
+      try {
+        const res = await axios.get(`/api/empleados/asignaciones/${user.id_usuario}`);
+        const data = res?.data ?? [];
+        setServicios(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error("Error cargando asignaciones", err);
+        setServicios([]);
+      }
+    };
+
+    cargar();
   }, []);
 
   const filtrados = useMemo(() => {
     const term = q.toLowerCase().trim();
-    return servicios.filter(s => {
-      const txt = [s.id, s.cliente, s.descripcion].join(" ").toLowerCase();
+    return servicios.filter((s) => {
+      const txt = [
+        `ASG-${s.id_asignacion}`,
+        (s.usuarioEmpleado?.nombre_usuario ?? s.empleadoAsignado?.nombre_usuario ?? ""),
+        s.descripcion ?? "",
+      ].join(" ").toLowerCase();
+
+      const estadoNorm = normEstado(s.estado);
       const coincideTexto = !term || txt.includes(term);
-      const coincideEstado = filtro === "todos" || s.estado === filtro;
+      const coincideEstado = filtro === "todos" || estadoNorm === filtro;
       return coincideTexto && coincideEstado;
     });
   }, [servicios, q, filtro]);
 
-  const actualizarLocal = (id, estado) =>
-    setServicios(prev => prev.map(s => (s.id === id ? { ...s, estado } : s)));
+  const actualizarLocal = (id_asignacion, estado) =>
+    setServicios((prev) =>
+      prev.map((s) => (s.id_asignacion === id_asignacion ? { ...s, estado } : s))
+    );
 
-  const marcarEnProgreso = async (id) => {
+  const marcarEnProgreso = async (id_asignacion) => {
     try {
-      // await axios.patch(`/api/empleado/servicios/${id}`, { estado:"en_progreso" });
-      actualizarLocal(id, "en_progreso");
+      // await axios.patch(`/api/empleados/asignaciones/${id_asignacion}`, { estado: "EN_PROCESO" });
+      actualizarLocal(id_asignacion, "EN_PROCESO");
     } catch (e) { console.error(e); }
   };
 
-  const marcarCompletado = async (id) => {
+  const marcarCompletado = async (id_asignacion) => {
     try {
-      // await axios.patch(`/api/empleado/servicios/${id}`, { estado:"completado" });
-      actualizarLocal(id, "completado");
+      // await axios.patch(`/api/empleados/asignaciones/${id_asignacion}`, { estado: "COMPLETADO" });
+      actualizarLocal(id_asignacion, "COMPLETADO");
     } catch (e) { console.error(e); }
+  };
+
+  // ===== Avances =====
+  const abrirVerAvances = async (asgId) => {
+    setMenuOpenId(null);
+    setModal({ open: true, type: "ver-avances", asgId });
+    setLoading(true);
+    try {
+      const res = await axios.get(`/api/empleados/avances/${asgId}`);
+      setAvances(Array.isArray(res.data) ? res.data : []);
+    } catch (e) {
+      console.error("Error obteniendo avances", e);
+      setAvances([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const abrirRegistrarAvance = (asgId) => {
+    setMenuOpenId(null);
+    setAvanceForm({ descripcion: "", nombre: "", porcentaje: 0 });
+    setModal({ open: true, type: "registrar-avance", asgId });
+  };
+
+  const submitRegistrarAvance = async () => {
+    setLoading(true);
+    try {
+      const payload = {
+        id_asingnacion: String(modal.asgId), // (sic) tal cual backend
+        descripcion: avanceForm.descripcion,
+        nombre: avanceForm.nombre,
+        porcentaje: Number(avanceForm.porcentaje),
+      };
+      await axios.post(`/api/empleados/avance`, payload);
+      setModal({ open: false, type: null, asgId: null });
+    } catch (e) {
+      console.error("Error registrando avance", e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ===== Observaciones =====
+  const abrirObservacion = (asgId) => {
+    setMenuOpenId(null);
+    setObsForm({ observacion: "" });
+    setModal({ open: true, type: "observacion", asgId });
+  };
+
+  const abrirVerObservaciones = async (asgId) => {
+    setMenuOpenId(null);
+    setModal({ open: true, type: "ver-observaciones", asgId });
+    setLoading(true);
+    try {
+      const { data } = await axios.get(`/api/empleados/observacionesPorAsignacion/${asgId}`);
+      setObservaciones(Array.isArray(data) ? data : []);
+    } catch (e) {
+      console.error("Error obteniendo observaciones", e);
+      setObservaciones([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const submitObservacion = async () => {
+    setLoading(true);
+    try {
+      const payload = {
+        id_asignacion: String(modal.asgId),
+        observacion: obsForm.observacion,
+      };
+      await axios.post(`/api/empleados/observacion`, payload);
+      setModal({ open: false, type: null, asgId: null });
+    } catch (e) {
+      console.error("Error registrando observación", e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ===== Imprevisto =====
+  const abrirImprevisto = (asgId) => {
+    setMenuOpenId(null);
+    setImpForm({ descripcion_imprevisto: "", impacto_tiempo: 0, impacto_costo: 0 });
+    setModal({ open: true, type: "imprevisto", asgId });
+  };
+
+  const submitImprevisto = async () => {
+    setLoading(true);
+    try {
+      const payload = {
+        id_asignacion_trabajo: Number(modal.asgId),
+        descripcion_imprevisto: impForm.descripcion_imprevisto,
+        impacto_tiempo: Number(impForm.impacto_tiempo),
+        impacto_costo: Number(impForm.impacto_costo),
+      };
+      await axios.post(`/api/empleados/imprevisto`, payload);
+      setModal({ open: false, type: null, asgId: null });
+    } catch (e) {
+      console.error("Error registrando imprevisto", e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ===== Daño adicional =====
+  const abrirDanio = (asgId) => {
+    setMenuOpenId(null);
+    setDanioForm({ descripcion_danio: "", costo_estimado: 0, requiere_autorizacion: false });
+    setModal({ open: true, type: "danio", asgId });
+  };
+
+  const submitDanio = async () => {
+    setLoading(true);
+    try {
+      const payload = {
+        id_asignacion_trabajo: Number(modal.asgId),
+        descripcion_danio: danioForm.descripcion_danio,
+        costo_estimado: Number(danioForm.costo_estimado),
+        requiere_autorizacion: Boolean(danioForm.requiere_autorizacion),
+      };
+      await axios.post(`/api/empleados/danioAdicional`, payload);
+      setModal({ open: false, type: null, asgId: null });
+    } catch (e) {
+      console.error("Error registrando daño adicional", e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ===== Solicitud repuesto =====
+  const abrirRepuesto = (asgId) => {
+    setMenuOpenId(null);
+    setRepForm({ descripcion: "", cantidad: 1, id_inventario_repuesto: "" });
+    setModal({ open: true, type: "repuesto", asgId });
+  };
+
+  const submitRepuesto = async () => {
+    setLoading(true);
+    try {
+      const payload = {
+        id_asignacion_trabajo: Number(modal.asgId),
+        descripcion: repForm.descripcion,
+        cantidad: Number(repForm.cantidad),
+        id_inventario_repuesto: Number(repForm.id_inventario_repuesto),
+      };
+      await axios.post(`/api/empleados/solicitudUsoRepuesto`, payload);
+      setModal({ open: false, type: null, asgId: null });
+    } catch (e) {
+      console.error("Error registrando solicitud de repuesto", e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ===== Apoyo a especialista =====
+  const abrirApoyo = async (asgId) => {
+    setMenuOpenId(null);
+    setApoyoForm({ id_usuario_especialista: "", descripcion_apoyo: "" });
+    setModal({ open: true, type: "apoyo", asgId });
+    setLoading(true);
+    try {
+      const { data } = await axios.get(`/api/management/users`);
+      const lista = Array.isArray(data) ? data : [];
+      const specs = lista.filter(u =>
+        (u?.Rol?.nombre_rol ?? "").toUpperCase() === "ESPECIALISTA"
+      );
+      setEspecialistas(specs);
+    } catch (e) {
+      console.error("Error cargando especialistas", e);
+      setEspecialistas([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const submitApoyo = async () => {
+    setLoading(true);
+    try {
+      const payload = {
+        id_asignacion_trabajo: Number(modal.asgId),
+        id_usuario_especialista: Number(apoyoForm.id_usuario_especialista),
+        descripcion_apoyo: apoyoForm.descripcion_apoyo,
+      };
+      await axios.post(`/api/empleados/solicitudApoyoEspecialista`, payload);
+      setModal({ open: false, type: null, asgId: null });
+    } catch (e) {
+      console.error("Error solicitando apoyo", e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const cerrarModal = () => setModal({ open: false, type: null, asgId: null });
+
+  // Manejo de apertura de menú: calcula si no hay espacio abajo
+  const toggleMenu = (asgId, evt) => {
+    const isOpen = menuOpenId === asgId;
+    if (isOpen) { setMenuOpenId(null); return; }
+    const rect = evt.currentTarget.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const spaceNeeded = 260; // aprox alto del menú
+    setMenuDropUp(spaceBelow < spaceNeeded);
+    setMenuOpenId(asgId);
   };
 
   return (
@@ -61,13 +326,19 @@ export default function EmployeeTasks() {
         <div className="filters">
           <div className="search">
             <i className="bi bi-search" />
-            <input placeholder="Buscar (ID, cliente, descripción)" value={q} onChange={(e)=>setQ(e.target.value)} />
+            <input
+              placeholder="Buscar (ID, cliente, descripción)"
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+            />
           </div>
-          <select className="select" value={filtro} onChange={(e)=>setFiltro(e.target.value)}>
+          <select className="select" value={filtro} onChange={(e) => setFiltro(e.target.value)}>
             <option value="todos">Todos</option>
-            <option value="pendiente">Pendientes</option>
-            <option value="en_progreso">En progreso</option>
-            <option value="completado">Completados</option>
+            <option value="ASIGNADO">Asignados</option>
+            <option value="EN_PROCESO">En proceso</option>
+            <option value="PAUSADO">Pausados</option>
+            <option value="COMPLETADO">Completados</option>
+            <option value="CANCELADO">Cancelados</option>
           </select>
         </div>
       </div>
@@ -76,38 +347,274 @@ export default function EmployeeTasks() {
         <table className="table">
           <thead>
             <tr>
-              <th>ID</th><th>Cliente</th><th>Descripción</th><th>Estado</th><th>Fecha</th><th>Acciones</th>
+              <th>ID</th>
+              <th>Empleado</th>
+              <th>Descripción</th>
+              <th>Estado</th>
+              <th>Fecha asignación</th>
+              <th style={{width: 300}}>Acciones</th>
             </tr>
           </thead>
           <tbody>
-            {filtrados.map(s=>(
-              <tr key={s.id}>
-                <td className="mono">{s.id}</td>
-                <td>{s.cliente}</td>
-                <td className="muted">{s.descripcion}</td>
-                <td><span className={badgeTone[s.estado]}>{s.estado.replace("_"," ")}</span></td>
-                <td>{s.fecha}</td>
-                <td>
-                  <div className="actions">
-                    <button className="btn-ghost" onClick={()=>navigate(`/employee/tasks/${s.id}/work`)}>Trabajar</button>
-                    {s.estado!=="en_progreso" && s.estado!=="completado" && (
-                      <button className="btn-ghost" onClick={()=>marcarEnProgreso(s.id)}>En progreso</button>
-                    )}
-                    {s.estado!=="completado" && (
-                      <button className="btn-ghost" onClick={()=>marcarCompletado(s.id)}>Completar</button>
-                    )}
-                  </div>
-                </td>
-              </tr>
-            ))}
-            {filtrados.length===0 && (
+            {filtrados.map((s) => {
+              const e = normEstado(s.estado);
+              const cls = badgeTone[e] || "badge";
+              const open = menuOpenId === s.id_asignacion;
+
+              const nombreEmpleado =
+                s.usuarioEmpleado?.nombre_usuario ??
+                s.empleadoAsignado?.nombre_usuario ??
+                "N/D";
+
+              return (
+                <tr key={s.id_asignacion}>
+                  <td className="mono">{`ASG-${s.id_asignacion}`}</td>
+                  <td>{nombreEmpleado}</td>
+                  <td className="muted">{s.descripcion}</td>
+                  <td><span className={cls}>{humanEstado(e)}</span></td>
+                  <td>{fmtFecha(s.fecha_asignacion)}</td>
+                  <td>
+                    <div className="actions" style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                      <button className="btn-ghost" onClick={() => navigate(`/employee/tasks/${s.id_asignacion}/work`)}>Trabajar</button>
+                      <button className="btn-ghost" onClick={() => abrirVerAvances(s.id_asignacion)}>Ver avances</button>
+
+                      <div className="dropdown" style={{ position: "relative" }}>
+                        <button
+                          className="btn-ghost"
+                          onClick={(e) => toggleMenu(s.id_asignacion, e)}
+                          aria-haspopup="menu"
+                          aria-expanded={open}
+                          title="Más acciones"
+                        >
+                          ⋮
+                        </button>
+                        {open && (
+                          <div
+                            className={`action-menu ${menuDropUp ? "drop-up" : ""}`}
+                            role="menu"
+                            onMouseLeave={() => setMenuOpenId(null)}
+                          >
+                            <button className="action-menu-item" onClick={() => abrirRegistrarAvance(s.id_asignacion)}>Registrar avance</button>
+                            <button className="action-menu-item" onClick={() => abrirObservacion(s.id_asignacion)}>Registrar observación</button>
+                            <button className="action-menu-item" onClick={() => abrirVerObservaciones(s.id_asignacion)}>Ver observaciones</button>
+                            <button className="action-menu-item" onClick={() => abrirImprevisto(s.id_asignacion)}>Registrar imprevisto</button>
+                            <button className="action-menu-item" onClick={() => abrirDanio(s.id_asignacion)}>Registrar daño adicional</button>
+                            <button className="action-menu-item" onClick={() => abrirRepuesto(s.id_asignacion)}>Solicitar uso de repuesto</button>
+                            <button className="action-menu-item" onClick={() => abrirApoyo(s.id_asignacion)}>Solicitar apoyo a especialista</button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
+            {filtrados.length === 0 && (
               <tr><td colSpan={6} className="empty">No hay servicios que coincidan.</td></tr>
             )}
           </tbody>
         </table>
       </div>
 
-      <p className="fineprint">*Listado de ejemplo con estado local. Conecta tu API para datos reales.</p>
+      {/* MODALES */}
+      {modal.open && (
+        <div className="modal open" onClick={(e) => { if (e.target.classList.contains("modal")) cerrarModal(); }}>
+          <div className="modal-card">
+            {/* Ver avances */}
+            {modal.type === "ver-avances" && (
+              <>
+                <h3>Avances de ASG-{modal.asgId}</h3>
+                {loading ? <p>Cargando...</p> : (
+                  avances.length ? (
+                    <ul className="list">
+                      {avances.map(a => (
+                        <li key={a.id_avance}>
+                          <div className="row">
+                            <strong>{a.nombre}</strong> — {a.descripcion}
+                          </div>
+                          <div className="row">
+                            <span>Progreso: {a.porcentaje}%</span>
+                            <span className="muted" style={{ marginLeft: 12 }}>
+                              {fmtFecha(a.fecha_avance)}
+                            </span>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : <p className="muted">No hay avances registrados.</p>
+                )}
+                <div className="modal-actions">
+                  <button className="btn" onClick={cerrarModal}>Cerrar</button>
+                </div>
+              </>
+            )}
+
+            {/* Ver observaciones */}
+            {modal.type === "ver-observaciones" && (
+              <>
+                <h3>Observaciones — ASG-{modal.asgId}</h3>
+                {loading ? <p>Cargando...</p> : (
+                  observaciones.length ? (
+                    <ul className="list">
+                      {observaciones.map(o => (
+                        <li key={o.id_observacion}>
+                          <div className="row">
+                            <strong>Obs #{o.id_observacion}</strong>
+                            <span className="muted">{fmtFecha(o.fecha_observacion)}</span>
+                          </div>
+                          <div style={{ marginTop: 6 }}>{o.observacion}</div>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : <p className="muted">No hay observaciones registradas.</p>
+                )}
+                <div className="modal-actions">
+                  <button className="btn" onClick={cerrarModal}>Cerrar</button>
+                </div>
+              </>
+            )}
+
+            {/* Registrar avance */}
+            {modal.type === "registrar-avance" && (
+              <>
+                <h3>Registrar avance — ASG-{modal.asgId}</h3>
+                <label>Nombre</label>
+                <input value={avanceForm.nombre} onChange={e=>setAvanceForm(f=>({...f, nombre:e.target.value}))} />
+                <label>Descripción</label>
+                <textarea value={avanceForm.descripcion} onChange={e=>setAvanceForm(f=>({...f, descripcion:e.target.value}))} />
+                <label>Porcentaje</label>
+                <input type="number" min="0" max="100" value={avanceForm.porcentaje} onChange={e=>setAvanceForm(f=>({...f, porcentaje:e.target.value}))} />
+                <div className="modal-actions">
+                  <button className="btn-ghost" onClick={cerrarModal}>Cancelar</button>
+                  <button className="btn" disabled={loading} onClick={submitRegistrarAvance}>Guardar</button>
+                </div>
+              </>
+            )}
+
+            {/* Observación */}
+            {modal.type === "observacion" && (
+              <>
+                <h3>Registrar observación — ASG-{modal.asgId}</h3>
+                <label>Observación</label>
+                <textarea value={obsForm.observacion} onChange={e=>setObsForm({observacion:e.target.value})} />
+                <div className="modal-actions">
+                  <button className="btn-ghost" onClick={cerrarModal}>Cancelar</button>
+                  <button className="btn" disabled={loading} onClick={submitObservacion}>Guardar</button>
+                </div>
+              </>
+            )}
+
+            {/* Imprevisto */}
+            {modal.type === "imprevisto" && (
+              <>
+                <h3>Registrar imprevisto — ASG-{modal.asgId}</h3>
+                <label>Descripción</label>
+                <textarea value={impForm.descripcion_imprevisto} onChange={e=>setImpForm(f=>({...f, descripcion_imprevisto:e.target.value}))} />
+                <div className="grid2">
+                  <div>
+                    <label>Impacto tiempo (horas)</label>
+                    <input type="number" value={impForm.impacto_tiempo} onChange={e=>setImpForm(f=>({...f, impacto_tiempo:e.target.value}))} />
+                  </div>
+                  <div>
+                    <label>Impacto costo</label>
+                    <input type="number" value={impForm.impacto_costo} onChange={e=>setImpForm(f=>({...f, impacto_costo:e.target.value}))} />
+                  </div>
+                </div>
+                <div className="modal-actions">
+                  <button className="btn-ghost" onClick={cerrarModal}>Cancelar</button>
+                  <button className="btn" disabled={loading} onClick={submitImprevisto}>Guardar</button>
+                </div>
+              </>
+            )}
+
+            {/* Daño adicional */}
+            {modal.type === "danio" && (
+              <>
+                <h3>Registrar daño adicional — ASG-{modal.asgId}</h3>
+                <label>Descripción del daño</label>
+                <textarea value={danioForm.descripcion_danio} onChange={e=>setDanioForm(f=>({...f, descripcion_danio:e.target.value}))} />
+                <div className="grid2">
+                  <div>
+                    <label>Costo estimado</label>
+                    <input type="number" value={danioForm.costo_estimado} onChange={e=>setDanioForm(f=>({...f, costo_estimado:e.target.value}))} />
+                  </div>
+                  <div>
+                    <label>
+                      <input type="checkbox" checked={danioForm.requiere_autorizacion} onChange={e=>setDanioForm(f=>({...f, requiere_autorizacion:e.target.checked}))} />
+                      {" "}Requiere autorización
+                    </label>
+                  </div>
+                </div>
+                <div className="modal-actions">
+                  <button className="btn-ghost" onClick={cerrarModal}>Cancelar</button>
+                  <button className="btn" disabled={loading} onClick={submitDanio}>Guardar</button>
+                </div>
+              </>
+            )}
+
+            {/* Solicitud de repuesto */}
+            {modal.type === "repuesto" && (
+              <>
+                <h3>Solicitud uso de repuesto — ASG-{modal.asgId}</h3>
+                <label>Descripción</label>
+                <input value={repForm.descripcion} onChange={e=>setRepForm(f=>({...f, descripcion:e.target.value}))} />
+                <div className="grid2">
+                  <div>
+                    <label>Cantidad</label>
+                    <input type="number" min="1" value={repForm.cantidad} onChange={e=>setRepForm(f=>({...f, cantidad:e.target.value}))} />
+                  </div>
+                  <div>
+                    <label>ID inventario repuesto</label>
+                    <input value={repForm.id_inventario_repuesto} onChange={e=>setRepForm(f=>({...f, id_inventario_repuesto:e.target.value}))} />
+                  </div>
+                </div>
+                <div className="modal-actions">
+                  <button className="btn-ghost" onClick={cerrarModal}>Cancelar</button>
+                  <button className="btn" disabled={loading} onClick={submitRepuesto}>Enviar</button>
+                </div>
+              </>
+            )}
+
+            {/* Apoyo a especialista */}
+            {modal.type === "apoyo" && (
+              <>
+                <h3>Solicitar apoyo a especialista — ASG-{modal.asgId}</h3>
+                {loading ? (
+                  <p>Cargando especialistas...</p>
+                ) : (
+                  <>
+                    <label>Especialista</label>
+                    <select
+                      value={apoyoForm.id_usuario_especialista}
+                      onChange={e=>setApoyoForm(f=>({...f, id_usuario_especialista:e.target.value}))}
+                    >
+                      <option value="">Seleccione un especialista</option>
+                      {especialistas.map(u => (
+                        <option key={u.id_usuario} value={u.id_usuario}>
+                          {u.Persona ? `${u.Persona.nombre} ${u.Persona.apellido}` : u.nombre_usuario} (#{u.id_usuario})
+                        </option>
+                      ))}
+                    </select>
+                    <label>Descripción del apoyo</label>
+                    <textarea
+                      value={apoyoForm.descripcion_apoyo}
+                      onChange={e=>setApoyoForm(f=>({...f, descripcion_apoyo:e.target.value}))}
+                    />
+                  </>
+                )}
+                <div className="modal-actions">
+                  <button className="btn-ghost" onClick={cerrarModal}>Cancelar</button>
+                  <button className="btn" disabled={loading || !apoyoForm.id_usuario_especialista || !apoyoForm.descripcion_apoyo} onClick={submitApoyo}>
+                    Enviar solicitud
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      <p className="fineprint">*Datos obtenidos del endpoint. Acciones por fila con modal.</p>
     </>
   );
 }
