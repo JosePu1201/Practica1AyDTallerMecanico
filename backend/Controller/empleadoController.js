@@ -1,5 +1,5 @@
 const { AsignacionTrabajo, Usuario, Rol,AvancesTrabajo , ObservacionesProcesoTrabajo,ImprevistosTrabajo} = require('../Model')
-const{DaniosAdicionales,SolicitudUsoRepuesto} = require('../Model');
+const{DaniosAdicionales,SolicitudUsoRepuesto,SolicitudApoyo} = require('../Model');
 //consultar asignaciones de trabajo por id_usuario 
 const consultarAsignacionesPorUsuario = async (req, res) => {
     try {
@@ -179,7 +179,32 @@ const solicitarUsoRepuesto = async (req, res) => {
         res.status(500).json({ message: 'Error al registrar la solicitud de uso de repuesto.', error: error.message });
     }
 }   
-
+//solicitar apoyo de un especialista
+const solicitarApoyoEspecialista = async (req, res) => {
+    const { id_asignacion_trabajo, id_usuario_especialista, descripcion_apoyo } = req.body;
+    try {
+        //verificar que la asignacion de trabajo existe
+        const asignacion = await AsignacionTrabajo.findOne({ where: { id_asignacion: id_asignacion_trabajo } });
+        if (!asignacion) {
+            return res.status(404).json({ message: 'No se encontró una asignación de trabajo con el ID proporcionado.' });
+        }
+        //verificar que el usuario especialista existe y tiene el rol de especialista (id_rol = 3)
+        const especialista = await Usuario.findOne({ where: { id_usuario: id_usuario_especialista, id_rol: 4, estado: 'ACTIVO' } });            
+        if (!especialista) {
+            return res.status(404).json({ message: 'No se encontró un especialista activo con el ID proporcionado.' });
+        }
+        //registrar la solicitud de apoyo
+        const nuevaSolicitudApoyo = await SolicitudApoyo.create({
+            id_asignacion_trabajo,
+            id_usuario_especialista,
+            descripcion_apoyo,
+            fecha_apoyo: new Date()
+        });
+        res.status(201).json({ message: 'Solicitud de apoyo a especialista registrada exitosamente.', solicitudApoyo: nuevaSolicitudApoyo });
+    } catch (error) {
+        res.status(500).json({ message: 'Error al registrar la solicitud de apoyo a especialista.', error: error.message });
+    }
+}   
 module.exports = {
     consultarAsignacionesPorUsuario,
     registrarAvanceTrabajo,
@@ -187,5 +212,6 @@ module.exports = {
     crearObservacion,
     asignarImprevisto,
     registrarDanioAdicional,
-    solicitarUsoRepuesto
+    solicitarUsoRepuesto,
+    solicitarApoyoEspecialista
 };

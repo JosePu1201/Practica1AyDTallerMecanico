@@ -22,4 +22,9 @@ router.post('/danioAdicional', empleadoController.registrarDanioAdicional);
 
 //solicitud uso repuesto
 router.post('/solicitudUsoRepuesto', empleadoController.solicitarUsoRepuesto);
+
+//solicitud apoyo especialista
+router.post('/solicitudApoyoEspecialista', empleadoController.solicitarApoyoEspecialista);
+
+
 module.exports = router;
