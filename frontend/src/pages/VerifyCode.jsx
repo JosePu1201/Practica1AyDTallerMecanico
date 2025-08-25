@@ -74,7 +74,7 @@ export default function VerifyCode() {
       if (data.rol === 1) {
         navigate('/admin', { replace: true });
       } else if (data.rol === 2) {
-        navigate('/empleado', { replace: true });
+        navigate('/employee', { replace: true });
       } else {
         navigate('/no-autorizado', { replace: true });
       }

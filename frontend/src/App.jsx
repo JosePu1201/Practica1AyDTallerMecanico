@@ -31,6 +31,9 @@ import MaintenanceTypes from './pages/admin/services/MaintenanceTypes';
 import VehiclesList from './pages/admin/vehicles/VehiclesList';
 import VehicleForm from './pages/admin/vehicles/VehicleForm';
 import VehicleHistory from './pages/admin/vehicles/VehicleHostory';
+import InfoPersonal from './pages/employee/InfoPersonal';
+import EmployeeTasks from './pages/employee/EmployeeTasks';
+import EmployeeWork from './pages/employee/EmployeeWork';
 
 export default function App() {
   return (
@@ -80,7 +83,10 @@ export default function App() {
 
           {/* empleado solo para rol EMPLEADO 2 */}
           <Route element={<ProtectedRoute roles={'EMPLEADO'} />}>
-            <Route path="/empleado" element={<DashboardEmpleado />}>
+            <Route path="/employee" element={<DashboardEmpleado />}>
+              <Route path="infopersonal" element={<InfoPersonal />} />
+              <Route path="tasks" element={<EmployeeTasks />} />
+              <Route path="tasks/:id/work" element={<EmployeeWork />} />
             </Route>
           </Route>
           

@@ -51,7 +51,8 @@ export default function VehiclesList({ initialData }) {
       const placa  = (v.placa  || '').toLowerCase();
       const marca  = (v.marca  || '').toLowerCase();
       const modelo = (v.modelo || '').toLowerCase();
-      return placa.includes(t) || marca.includes(t) || modelo.includes(t);
+      const user = (v.id_cliente||'').toLowerCase();
+      return placa.includes(t) || marca.includes(t) || modelo.includes(t)||user.includes(t);
     });
     setVehicles(filtered);
   };

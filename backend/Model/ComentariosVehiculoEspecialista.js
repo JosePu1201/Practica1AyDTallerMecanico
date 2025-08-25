@@ -5,7 +5,7 @@ const sequelize = require('../config/sequelize');
 class ComentariosVehiculoEspecialista extends Model {}
 ComentariosVehiculoEspecialista.init({
   id_comentario: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-  id_asignacion_trabajo: { type: DataTypes.INTEGER, allowNull: false, references: { model: 'asignacion_trabajo', key: 'id_asignacion_trabajo' }, onDelete: 'CASCADE' },
+  id_asignacion_trabajo: { type: DataTypes.INTEGER, allowNull: false, references: { model: 'asignacion_trabajo', key: 'id_asignacion' }, onDelete: 'CASCADE' },
   id_especialista: { type: DataTypes.INTEGER, allowNull: false, references: { model: 'usuario', key: 'id_usuario' } },
   comentario: { type: DataTypes.TEXT, allowNull: false },
   fecha_comentario: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
