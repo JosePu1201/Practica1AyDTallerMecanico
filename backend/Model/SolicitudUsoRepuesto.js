@@ -12,7 +12,7 @@ SolicitudUsoRepuesto.init({
   estado: { type: DataTypes.ENUM('PENDIENTE', 'APROBADO', 'RECHAZADO', 'USADO'), defaultValue: 'PENDIENTE' },
   id_usuario_aceptacion: { type: DataTypes.INTEGER, allowNull: true, references: { model: 'usuario', key: 'id_usuario' } },
   id_inventario_repuesto: { type: DataTypes.INTEGER, allowNull: false, references: { model: 'inventario', key: 'id_inventario_repuesto' } },
-  fecha_aprobacion: { type: DataTypes.DATE, allowNull: true },
+  fecha_aprobacion: { type: DataTypes.DATE, allowNull: true }
 }, {
   sequelize,
   modelName: 'solicitud_uso_repuesto',
