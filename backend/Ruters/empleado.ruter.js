@@ -22,4 +22,17 @@ router.post('/danioAdicional', empleadoController.registrarDanioAdicional);
 
 //solicitud uso repuesto
 router.post('/solicitudUsoRepuesto', empleadoController.solicitarUsoRepuesto);
+
+//solicitud apoyo especialista
+router.post('/solicitudApoyoEspecialista', empleadoController.solicitarApoyoEspecialista);
+
+//ruta para obtener avances por usuario mecanico
+router.get('/avancesPorUsuario', empleadoController.getAvancesPorUsuario);
+
+//ruta para obtener observaciones por asignacion
+router.get('/observacionesPorAsignacion/:id_asignacion', empleadoController.getObservacionesPorAsignacion);
+
+//ruta para obtener observaciones por usuario
+router.get('/observacionesPorUsuario', empleadoController.getObservacionesPorUsuario);
+
 module.exports = router;

@@ -1,5 +1,6 @@
-const { AsignacionTrabajo, Usuario, Rol,AvancesTrabajo , ObservacionesProcesoTrabajo,ImprevistosTrabajo} = require('../Model')
-const{DaniosAdicionales,SolicitudUsoRepuesto} = require('../Model');
+const { get } = require('../config/mailer');
+const { AsignacionTrabajo, Usuario, Rol, AvancesTrabajo, ObservacionesProcesoTrabajo, ImprevistosTrabajo } = require('../Model')
+const { DaniosAdicionales, SolicitudUsoRepuesto, SolicitudApoyo } = require('../Model');
 //consultar asignaciones de trabajo por id_usuario 
 const consultarAsignacionesPorUsuario = async (req, res) => {
     try {
@@ -18,7 +19,7 @@ const consultarAsignacionesPorUsuario = async (req, res) => {
             where: { id_usuario_empleado: id_usuario },
             include: [
                 // Incluye la relación del empleado asignado
-                { model: Usuario, as: 'usuarioEmpleado', attributes: ['id_usuario', 'nombre_usuario'] },
+                { model: Usuario, as: 'empleadoAsignado', attributes: ['id_usuario', 'nombre_usuario'] },
                 // Incluye la relación del administrador
                 { model: Usuario, as: 'adminAsignacion', attributes: ['id_usuario', 'nombre_usuario'] }
             ]
@@ -36,13 +37,13 @@ const consultarAsignacionesPorUsuario = async (req, res) => {
 
 //registrar avance de trabajo
 const registrarAvanceTrabajo = async (req, res) => {
-    const {id_asingnacion, descripcion, nombre, porcentaje} = req.body;
+    const { id_asingnacion, descripcion, nombre, porcentaje } = req.body;
     //validar que existe una signacion de trabajo con ese id_asingnacion y que el estado sea EN_PROCESO
     try {
-        const asignacion = await AsignacionTrabajo.findOne({where: {id_asignacion: id_asingnacion, estado: 'EN_PROCESO'}});
+        const asignacion = await AsignacionTrabajo.findOne({ where: { id_asignacion: id_asingnacion, estado: 'EN_PROCESO' } });
         console.log(asignacion);
-        if(!asignacion){
-            return res.status(404).json({message: 'No se encontró una asignación de trabajo en proceso con el ID proporcionado.'});
+        if (!asignacion) {
+            return res.status(404).json({ message: 'No se encontró una asignación de trabajo en proceso con el ID proporcionado.' });
         }
         //registrar el avance de trabajo
         const nuevoAvance = await AvancesTrabajo.create({
@@ -52,12 +53,12 @@ const registrarAvanceTrabajo = async (req, res) => {
             porcentaje,
             fecha_avance: new Date()
         });
-        res.status(201).json({message: 'Avance de trabajo registrado exitosamente.', avance: nuevoAvance});
+        res.status(201).json({ message: 'Avance de trabajo registrado exitosamente.', avance: nuevoAvance });
     } catch (error) {
-        res.status(500).json({message: 'Error al registrar el avance de trabajo.', error: error.message});
+        res.status(500).json({ message: 'Error al registrar el avance de trabajo.', error: error.message });
     }
 
-}   
+}
 
 //Conultar avances por id_asignacion
 const consultarAvancesPorAsignacion = async (req, res) => {
@@ -88,12 +89,12 @@ const consultarAvancesPorAsignacion = async (req, res) => {
 
 //Crear nueva observacion
 const crearObservacion = async (req, res) => {
-    const { id_asignacion, observacion} = req.body;
-    try { 
+    const { id_asignacion, observacion } = req.body;
+    try {
         //verificar que la asignacion de trabajo existe
-        const asignacion = await AsignacionTrabajo.findOne({where: {id_asignacion: id_asignacion}});
-        if(!asignacion){
-            return res.status(404).json({message: 'No se encontró una asignación de trabajo con el ID proporcionado.'});
+        const asignacion = await AsignacionTrabajo.findOne({ where: { id_asignacion: id_asignacion } });
+        if (!asignacion) {
+            return res.status(404).json({ message: 'No se encontró una asignación de trabajo con el ID proporcionado.' });
         }
         console.log(asignacion.id_asignacion);
         //registrar la observacion
@@ -105,10 +106,10 @@ const crearObservacion = async (req, res) => {
 
             //id_usuario_registro: req.user.id_usuario //suponiendo que el id del usuario que registra la observacion viene en el token
         });
-        res.status(201).json({message: 'Observación registrada exitosamente.', observacion: nuevaObservacion});
+        res.status(201).json({ message: 'Observación registrada exitosamente.', observacion: nuevaObservacion });
 
-    }catch (error) {
-        res.status(500).json({message: 'Error al registrar la observación.', error: error.message});
+    } catch (error) {
+        res.status(500).json({ message: 'Error al registrar la observación.', error: error.message });
     }
 }
 //asignar imprevisto a una asignacion de trabajo
@@ -121,7 +122,7 @@ const asignarImprevisto = async (req, res) => {
             return res.status(404).json({ message: 'No se encontró una asignación de trabajo con el ID proporcionado.' });
         }
         //registrar el imprevisto
-        const nuevoImprevisto = await ImprevistosTrabajo.create({       
+        const nuevoImprevisto = await ImprevistosTrabajo.create({
             id_asignacion_trabajo,
             descripcion_imprevisto,
             impacto_tiempo,
@@ -132,7 +133,7 @@ const asignarImprevisto = async (req, res) => {
     } catch (error) {
         res.status(500).json({ message: 'Error al registrar el imprevisto.', error: error.message });
     }
-}   
+}
 
 // Registar Danio Adicional
 const registrarDanioAdicional = async (req, res) => {
@@ -140,7 +141,7 @@ const registrarDanioAdicional = async (req, res) => {
     try {
         //verificar que la asignacion de trabajo existe
         const asignacion = await AsignacionTrabajo.findOne({ where: { id_asignacion: id_asignacion_trabajo } });
-        if (!asignacion) {          
+        if (!asignacion) {
             return res.status(404).json({ message: 'No se encontró una asignación de trabajo con el ID proporcionado.' });
         }
         //registrar el danio adicional
@@ -178,7 +179,131 @@ const solicitarUsoRepuesto = async (req, res) => {
     } catch (error) {
         res.status(500).json({ message: 'Error al registrar la solicitud de uso de repuesto.', error: error.message });
     }
-}   
+}
+//solicitar apoyo de un especialista
+const solicitarApoyoEspecialista = async (req, res) => {
+    const { id_asignacion_trabajo, id_usuario_especialista, descripcion_apoyo } = req.body;
+    try {
+        //verificar que la asignacion de trabajo existe
+        const asignacion = await AsignacionTrabajo.findOne({ where: { id_asignacion: id_asignacion_trabajo } });
+        if (!asignacion) {
+            return res.status(404).json({ message: 'No se encontró una asignación de trabajo con el ID proporcionado.' });
+        }
+        //verificar que el usuario especialista existe y tiene el rol de especialista (id_rol = 3)
+        const especialista = await Usuario.findOne({ where: { id_usuario: id_usuario_especialista, id_rol: 4, estado: 'ACTIVO' } });
+        if (!especialista) {
+            return res.status(404).json({ message: 'No se encontró un especialista activo con el ID proporcionado.' });
+        }
+        //registrar la solicitud de apoyo
+        const nuevaSolicitudApoyo = await SolicitudApoyo.create({
+            id_asignacion_trabajo,
+            id_usuario_especialista,
+            descripcion_apoyo,
+            fecha_apoyo: new Date()
+        });
+        res.status(201).json({ message: 'Solicitud de apoyo a especialista registrada exitosamente.', solicitudApoyo: nuevaSolicitudApoyo });
+    } catch (error) {
+        res.status(500).json({ message: 'Error al registrar la solicitud de apoyo a especialista.', error: error.message });
+    }
+}
+
+//obtener avances de trabajo por id_usuario pasando por id_asignacion
+const getAvancesPorUsuario = async (req, res) => {
+
+    try {
+        //validar que hay una sesion activa
+        if (!req.session || !req.session.user || !req.session.user.id_usuario) {
+            return res.status(401).json({ message: 'No hay una sesión de usuario válida.' });
+        }
+        const id_usuario = req.session.user.id_usuario;
+        //verificar que el usuario existe y tiene el rol de empleado
+        const usuario = await Usuario.findOne({
+            where: { id_usuario: id_usuario, estado: 'ACTIVO', id_rol: 2 }
+        });
+        if (!usuario) {
+            return res.status(404).json({ message: 'Usuario no encontrado o no es un empleado activo.' });
+        }
+        //consultar las asignaciones de trabajo del usuario
+        const asignaciones = await AsignacionTrabajo.findAll({
+            where: { id_usuario_empleado: id_usuario },
+            include: [
+                {
+                    model: AvancesTrabajo
+                }
+            ]
+        });
+        //verificar si tiene asignaciones de trabajo
+        if (asignaciones.length === 0) {
+            return res.status(404).json({ message: 'No se encontraron asignaciones de trabajo para este usuario.' });
+        }
+        //retornar las asignaciones con sus avances
+        res.status(200).json(asignaciones);
+    } catch (error) {
+        res.status(500).json({ message: 'Error al consultar los avances de trabajo.', error: error.message });
+    }
+}
+
+//obtener Observaciones por id asignacion
+const getObservacionesPorAsignacion = async (req, res) => {
+    try {
+        const { id_asignacion } = req.params;
+
+        //verificar que la asignacion de trabajo existe
+        const asignacion = await AsignacionTrabajo.findOne({
+            where: { id_asignacion: id_asignacion }
+        });
+        if (!asignacion) {
+            return res.status(404).json({ message: 'Asignación de trabajo no encontrada.' });
+        }
+        //consultar las observaciones por id_asignacion
+        const observaciones = await ObservacionesProcesoTrabajo.findAll({
+            where: { id_asignacion: id_asignacion }
+        });
+        //verificar si tiene observaciones  
+        if (observaciones.length === 0) {
+            return res.status(404).json({ message: 'No se encontraron observaciones para esta asignación.' });
+        }
+        //retornar las observaciones
+        res.status(200).json(observaciones);
+    } catch (error) {
+        res.status(500).json({ message: 'Error al consultar las observaciones.', error: error.message });
+    }
+}
+
+//obtener observaciones por usuario mecanico y asignacion desde la sesion activa
+const getObservacionesPorUsuario = async (req, res) => {    
+    try {
+        //validar que hay una sesion activa
+        if (!req.session || !req.session.user || !req.session.user.id_usuario) {
+            return res.status(401).json({ message: 'No hay una sesión de usuario válida.' });
+        }
+        const id_usuario = req.session.user.id_usuario;
+        //verificar que el usuario existe y tiene el rol de empleado
+        const usuario = await Usuario.findOne({
+            where: { id_usuario: id_usuario, estado: 'ACTIVO', id_rol: 2 }
+        });
+        if (!usuario) {
+            return res.status(404).json({ message: 'Usuario no encontrado o no es un empleado activo.' });
+        }
+        //consultar las asignaciones de trabajo del usuario
+        const asignaciones = await AsignacionTrabajo.findAll({
+            where: { id_usuario_empleado: id_usuario },
+            include: [
+                {
+                    model: ObservacionesProcesoTrabajo
+                }
+            ]
+        });
+        //verificar si tiene asignaciones de trabajo
+        if (asignaciones.length === 0) {
+            return res.status(404).json({ message: 'No se encontraron asignaciones de trabajo para este usuario.' });
+        }
+        //retornar las asignaciones con sus observaciones
+        res.status(200).json(asignaciones);
+    } catch (error) {
+        res.status(500).json({ message: 'Error al consultar las observaciones.', error: error.message });
+    }
+}
 
 module.exports = {
     consultarAsignacionesPorUsuario,
@@ -187,5 +312,9 @@ module.exports = {
     crearObservacion,
     asignarImprevisto,
     registrarDanioAdicional,
-    solicitarUsoRepuesto
+    solicitarUsoRepuesto,
+    solicitarApoyoEspecialista,
+    getAvancesPorUsuario,
+    getObservacionesPorAsignacion,
+    getObservacionesPorUsuario
 };
