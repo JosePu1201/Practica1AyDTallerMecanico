@@ -49,6 +49,9 @@ export default function EmployeeTasks() {
   const [especialistas, setEspecialistas] = useState([]);
   const [apoyoForm, setApoyoForm] = useState({ id_usuario_especialista: "", descripcion_apoyo: "" });
 
+  // Busy (acciones de estado)
+  const [busy, setBusy] = useState({ id: null, action: null });
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -101,18 +104,29 @@ export default function EmployeeTasks() {
       prev.map((s) => (s.id_asignacion === id_asignacion ? { ...s, estado } : s))
     );
 
-  const marcarEnProgreso = async (id_asignacion) => {
+  // ===== Acciones de estado (con endpoints específicos) =====
+  const actualizarEstadoRemoto = async (id_asignacion, action, nuevoEstado, url) => {
     try {
-      // await axios.patch(`/api/empleados/asignaciones/${id_asignacion}`, { estado: "EN_PROCESO" });
-      actualizarLocal(id_asignacion, "EN_PROCESO");
-    } catch (e) { console.error(e); }
+      setBusy({ id: id_asignacion, action });
+      // Ajusta método/URL/payload si tu backend difiere:
+      // Supuesto: POST /api/empleados/asignaciones/:id/{completar|pausar|cancelar|reanudar}
+      await axios.put(`/api/empleados/actualizar_estado`, {id_asingnacion:id_asignacion, estado:nuevoEstado});
+      actualizarLocal(id_asignacion, nuevoEstado);
+    } catch (e) {
+      console.error(`Error en acción ${action} para ${id_asignacion}`, e);
+    } finally {
+      setBusy({ id: null, action: null });
+    }
   };
 
-  const marcarCompletado = async (id_asignacion) => {
-    try {
-      // await axios.patch(`/api/empleados/asignaciones/${id_asignacion}`, { estado: "COMPLETADO" });
-      actualizarLocal(id_asignacion, "COMPLETADO");
-    } catch (e) { console.error(e); }
+  const completar = (id) => actualizarEstadoRemoto(id, "completar", "COMPLETADO", "completar");
+  const pausar    = (id) => actualizarEstadoRemoto(id, "pausar",    "PAUSADO",    "pausar");
+  const cancelar  = (id) => actualizarEstadoRemoto(id, "cancelar",  "CANCELADO",  "cancelar");
+  const reanudar  = (id) => actualizarEstadoRemoto(id, "reanudar",  "EN_PROCESO", "reanudar");
+
+  const confirmarCancelar = (id) => {
+    const ok = window.confirm("¿Seguro que deseas cancelar esta asignación? Esta acción no se puede deshacer.");
+    if (ok) cancelar(id);
   };
 
   // ===== Avances =====
@@ -147,6 +161,10 @@ export default function EmployeeTasks() {
         porcentaje: Number(avanceForm.porcentaje),
       };
       await axios.post(`/api/empleados/avance`, payload);
+      const est = avanceForm.porcentaje==100? "COMPLETADO":"EN_PROCESO";
+      // Al registrar un avance -> marcar EN_PROCESO en UI
+      actualizarLocal(modal.asgId, est);
+
       setModal({ open: false, type: null, asgId: null });
     } catch (e) {
       console.error("Error registrando avance", e);
@@ -352,7 +370,7 @@ export default function EmployeeTasks() {
               <th>Descripción</th>
               <th>Estado</th>
               <th>Fecha asignación</th>
-              <th style={{width: 300}}>Acciones</th>
+              <th style={{width: 600}}>Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -366,6 +384,8 @@ export default function EmployeeTasks() {
                 s.empleadoAsignado?.nombre_usuario ??
                 "N/D";
 
+              const isBusy = (a) => busy.id === s.id_asignacion && busy.action === a;
+
               return (
                 <tr key={s.id_asignacion}>
                   <td className="mono">{`ASG-${s.id_asignacion}`}</td>
@@ -374,14 +394,108 @@ export default function EmployeeTasks() {
                   <td><span className={cls}>{humanEstado(e)}</span></td>
                   <td>{fmtFecha(s.fecha_asignacion)}</td>
                   <td>
-                    <div className="actions" style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                      <button className="btn-ghost" onClick={() => navigate(`/employee/tasks/${s.id_asignacion}/work`)}>Trabajar</button>
-                      <button className="btn-ghost" onClick={() => abrirVerAvances(s.id_asignacion)}>Ver avances</button>
+                    <div className="actions" style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+                      {/* Acciones según estado (según lo pedido) */}
+                    {e === "ASIGNADO" && (
+                      <>
+                        
+                        <button
+                          className="btn btn-danger"
+                          disabled={isBusy("cancelar")}
+                          onClick={() => confirmarCancelar(s.id_asignacion)}
+                        >
+                          {isBusy("cancelar") ? "Cancelando..." : "Cancelar"}
+                        </button>
+                        <button
+                          className="btn btn-warning"
+                          disabled={isBusy("pausar")}
+                          onClick={() => pausar(s.id_asignacion)}
+                        >
+                          {isBusy("pausar") ? "Pausando..." : "Pausar"}
+                        </button>
+                        <button
+                          className="btn btn-success"
+                          disabled={isBusy("completar")}
+                          onClick={() => completar(s.id_asignacion)}
+                        >
+                          {isBusy("completar") ? "Guardando..." : "Marcar como completado"}
+                        </button>
+                      </>
+                    )}
 
+                    {e === "EN_PROCESO" && (
+                      <>
+                        <button
+                          className="btn btn-danger"
+                          disabled={isBusy("cancelar")}
+                          onClick={() => confirmarCancelar(s.id_asignacion)}
+                        >
+                          {isBusy("cancelar") ? "Cancelando..." : "Cancelar"}
+                        </button>
+                        <button
+                          className="btn btn-warning"
+                          disabled={isBusy("pausar")}
+                          onClick={() => pausar(s.id_asignacion)}
+                        >
+                          {isBusy("pausar") ? "Pausando..." : "Pausar"}
+                        </button>
+                        <button
+                          className="btn btn-success"
+                          disabled={isBusy("completar")}
+                          onClick={() => completar(s.id_asignacion)}
+                        >
+                          {isBusy("completar") ? "Guardando..." : "Marcar como completado"}
+                        </button>
+                      </>
+                    )}
+
+                    {e === "PAUSADO" && (
+                      <>
+                        <button
+                          className="btn btn-danger"
+                          disabled={isBusy("cancelar")}
+                          onClick={() => confirmarCancelar(s.id_asignacion)}
+                        >
+                          {isBusy("cancelar") ? "Cancelando..." : "Cancelar"}
+                        </button>
+                        <button
+                          className="btn btn-primary"
+                          disabled={isBusy("reanudar")}
+                          onClick={() => reanudar(s.id_asignacion)}
+                        >
+                          {isBusy("reanudar") ? "Reanudando..." : "Reanudar"}
+                        </button>
+                      </>
+                    )}
+
+                    {e === "CANCELADO" && (
+                      <>
+                        <button
+                          className="btn btn-primary"
+                          disabled={isBusy("reanudar")}
+                          onClick={() => reanudar(s.id_asignacion)}
+                        >
+                          {isBusy("reanudar") ? "Reanudando..." : "Reanudar"}
+                        </button>
+                      </>
+                    )}
+
+
+                     {/* COMPLETADO u otros -> sin botones de estado */}
+
+                    <button
+                      className="btn-ghost"
+                      onClick={() => abrirVerAvances(s.id_asignacion)}
+                    >
+                      Ver avances
+                    </button>
+
+                    {(e === "ASIGNADO" || e === "EN_PROCESO") ? (
+                      // Mostrar menú ⋮ SOLO cuando está ASIGNADO o EN_PROCESO
                       <div className="dropdown" style={{ position: "relative" }}>
                         <button
-                          className="btn-ghost"
-                          onClick={(e) => toggleMenu(s.id_asignacion, e)}
+                          className={open ? "btn-ghost active" : "btn-ghost"}
+                          onClick={(evt) => toggleMenu(s.id_asignacion, evt)}
                           aria-haspopup="menu"
                           aria-expanded={open}
                           title="Más acciones"
@@ -404,7 +518,16 @@ export default function EmployeeTasks() {
                           </div>
                         )}
                       </div>
-                    </div>
+                    ) : (
+                      // Para PAUSADO / CANCELADO / COMPLETADO: NO menú ⋮, mostrar botón "Ver observaciones"
+                      <button
+                        className="btn-ghost"
+                        onClick={() => abrirVerObservaciones(s.id_asignacion)}
+                      >
+                        Ver observaciones
+                      </button>
+                    )}
+                                        </div>
                   </td>
                 </tr>
               );
@@ -614,7 +737,7 @@ export default function EmployeeTasks() {
         </div>
       )}
 
-      <p className="fineprint">*Datos obtenidos del endpoint. Acciones por fila con modal.</p>
+      <p className="fineprint"></p>
     </>
   );
 }

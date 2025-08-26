@@ -253,3 +253,76 @@
 
 /* Nota al pie */
 .fineprint{ margin-top:10px; color:var(--muted); font-size:12px; }
+
+
+/* ==== Report pages (scroll interno) ==== */
+.report-page {
+  height: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Contenedor con scroll para el contenido del reporte (debajo del header/filtros) */
+.report-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 16px;
+  min-height: 0; /* clave para que el scroll funcione en contenedores flex/grid */
+}
+
+/* Asegura que la columna principal pueda hacer scroll interno */
+.main { 
+  min-height: 0; /* evita que el hijo desborde y permite overflow en .content/.report-scroll */
+}
+
+/* En layouts grid/flex con height:100vh, ayuda a liberar el scroll interno */
+.content {
+  overflow: auto;       /* ya lo tienes, lo reafirmamos */
+  min-height: 0;        /* importante para scroll en contenedores flex/grid */
+  max-height: none;     /* evita límites que corten el scroll */
+}
+
+/* ==== Tabla: viewport con scroll sin romper el dropdown ==== */
+/* Envuelve .table-wrap con .table-viewport cuando quieras limitar altura */
+.table-viewport {
+  max-height: 60vh;     /* ajusta a gusto (50–70vh suele ir bien) */
+  overflow: auto;       /* scroll vertical/ horizontal si es necesario */
+  border-radius: 16px;  /* coincide con tu tarjeta */
+}
+
+/* Mantén el menú de acciones por encima cuando haya scroll del viewport */
+.action-menu { 
+  z-index: 9999; 
+}
+
+/* Si notas que la tabla se corta en pantallas pequeñas, habilita scroll horizontal también */
+.table-viewport {
+  overflow: auto;       /* habilita ambos ejes */
+}
+
+/* ==== Ajustes utilitarios que ayudan al scroll interno ==== */
+.admin-layout { 
+  /* ya usas grid y overflow hidden, lo dejamos; el truco está en min-height:0 en hijos */
+  min-height: 100vh;
+}
+
+.topbar { 
+  position: sticky; top: 0; z-index: 20; 
+}
+
+/* Cuando la tabla sea muy ancha, evita que rompa el layout */
+.table { 
+  table-layout: auto; 
+  width: 100%;
+}
+
+/* Grids de charts (recharts) responsivos */
+.charts-grid {
+  display: grid; 
+  grid-template-columns: 1fr 1fr; 
+  gap: 16px;
+}
+@media (max-width: 992px){
+  .charts-grid { grid-template-columns: 1fr; }
+}

@@ -109,9 +109,9 @@ export default function DashboardEmpleado() {
       {/* Área principal */}
       <div className="main">
         <header className="topbar">
-          <div className="search">
-            <i className="bi bi-search" />
-            <input placeholder="Buscar..." />
+          <div className="">
+           
+            
           </div>
 
           {/* Perfil / menú — igual que Admin */}
