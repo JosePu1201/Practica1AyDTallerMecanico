@@ -165,8 +165,8 @@ PagosFactura.belongsTo(FacturaServicioVehiculo, { foreignKey: 'id_factura', targ
 AsignacionTrabajo.hasMany(ObservacionesProcesoTrabajo, { foreignKey: 'id_asignacion', sourceKey: 'id_asignacion' });
 ObservacionesProcesoTrabajo.belongsTo(AsignacionTrabajo, { foreignKey: 'id_asignacion', targetKey: 'id_asignacion' });
 
-Usuario.hasMany(ObservacionesProcesoTrabajo, { foreignKey: 'id_usuario_registro', sourceKey: 'id_usuario' });
-ObservacionesProcesoTrabajo.belongsTo(Usuario, { foreignKey: 'id_usuario_registro', targetKey: 'id_usuario' });
+//Usuario.hasMany(ObservacionesProcesoTrabajo, { foreignKey: 'id_usuario_registro', sourceKey: 'id_usuario' });
+//ObservacionesProcesoTrabajo.belongsTo(Usuario, { foreignKey: 'id_usuario_registro', targetKey: 'id_usuario' });
 
 AsignacionTrabajo.hasMany(SintomasDetectados, { foreignKey: 'id_asignacion_trabajo', sourceKey: 'id_asignacion' });
 SintomasDetectados.belongsTo(AsignacionTrabajo, { foreignKey: 'id_asignacion_trabajo', targetKey: 'id_asignacion' });

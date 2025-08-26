@@ -1,7 +1,7 @@
 // /employee/DashboardEmpleado.jsx
 import React, { useEffect, useRef, useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
-import "./stiles/admin.css";
+import "./stiles/empleado.css";
 import axios from "axios";
 
 export default function DashboardEmpleado() {
@@ -109,9 +109,9 @@ export default function DashboardEmpleado() {
       {/* Área principal */}
       <div className="main">
         <header className="topbar">
-          <div className="search">
-            <i className="bi bi-search" />
-            <input placeholder="Buscar..." />
+          <div className="">
+           
+            
           </div>
 
           {/* Perfil / menú — igual que Admin */}
