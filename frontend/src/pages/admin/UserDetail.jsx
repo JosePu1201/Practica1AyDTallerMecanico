@@ -230,41 +230,7 @@ export default function UserDetail() {
               </Row>
             </Tab>
             
-            {user.id_rol === 4 && (
-              <Tab eventKey="specialist" title="Información de Especialista">
-                {specialistInfo ? (
-                  <Row>
-                    <Col md={6}>
-                      <dl className="row">
-                        <dt className="col-sm-4">Tipo de técnico</dt>
-                        <dd className="col-sm-8">
-                          {specialistInfo.tipoTecnico?.nombre || 'No asignado'}
-                        </dd>
-                        
-                        <dt className="col-sm-4">Área de especialidad</dt>
-                        <dd className="col-sm-8">
-                          {specialistInfo.areaEspecialista?.nombre_area || 'No asignada'}
-                        </dd>
-                        
-                        <dt className="col-sm-4">Descripción del área</dt>
-                        <dd className="col-sm-8">
-                          {specialistInfo.areaEspecialista?.descripcion || 'Sin descripción'}
-                        </dd>
-                      </dl>
-                    </Col>
-                  </Row>
-                ) : (
-                  <div className="alert alert-info">
-                    Este usuario es un especialista pero no tiene información de especialización configurada.
-                    <div className="mt-3">
-                      <Button variant="primary" size="sm">
-                        Configurar especialización
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </Tab>
-            )}
+            
           </Tabs>
         </Card.Body>
       </Card>

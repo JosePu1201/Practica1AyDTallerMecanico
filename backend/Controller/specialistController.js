@@ -29,6 +29,8 @@ const getWorksAssigned = async (req, res) => {
             ]
         });
 
+        res.status(200).json(works);
+
 
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -60,6 +62,7 @@ const updateWorkAssignment = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
+
 
 const getHistoryVehicle = async (req, res) => {
     try {
@@ -193,6 +196,13 @@ const addTechnicalTest = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
+/*ejemplo json
+{
+    "id_especialista": 1,
+    "id_asignacion_trabajo": 2,
+    "descripcion_prueba_tecnica": "Prueba de frenos"
+}
+*/
 
 const addTestResult = async (req, res) => {
     try {
@@ -213,6 +223,14 @@ const addTestResult = async (req, res) => {
     }
 };
 
+/*ejemplo
+{
+    "id_prueba_tecnica": 1,
+    "descripcion_resultado": "Frenos en buen estado",
+    "resultado_satisfactorio": true
+}
+*/
+
 const getTechnicalTestsBySpecialist = async (req, res) => {
     try {
         const { id } = req.params;
@@ -232,6 +250,16 @@ const getTechnicalTestsBySpecialist = async (req, res) => {
                                     attributes: ['marca', 'modelo', 'anio', 'placa']
                                 }
                             ]
+                        }
+                    ]
+                },
+                {
+                    model: ResultadoPruebaTecnica,
+                    attributes: ['id_resultado_prueba', 'descripcion_resultado', 'resultado_satisfactorio'],
+                    include: [
+                        {
+                            model: SolucionPropuesta,
+                            attributes: ['id_solucion', 'descripcion_solucion', 'costo_estimado', 'tiempo_estimado', 'prioridad']
                         }
                     ]
                 }
@@ -267,6 +295,18 @@ const addSolutionProposal = async (req, res) => {
     }
 };
 
+/*
+ejemplo solucion
+{
+    "id_resultado_prueba": 1,
+    "descripcion_solucion": "Reemplazo de pastillas de freno",
+    "costo_estimado": 150.00,
+    "tiempo_estimado": 2,
+    "prioridad": "alta"
+}
+*/
+
+
 const getSolutionsByTestResult = async (req, res) => {
     try {
         const { id } = req.params;
@@ -300,6 +340,16 @@ const addCommentsVehicleSpecialist = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
+
+/*
+Comentarios ejemplo
+{
+    "id_asignacion_trabajo": 1,
+    "id_especialista": 2,
+    "comentario": "Se requiere revisión del sistema de frenos",
+    "tipo_comentario": "observación"
+}
+*/
 
 const getCommentsByAssignment = async (req, res) => {
     try {
@@ -336,6 +386,17 @@ const addVehicleRecommendation = async (req, res) => {
     }
 };
 
+/*
+ejemplo recomendacion
+{
+    "id_asignacion_trabajo": 1,
+    "id_especialista": 2,
+    "recomendacion": "Revisar sistema de suspensión",
+    "prioridad": "alta",
+    "tipo_recomendacion": "mantenimiento"
+}
+*/
+
 const getRecommendationsByAssignment = async (req, res) => {
     try {
         const { id } = req.params;
@@ -368,6 +429,41 @@ const createRequestSupport = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
+
+const getUsersSpecialist = async (req, res) => {
+    try {
+        const users = await Usuario.findAll({
+            include: [
+                { 
+                    model: Rol, attributes: ['nombre_rol'], 
+                    where: { nombre_rol: 'ESPECIALISTA' }   
+                },
+                {
+                    model: Persona,
+                    attributes: ['nombre', 'apellido']
+                },
+                {
+                    model: UsuarioEspecialista,
+                    include: [
+                        {
+                            model: AreaEspecialista,
+                            attributes: ['nombre_area', 'descripcion']
+                        },
+                        {
+                            model: TipoTecnico,
+                            attributes: ['nombre_tipo', 'descripcion']
+                        }
+                    ]
+                }
+            ],
+            attributes: ['id_usuario', 'nombre_usuario']
+        });
+        res.status(200).json(users);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
 
 const getRequestsSupportBySpecialist = async (req, res) => {
     try {
@@ -403,11 +499,19 @@ const respondToSupportRequest = async (req, res) => {
 };
 
 
-const getRequestsReplacementPartsByAssignment = async (req, res) => {
+const getRequestsReplacementPartsByService = async (req, res) => {
     try {
-        const { id } = req.params;
         const partRequests = await SolicitudUsoRepuesto.findAll({
-            where: { id_asignacion_trabajo: id },
+            include: [
+                {
+                    model: AsignacionTrabajo,
+                    include: [
+                        {
+                            model: RegistroServicioVehiculo
+                        }
+                    ]
+                }
+            ],
             order: [['fecha_uso', 'DESC']]
         });
 
@@ -478,6 +582,7 @@ module.exports = {
     createRequestSupport,
     getRequestsSupportBySpecialist,
     respondToSupportRequest,
-    getRequestsReplacementPartsByAssignment,
-    aceptReplacementPart
+    getRequestsReplacementPartsByService,
+    aceptReplacementPart,
+    getUsersSpecialist
 };

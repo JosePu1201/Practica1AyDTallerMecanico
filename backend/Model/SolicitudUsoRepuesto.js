@@ -15,7 +15,7 @@ SolicitudUsoRepuesto.init({
   fecha_aprobacion: { type: DataTypes.DATE, allowNull: true }
 }, {
   sequelize,
-  modelName: 'solicitud_uso_repuesto',
+  modelName: 'SolicitudUsoRepuesto',
   tableName: 'solicitud_uso_repuesto',
   timestamps: false
 });

@@ -89,7 +89,16 @@ export default function App() {
               <Route path="tasks/:id/work" element={<EmployeeWork />} />
             </Route>
           </Route>
-          
+
+          {/*RUTAS PARA ESPECIALISTAS */}
+          <Route element={<ProtectedRoute roles={'ESPECIALISTA'} />}>
+            <Route path="/specialist" element={<DashboardEspecialista />}>
+              <Route path="infopersonal" element={<InfoPersonal />} />
+              <Route path="tasks" element={<EmployeeTasks />} />
+              <Route path="tasks/:id/work" element={<EmployeeWork />} />
+            </Route>
+          </Route>
+
           {/* Raíz */}
           <Route path="/" element={<HomePague />} />
         </Routes>
