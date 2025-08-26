@@ -8,6 +8,9 @@ router.get('/asignaciones/:id_usuario', empleadoController.consultarAsignaciones
 //ruta para registrar avance de trabajo
 router.post('/avance', empleadoController.registrarAvanceTrabajo);
 
+//ruta para actualizar el estado de una asignacion de trabajo
+router.put('/actualizar_estado',empleadoController.actualizarEstadoAsignacion);
+
 //ruta para consultar avances de trabajo por id_asignacion
 router.get('/avances/:id_asignacion', empleadoController.consultarAvancesPorAsignacion);
 
