@@ -59,7 +59,7 @@ const registrarAvanceTrabajo = async (req, res) => {
         await AsignacionTrabajo.update(
                 { estado: nuevoEstado },
                 { where: { id_asignacion: id_asingnacion } }
-            );
+        );
         res.status(201).json({ message: 'Avance de trabajo registrado exitosamente.', avance: nuevoAvance });
     } catch (error) {
         res.status(500).json({ message: 'Error al registrar el avance de trabajo.', error: error.message });
