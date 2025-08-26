@@ -1,3 +1,4 @@
+const { Where } = require('sequelize/lib/utils');
 const { get } = require('../config/mailer');
 const { AsignacionTrabajo, Usuario, Rol, AvancesTrabajo, ObservacionesProcesoTrabajo, ImprevistosTrabajo } = require('../Model')
 const { DaniosAdicionales, SolicitudUsoRepuesto, SolicitudApoyo } = require('../Model');
@@ -40,11 +41,12 @@ const registrarAvanceTrabajo = async (req, res) => {
     const { id_asingnacion, descripcion, nombre, porcentaje } = req.body;
     //validar que existe una signacion de trabajo con ese id_asingnacion y que el estado sea EN_PROCESO
     try {
-        const asignacion = await AsignacionTrabajo.findOne({ where: { id_asignacion: id_asingnacion, estado: 'ASIGNADO' } });
+        const asignacion = await AsignacionTrabajo.findOne({ where: { id_asignacion: id_asingnacion } });
         console.log(asignacion);
         if (!asignacion) {
             return res.status(404).json({ message: 'No se encontró una asignación de trabajo en proceso con el ID proporcionado.' });
         }
+        
         //registrar el avance de trabajo
         const nuevoAvance = await AvancesTrabajo.create({
             id_asignacion_trabajo: id_asingnacion,
@@ -53,11 +55,34 @@ const registrarAvanceTrabajo = async (req, res) => {
             porcentaje,
             fecha_avance: new Date()
         });
+        const nuevoEstado = porcentaje === 100 ? 'COMPLETADO' : 'EN_PROCESO';
+        await AsignacionTrabajo.update(
+                { estado: nuevoEstado },
+                { where: { id_asignacion: id_asingnacion } }
+            );
         res.status(201).json({ message: 'Avance de trabajo registrado exitosamente.', avance: nuevoAvance });
     } catch (error) {
         res.status(500).json({ message: 'Error al registrar el avance de trabajo.', error: error.message });
     }
+}
 
+//actualizar el estado de una asignacion
+const actualizarEstadoAsignacion = async (req, res) => {
+    const { id_asingnacion, estado } = req.body;
+     try {
+        const asignacion = await AsignacionTrabajo.findOne({ where: { id_asignacion: id_asingnacion} });
+        if (!asignacion) {
+            return res.status(404).json({ message: 'No se encontró una asignación de trabajo con el ID proporcionado.' });
+        }
+        await AsignacionTrabajo.update(
+            { estado: estado },
+            { where: { id_asignacion: id_asingnacion } }
+        );
+        
+        res.status(201).json({ message: 'Estado de asignacion actualizado exitosamente.' });
+    } catch (error) {
+        res.status(500).json({ message: 'Error al actualizar el estado de asignacion.', error: error.message });
+    }
 }
 
 //Conultar avances por id_asignacion
@@ -316,5 +341,6 @@ module.exports = {
     solicitarApoyoEspecialista,
     getAvancesPorUsuario,
     getObservacionesPorAsignacion,
-    getObservacionesPorUsuario
+    getObservacionesPorUsuario,
+    actualizarEstadoAsignacion
 };
