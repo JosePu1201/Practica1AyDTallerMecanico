@@ -40,7 +40,7 @@ const registrarAvanceTrabajo = async (req, res) => {
     const { id_asingnacion, descripcion, nombre, porcentaje } = req.body;
     //validar que existe una signacion de trabajo con ese id_asingnacion y que el estado sea EN_PROCESO
     try {
-        const asignacion = await AsignacionTrabajo.findOne({ where: { id_asignacion: id_asingnacion, estado: 'EN_PROCESO' } });
+        const asignacion = await AsignacionTrabajo.findOne({ where: { id_asignacion: id_asingnacion, estado: 'ASIGNADO' } });
         console.log(asignacion);
         if (!asignacion) {
             return res.status(404).json({ message: 'No se encontró una asignación de trabajo en proceso con el ID proporcionado.' });
