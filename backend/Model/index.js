@@ -356,5 +356,6 @@ module.exports = {
   ArticulosSugeridos,
   CotizacionProductos,
   DetalleCotizacion,
-  Proveedor
+  Proveedor,
+  Inventario,
 };
