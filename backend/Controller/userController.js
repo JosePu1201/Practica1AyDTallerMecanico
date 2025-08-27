@@ -280,7 +280,7 @@ const getTipoTecnico = async (req, res) => {
 }
 
 const asignarEspecializacion = async (req, res) => {
-    const { id_usuario, id_area, id_tipo } = req.body;
+    const { id_usuario, id_area_especialista, id_tipo_tecnico } = req.body;
 
     const transaction = await sequelize.transaction();
     try {
@@ -293,8 +293,8 @@ const asignarEspecializacion = async (req, res) => {
         // Asignar especialización
         await UsuarioEspecialista.create({
             id_usuario,
-            id_area,
-            id_tipo
+            id_area_especialista,
+            id_tipo_tecnico
         }, { transaction });
 
         await transaction.commit();

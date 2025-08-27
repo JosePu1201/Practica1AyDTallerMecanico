@@ -15,7 +15,7 @@ AsignacionTrabajo.init({
   fecha_inicio_real: { type: DataTypes.DATE, allowNull: true },
   fecha_finalizacion: { type: DataTypes.DATE, allowNull: true },
   precio: { type: DataTypes.DECIMAL(10, 2), allowNull: true },
-  observaciones_finalizacion: { type: DataTypes.TEXT },
+  observaciones_finalizacion: { type: DataTypes.TEXT }
 }, {
   sequelize,
   modelName: 'AsignacionTrabajo',
