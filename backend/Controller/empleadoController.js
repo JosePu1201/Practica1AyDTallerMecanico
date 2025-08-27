@@ -1,5 +1,3 @@
-const { Where } = require('sequelize/lib/utils');
-const { get } = require('../config/mailer');
 const { AsignacionTrabajo, Usuario, Rol, AvancesTrabajo, ObservacionesProcesoTrabajo, ImprevistosTrabajo } = require('../Model')
 const { DaniosAdicionales, SolicitudUsoRepuesto, SolicitudApoyo } = require('../Model');
 //consultar asignaciones de trabajo por id_usuario 
@@ -327,6 +325,300 @@ const getObservacionesPorUsuario = async (req, res) => {
         res.status(200).json(asignaciones);
     } catch (error) {
         res.status(500).json({ message: 'Error al consultar las observaciones.', error: error.message });
+    }
+}
+//obtener imprevistos por id_asignacion
+const getImprevistosPorAsignacion = async (req, res) => {
+    try {
+        const { id_asignacion } = req.params;
+
+        //verificar que la asignacion de trabajo existe
+        const asignacion = await AsignacionTrabajo.findOne({
+            where: { id_asignacion: id_asignacion }
+        });
+        if (!asignacion) {
+            return res.status(404).json({ message: 'Asignación de trabajo no encontrada.' });
+        }
+        //consultar los imprevistos por id_asignacion
+        const imprevistos = await ImprevistosTrabajo.findAll({
+            where: { id_asignacion_trabajo: id_asignacion }
+        });
+        //verificar si tiene imprevistos  
+        if (imprevistos.length === 0) {
+            return res.status(404).json({ message: 'No se encontraron imprevistos para esta asignación.' });
+        }
+        //retornar los imprevistos
+        res.status(200).json(imprevistos);
+    } catch (error) {
+        res.status(500).json({ message: 'Error al consultar los imprevistos.', error: error.message });
+    }
+}
+
+//obtener imprevistos por usuario mecanico desde la sesion activa
+const getImprevistosPorUsuario = async (req, res) => {
+    try {   
+        //validar que hay una sesion activa
+        if (!req.session || !req.session.user || !req.session.user.id_usuario) {
+            return res.status(401).json({ message: 'No hay una sesión de usuario válida.' });
+        }
+        const id_usuario = req.session.user.id_usuario;
+        //verificar que el usuario existe y tiene el rol de empleado
+        const usuario = await Usuario.findOne({
+            where: { id_usuario: id_usuario, estado: 'ACTIVO', id_rol: 2 }
+        });
+        if (!usuario) {
+            return res.status(404).json({ message: 'Usuario no encontrado o no es un empleado activo.' });
+        }
+        //consultar las asignaciones de trabajo del usuario
+        const asignaciones = await AsignacionTrabajo.findAll({
+            where: { id_usuario_empleado: id_usuario },
+            include: [
+                {
+                    model: ImprevistosTrabajo
+                }
+            ]
+        });
+        //verificar si tiene asignaciones de trabajo
+        if (asignaciones.length === 0) {
+            return res.status(404).json({ message: 'No se encontraron asignaciones de trabajo para este usuario.' });
+        }
+        //retornar las asignaciones con sus imprevistos
+        res.status(200).json(asignaciones);
+    } catch (error) {
+        res.status(500).json({ message: 'Error al consultar los imprevistos.', error: error.message });
+    }
+}
+
+//obtener danios adicionales por id_asignacion
+const getDaniosAdicionalesPorAsignacion = async (req, res) => {
+    try {
+        const { id_asignacion } = req.params;       
+        //verificar que la asignacion de trabajo existe
+        const asignacion = await AsignacionTrabajo.findOne({
+            where: { id_asignacion: id_asignacion }
+        });
+        if (!asignacion) {
+            return res.status(404).json({ message: 'Asignación de trabajo no encontrada.' });
+        }
+        //consultar los danios adicionales por id_asignacion
+        const danios = await DaniosAdicionales.findAll({
+            where: { id_asignacion_trabajo: id_asignacion }
+        });
+        //verificar si tiene danios adicionales  
+        if (danios.length === 0) {      
+            return res.status(404).json({ message: 'No se encontraron daños adicionales para esta asignación.' });
+        }
+        //retornar los danios adicionales
+        res.status(200).json(danios);
+    } catch (error) {
+        res.status(500).json({ message: 'Error al consultar los daños adicionales.', error: error.message });   
+    }
+}
+//obtener danios adicionales por usuario mecanico desde la sesion activa
+const getDaniosAdicionalesPorUsuario = async (req, res) => {
+    try {   
+        //validar que hay una sesion activa
+        if (!req.session || !req.session.user || !req.session.user.id_usuario) {
+            return res.status(401).json({ message: 'No hay una sesión de usuario válida.' });
+        }
+        const id_usuario = req.session.user.id_usuario;
+        //verificar que el usuario existe y tiene el rol de empleado
+        const usuario = await Usuario.findOne({
+            where: { id_usuario: id_usuario, estado: 'ACTIVO', id_rol: 2 }
+        });
+        if (!usuario) {
+            return res.status(404).json({ message: 'Usuario no encontrado o no es un empleado activo.' });
+        }
+        //consultar las asignaciones de trabajo del usuario
+        const asignaciones = await AsignacionTrabajo.findAll({
+            where: { id_usuario_empleado: id_usuario },
+            include: [
+                {
+                    model: DaniosAdicionales
+                }
+            ]
+        });
+        //verificar si tiene asignaciones de trabajo
+        if (asignaciones.length === 0) {
+            return res.status(404).json({ message: 'No se encontraron asignaciones de trabajo para este usuario.' });
+        }
+        //retornar las asignaciones con sus danios adicionales
+        res.status(200).json(asignaciones);
+    } catch (error) {
+        res.status(500).json({ message: 'Error al consultar los daños adicionales.', error: error.message });
+    }
+}
+
+//consultar solicitudes de uso de repuesto por id_asignacion
+const getSolicitudesUsoRepuestoPorAsignacion = async (req, res) => {
+    try {   
+        const { id_asignacion } = req.params;       
+        //verificar que la asignacion de trabajo existe
+        const asignacion = await AsignacionTrabajo.findOne({
+            where: { id_asignacion: id_asignacion }
+        });
+        if (!asignacion) {
+            return res.status(404).json({ message: 'Asignación de trabajo no encontrada.' });
+        }
+        //consultar las solicitudes de uso de repuesto por id_asignacion
+        const solicitudes = await SolicitudUsoRepuesto.findAll({
+            where: { id_asignacion_trabajo: id_asignacion }
+        });
+        //verificar si tiene solicitudes de uso de repuesto  
+        if (solicitudes.length === 0) {      
+            return res.status(404).json({ message: 'No se encontraron solicitudes de uso de repuesto para esta asignación.' });
+        }
+        //retornar las solicitudes de uso de repuesto
+        res.status(200).json(solicitudes);
+    } catch (error) {
+        res.status(500).json({ message: 'Error al consultar las solicitudes de uso de repuesto.', error: error.message });   
+    }
+}
+//consultar solicitudes de uso de repuesto por usuario mecanico desde la sesion activa
+const getSolicitudesUsoRepuestoPorUsuario = async (req, res) => {
+    try {   
+        //validar que hay una sesion activa
+        if (!req.session || !req.session.user || !req.session.user.id_usuario) {
+            return res.status(401).json({ message: 'No hay una sesión de usuario válida.' });
+        }
+        const id_usuario = req.session.user.id_usuario;
+        //verificar que el usuario existe y tiene el rol de empleado
+        const usuario = await Usuario.findOne({
+            where: { id_usuario: id_usuario, estado: 'ACTIVO', id_rol: 2 }
+        });
+        if (!usuario) {
+            return res.status(404).json({ message: 'Usuario no encontrado o no es un empleado activo.' });
+        }
+        //consultar las asignaciones de trabajo del usuario
+        const asignaciones = await AsignacionTrabajo.findAll({
+            where: { id_usuario_empleado: id_usuario },
+            include: [
+                {
+                    model: SolicitudUsoRepuesto
+                }
+            ]
+        });
+        //verificar si tiene asignaciones de trabajo
+        if (asignaciones.length === 0) {
+            return res.status(404).json({ message: 'No se encontraron asignaciones de trabajo para este usuario.' });
+        }
+        //retornar las asignaciones con sus solicitudes de uso de repuesto
+        res.status(200).json(asignaciones);
+    } catch (error) {
+        res.status(500).json({ message: 'Error al consultar las solicitudes de uso de repuesto.', error: error.message });
+    }
+}
+
+//consultar solicitudes de apoyo a especialista por id_asignacion
+const getSolicitudesApoyoEspecialistaPorAsignacion = async (req, res) => {
+    try {   
+        const { id_asignacion } = req.params;       
+        //verificar que la asignacion de trabajo existe
+        const asignacion = await AsignacionTrabajo.findOne({
+            where: { id_asignacion: id_asignacion }
+        });
+        if (!asignacion) {
+            return res.status(404).json({ message: 'Asignación de trabajo no encontrada.' });
+        }
+        //consultar las solicitudes de apoyo a especialista por id_asignacion
+        const solicitudes = await SolicitudApoyo.findAll({
+            where: { id_asignacion_trabajo: id_asignacion }
+        });
+        //verificar si tiene solicitudes de apoyo a especialista  
+        if (solicitudes.length === 0) {      
+            return res.status(404).json({ message: 'No se encontraron solicitudes de apoyo a especialista para esta asignación.' });
+        }
+        //retornar las solicitudes de apoyo a especialista
+        res.status(200).json(solicitudes);
+    } catch (error) {
+        res.status(500).json({ message: 'Error al consultar las solicitudes de apoyo a especialista.', error: error.message });   
+    }
+}
+//consultar solicitudes de apoyo a especialista por usuario mecanico desde la sesion activa
+const getSolicitudesApoyoEspecialistaPorUsuario = async (req, res) => {
+    try {   
+        //validar que hay una sesion activa
+        if (!req.session || !req.session.user || !req.session.user.id_usuario) {
+            return res.status(401).json({ message: 'No hay una sesión de usuario válida.' });
+        }
+        const id_usuario = req.session.user.id_usuario;
+        //verificar que el usuario existe y tiene el rol de empleado
+        const usuario = await Usuario.findOne({
+            where: { id_usuario: id_usuario, estado: 'ACTIVO', id_rol: 2 }
+        });
+        if (!usuario) {
+            return res.status(404).json({ message: 'Usuario no encontrado o no es un empleado activo.' });
+        }
+        //consultar las asignaciones de trabajo del usuario
+        const asignaciones = await AsignacionTrabajo.findAll({
+            where: { id_usuario_empleado: id_usuario },
+            include: [
+                {
+                    model: SolicitudApoyo
+                }
+            ]
+        });
+        //verificar si tiene asignaciones de trabajo
+        if (asignaciones.length === 0) {
+            return res.status(404).json({ message: 'No se encontraron asignaciones de trabajo para este usuario.' });
+        }
+        //retornar las asignaciones con sus solicitudes de apoyo a especialista
+        res.status(200).json(asignaciones);
+    } catch (error) {
+        res.status(500).json({ message: 'Error al consultar las solicitudes de apoyo a especialista.', error: error.message });
+    }
+}
+
+//Completar solicitud de apoyo a especialista esta funcion solo es para especialista
+const completarSolicitudApoyo = async (req, res) => {
+    const { id_solicitud, resultado_apoyo,observacion } = req.body; // resultado del apoyo brindado
+    try {
+
+        //obtener el id_usuario del especialista desde la sesion activa
+        if (!req.session || !req.session.user || !req.session.user.id_usuario) {
+            return res.status(401).json({ message: 'No hay una sesión de usuario válida.' });
+        }
+        const id_usuario = req.session.user.id_usuario;
+        //verificar que el usuario existe y tiene el rol de especialista
+        const usuario = await Usuario.findOne({
+            where: { id_usuario: id_usuario, estado: 'ACTIVO', id_rol: 4 }
+        });
+        if (!usuario) {
+            return res.status(404).json({ message: 'Usuario no encontrado o no es un especialista activo.' });
+        }
+        //verificar que la solicitud de apoyo a especialista existe
+        const solicitud = await SolicitudApoyo.findOne({ where: { id_solicitud_apoyo: id_solicitud } });
+        if (!solicitud) {
+            return res.status(404).json({ message: 'No se encontró una solicitud de apoyo a especialista con el ID proporcionado.' });
+        }
+        //actualizar el estado de la solicitud
+
+        if(resultado_apoyo === 'COMPLETADO'){
+            solicitud.estado = 'COMPLETADO';
+            solicitud.observaciones_respuesta = observacion;
+            solicitud.fecha_respuesta = new Date();
+            await solicitud.save();
+            res.status(200).json({ message: 'Solicitud de apoyo a especialista completada exitosamente.', solicitud });
+        }else if(resultado_apoyo === 'RECHAZADO'){
+            solicitud.estado = 'RECHAZADO';
+            solicitud.observaciones_respuesta = observacion;
+            solicitud.fecha_respuesta = new Date();
+            await solicitud.save();
+            res.status(200).json({ message: 'Solicitud de apoyo a especialista cancelada exitosamente.', solicitud });
+        }
+        else if(resultado_apoyo === 'ACEPTADO'){
+            solicitud.estado = 'ACEPTADO';           
+            solicitud.fecha_respuesta = new Date();
+            solicitud.id_usuario_especialista = id_usuario; // asignar el id del especialista que acepta la solicitud
+            await solicitud.save();
+            res.status(200).json({ message: 'Solicitud de apoyo a especialista aceptada exitosamente.', solicitud });
+        }else{
+            return res.status(400).json({ message: 'El resultado del apoyo debe ser COMPLETADO, RECHAZADO o ACEPTADO.' });
+        }
+        
+       
+    } catch (error) {
+        res.status(500).json({ message: 'Error al completar la solicitud de apoyo a especialista.', error: error.message });
     }
 }
 
