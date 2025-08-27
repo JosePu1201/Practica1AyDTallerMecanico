@@ -120,12 +120,12 @@ export default function SpecialistList() {
     }
     
     setFormSubmitting(true);
-    
+    //console.log(formData);
     try {
       await axios.post('/api/management/users/asignar-especializacion', {
         id_usuario: formData.id_usuario,
-        id_area: formData.id_area_especialista,
-        id_tipo: formData.id_tipo_tecnico
+        id_area_especialista: formData.id_area_especialista,
+        id_tipo_tecnico: formData.id_tipo_tecnico
       });
       
       toast.success('Especialización asignada con éxito');
@@ -191,17 +191,17 @@ export default function SpecialistList() {
                   <tr key={specialist.id_especialista || specialist.id_usuario}>
                     <td>{specialist.id_usuario}</td>
                     <td>
-                      {specialist.usuario?.persona?.nombre} {specialist.usuario?.persona?.apellido}
+                      {specialist.Usuario?.Persona?.nombre} {specialist.Usuario?.Persona?.apellido}
                     </td>
-                    <td>{specialist.usuario?.nombre_usuario}</td>
+                    <td>{specialist.Usuario?.nombre_usuario}</td>
                     <td>
                       <Badge bg="info">
-                        {specialist.areaEspecialista?.nombre_area || 'No asignada'}
+                        {specialist.AreaEspecialistum?.nombre_area || 'No asignada'}
                       </Badge>
                     </td>
                     <td>
                       <Badge bg="secondary">
-                        {specialist.tipoTecnico?.nombre || 'No asignado'}
+                        {specialist.TipoTecnico?.nombre_tipo || 'No asignado'}
                       </Badge>
                     </td>
                     <td>
@@ -296,7 +296,7 @@ export default function SpecialistList() {
                     <option value="">Seleccione un tipo</option>
                     {tiposTecnico.map(tipo => (
                       <option key={tipo.id_tipo_tecnico} value={tipo.id_tipo_tecnico}>
-                        {tipo.nombre}
+                        {tipo.nombre_tipo}
                       </option>
                     ))}
                   </Form.Select>

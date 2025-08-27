@@ -217,8 +217,8 @@ DiagnosticoEspecialista.belongsTo(Usuario, { foreignKey: 'id_usuario_especialist
 DiagnosticoEspecialista.hasMany(DetalleDiagnostico, { foreignKey: 'id_diagnostico_especialista', sourceKey: 'id_diagnostico_especialista' });
 DetalleDiagnostico.belongsTo(DiagnosticoEspecialista, { foreignKey: 'id_diagnostico_especialista', targetKey: 'id_diagnostico_especialista' });
 
-Usuario.hasMany(PruebaTecnicaEspecialista, { foreignKey: 'id_usuario_especialista', sourceKey: 'id_usuario' });
-PruebaTecnicaEspecialista.belongsTo(Usuario, { foreignKey: 'id_usuario_especialista', targetKey: 'id_usuario' });
+Usuario.hasMany(PruebaTecnicaEspecialista, { foreignKey: 'id_especialista', sourceKey: 'id_usuario' });
+PruebaTecnicaEspecialista.belongsTo(Usuario, { foreignKey: 'id_especialista', targetKey: 'id_usuario' });
 AsignacionTrabajo.hasMany(PruebaTecnicaEspecialista, { foreignKey: 'id_asignacion_trabajo', sourceKey: 'id_asignacion' });
 PruebaTecnicaEspecialista.belongsTo(AsignacionTrabajo, { foreignKey: 'id_asignacion_trabajo', targetKey: 'id_asignacion' });
 
@@ -356,5 +356,6 @@ module.exports = {
   ArticulosSugeridos,
   CotizacionProductos,
   DetalleCotizacion,
-  Proveedor
+  Proveedor,
+  Inventario
 };
