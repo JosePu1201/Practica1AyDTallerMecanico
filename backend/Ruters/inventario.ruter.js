@@ -7,7 +7,13 @@ const router = express.Router();
 //ruta para obtener el inventario con repuestos y cantidad
 router.get('/repuestos', inventarioController.getInventarioRepuesto);
 
+//actualizar cantidad de repuestos 
+router.put('/actualizarCantidad', inventarioController.actualizarCantidadRepuesto);
 
+//hisotirla de movimientos de inventario
+router.get('/historialMovimientos', inventarioController.historialMovimientosInventario);
 
+//alerta de inventarioBajo
+router.get('/alertaInventarioBajo', inventarioController.getLowStockAlerts);
 
 module.exports = router;

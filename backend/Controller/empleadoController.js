@@ -1,5 +1,3 @@
-const { Where } = require('sequelize/lib/utils');
-const { get } = require('../config/mailer');
 const { AsignacionTrabajo, Usuario, Rol, AvancesTrabajo, ObservacionesProcesoTrabajo, ImprevistosTrabajo } = require('../Model')
 const { DaniosAdicionales, SolicitudUsoRepuesto, SolicitudApoyo } = require('../Model');
 //consultar asignaciones de trabajo por id_usuario 
