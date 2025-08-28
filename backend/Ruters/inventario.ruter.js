@@ -16,4 +16,7 @@ router.get('/historialMovimientos', inventarioController.historialMovimientosInv
 //alerta de inventarioBajo
 router.get('/alertaInventarioBajo', inventarioController.getLowStockAlerts);
 
+//cambiar precio unitario de un repuesto
+router.put('/actualizarPrecioUnitario', inventarioController.actualizarPrecioUnitarioRepuesto);
+
 module.exports = router;
