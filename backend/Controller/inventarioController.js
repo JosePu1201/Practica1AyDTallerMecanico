@@ -189,13 +189,13 @@ const actualizarPrecioUnitarioRepuesto = async (req, res) => {
 //Historial de movimientos de inventario segun estado de SolicitudUsoRepuesto (solo admin) --- IGNORE ---
 const historialMovimientosInventario = async (req, res) => {
     try {
-        /*
+        
         const id_usuario = req.session.user.id_usuario;
         //Validar que el usuario sea admin y que si exista en la base de datos
         const usuario = await Usuario.findByPk(id_usuario);
         if (!usuario || usuario.id_rol !== 1) {
             return res.status(403).json({ message: 'Acceso denegado. Solo los administradores pueden acceder a esta ruta.' });
-        }*/
+        }
         // Obtener el historial de movimientos
         const movimientos = await SolicitudUsoRepuesto.findAll({
             where: { estado: 'USADO' },
