@@ -29,5 +29,3 @@ router.get('/listarCotizacionesDeServicio/:id_vehiculo', vehicleController.lista
 router.get('/listarCotizacionesDeServicioPorCliente/:id_cliente', vehicleController.listarCotizacionesDeServicioPorCliente);
 
 module.exports = router;
-
-
