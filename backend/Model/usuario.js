@@ -9,6 +9,7 @@ Usuario.init({
     contrasena: {type: DataTypes.STRING(255), allowNull: false},
     id_rol: {type: DataTypes.INTEGER, allowNull: false, references: {model: 'rol', key: 'id_rol'}},
     estado: {type: DataTypes.ENUM('ACTIVO', 'INACTIVO', 'BLOQUEADO'), defaultValue: 'ACTIVO'},
+    factorAutenticacion:{type: DataTypes.BOOLEAN, defaultValue: false},
     ultimo_acceso: {type: DataTypes.DATE, allowNull: true},
     fecha_creacion: {type: DataTypes.DATE, defaultValue: DataTypes.NOW},
     fecha_modificacion: {type: DataTypes.DATE, defaultValue: DataTypes.NOW}

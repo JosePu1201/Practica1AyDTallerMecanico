@@ -157,7 +157,7 @@ const crearContactoUsuario = async (req, res) => {
 
 //Login de usuario
 const loginUsuario = async (req, res) => {
-    console.log(req.session.user);
+    //console.log(req.session.user);
     try {
         const { nombre_usuario, contrasena } = req.body;
         if (!nombre_usuario || !contrasena) {
@@ -193,38 +193,81 @@ const loginUsuario = async (req, res) => {
             });
             return res.status(401).json({ error: 'Las credenciales no son correctas, intenta de nuevo' });
         }
+        if (usuario.factorAutenticacion) {
+            console.log("factorAutenticacion", usuario.factorAutenticacion);
+            // Obtener el correo del usuario desde ContactoPersona
+            const contacto = await ContactoPersona.findOne({ where: { id_persona: usuario.id_persona } });
+            if (!contacto || !contacto.correo) {
+                return res.status(404).json({ error: 'No se encontró correo asociado al usuario' });
+            }
 
-        // Obtener el correo del usuario desde ContactoPersona
-        const contacto = await ContactoPersona.findOne({ where: { id_persona: usuario.id_persona } });
-        if (!contacto || !contacto.correo) {
-            return res.status(404).json({ error: 'No se encontró correo asociado al usuario' });
+            // Generar código de verificación (6 dígitos)
+            const codigoVerificacion = Math.floor(100000 + Math.random() * 900000).toString();
+
+            //crear un token de 20 caracteres random
+            const token1 = Math.random().toString(36).substring(2, 22);
+
+            // Crear token en la base de datos
+            const fechaExpiracion = new Date(Date.now() + 15 * 60 * 1000); // 15 minutos
+            await TokenAutenticacion.create({
+                id_usuario: usuario.id_usuario,
+                token: token1,
+                tipo_token: '2FA',
+                fecha_creacion: new Date(),
+                fecha_expiracion: fechaExpiracion,
+                estado: 'ACTIVO',
+                codigo_verificacion: codigoVerificacion
+            });
+
+            // Enviar el código por correo
+            await EmailService.sendVerificationCode({
+                to: contacto.correo,
+                codigoVerificacion
+            });
+
+            return res.status(200).json({
+                autenticacion: {
+                    autenticacion: true
+                },
+                 credenciales: {
+                    mensaje: 'Código de verificación enviado al correo',
+                    user: usuario.id_usuario,
+                    token: token1
+                }});
+
+        } else {
+            console.log("factorAutenticacion", usuario.factorAutenticacion);
+            req.session.user = {
+                id_usuario: usuario.id_usuario,
+                rol: usuario.id_rol,
+                nombre_usuario: usuario.nombre_usuario
+            };
+
+            //Guardar ultimo inicio de sesion
+            await Usuario.update({
+                ultimo_acceso: new Date()
+            }, {
+                where: {
+                    id_usuario: usuario.id_usuario
+                }
+            });
+
+            //console.log(req.session.user);
+            return res.status(200).json({
+                autenticacion: {
+                    autenticacion: false
+                },
+                credenciales: {
+                    mensaje: 'Código de verificación autenticado correctamente',
+                    id_usuario: usuario.id_usuario,
+                    rol: usuario.id_rol,
+                    nombre_rol: (await Rol.findByPk(usuario.id_rol)).nombre_rol,
+                    nombre_usuario: (await Usuario.findByPk(usuario.id_usuario)).nombre_usuario
+                }
+            });
+
         }
 
-        // Generar código de verificación (6 dígitos)
-        const codigoVerificacion = Math.floor(100000 + Math.random() * 900000).toString();
-
-        //crear un token de 20 caracteres random
-        const token1 = Math.random().toString(36).substring(2, 22);
-
-        // Crear token en la base de datos
-        const fechaExpiracion = new Date(Date.now() + 15 * 60 * 1000); // 15 minutos
-        await TokenAutenticacion.create({
-            id_usuario: usuario.id_usuario,
-            token: token1,
-            tipo_token: '2FA',
-            fecha_creacion: new Date(),
-            fecha_expiracion: fechaExpiracion,
-            estado: 'ACTIVO',
-            codigo_verificacion: codigoVerificacion
-        });
-
-        // Enviar el código por correo
-        await EmailService.sendVerificationCode({
-            to: contacto.correo,
-            codigoVerificacion
-        });
-
-        return res.status(200).json({ mensaje: 'Código de verificación enviado al correo', user: usuario.id_usuario, token: token1 });
     } catch (error) {
         console.error('Error en el login:', error);
         return res.status(500).json({ error: 'Error en el login' });
@@ -313,7 +356,7 @@ const autenticarCodigoVerificacion = async (req, res) => {
             }
         });
 
-        console.log(req.session.user);
+        //console.log(req.session.user);
         return res.status(200).json({
             mensaje: 'Código de verificación autenticado correctamente',
             id_usuario: tokenAutenticacion.id_usuario,
@@ -482,13 +525,34 @@ const listarUsuariosClientes = async (req, res) => {
             where: { id_rol: 3, estado: "ACTIVO" }, // 3 es el id del rol cliente
             limit: Number(limit),
             offset: Number(offset),
-            attributes:{exclude: ['contrasena']}, // Excluir la contraseña
+            attributes: { exclude: ['contrasena'] }, // Excluir la contraseña
         });
         return res.json({ total: count, usuarios: rows });
     } catch (error) {
         return res.status(500).json({ error: 'Error al listar usuarios clientes' });
     }
 };
+
+//cambiar autenticacion de usuiaro 
+const cambiarAutenticacion = async (req, res) => {
+    try {
+        if (!req.session || !req.session.user || !req.session.user.id_usuario) {
+            return res.status(401).json({ message: 'No hay una sesión de usuario válida.' });
+        }
+        const id_usuario = req.session.user.id_usuario;
+        // Buscar usuario por id
+        const usuario = await Usuario.findByPk(id_usuario);
+        if (!usuario) {
+            return res.status(404).json({ error: 'Usuario no encontrado' });
+        }   
+        usuario.factorAutenticacion = !usuario.factorAutenticacion;
+        await usuario.save();       
+        return res.status(200).json({ mensaje: 'Autenticación de dos factores actualizada correctamente' });
+    } catch (error) {
+        console.error('Error al cambiar la autenticación de dos factores:', error);
+        return res.status(500).json({ error: 'Error al cambiar la autenticación de dos factores' });
+    }  
+}
 module.exports = {
     obtenerPersonas,
     crearPersona,
@@ -499,5 +563,6 @@ module.exports = {
     validarCodigoRecuperacion,
     logout,
     cambiarContrasena,
-    listarUsuariosClientes
+    listarUsuariosClientes,
+    cambiarAutenticacion
 };

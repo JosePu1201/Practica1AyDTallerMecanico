@@ -36,6 +36,7 @@ module.exports = {
       id_persona: {type: Sequelize.INTEGER, allowNull: false, references: {model: 'persona', key: 'id_persona'}, onDelete: 'CASCADE'},
       nombre_usuario: {type: Sequelize.STRING(50), allowNull: false, unique: true},
       contrasena: {type: Sequelize.STRING(255), allowNull: false},
+      factorAutenticacion:{type: Sequelize.BOOLEAN, defaultValue: false},
       id_rol: {type: Sequelize.INTEGER, allowNull: false, references: {model: 'rol', key: 'id_rol'}},
       estado: {type: Sequelize.ENUM('ACTIVO', 'INACTIVO', 'BLOQUEADO'), defaultValue: 'ACTIVO'},
       ultimo_acceso: {type: Sequelize.DATE, allowNull: true},
