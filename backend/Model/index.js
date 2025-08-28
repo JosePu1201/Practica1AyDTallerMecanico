@@ -134,12 +134,17 @@ AsignacionTrabajo.belongsTo(TipoMantenimiento, { foreignKey: 'id_tipo_trabajo', 
 RegistroServicioVehiculo.hasMany(AsignacionTrabajo, { foreignKey: 'id_registro', sourceKey: 'id_registro' });
 AsignacionTrabajo.belongsTo(RegistroServicioVehiculo, { foreignKey: 'id_registro', targetKey: 'id_registro' });
 
+
 Usuario.hasMany(AsignacionTrabajo, { foreignKey: 'id_usuario_empleado', sourceKey: 'id_usuario', as: 'empleadoAsignado' });
 AsignacionTrabajo.belongsTo(Usuario, { foreignKey: 'id_usuario_empleado', targetKey: 'id_usuario', as: 'empleadoAsignado' });
 
 Usuario.hasMany(AsignacionTrabajo, { foreignKey: 'id_admin_asignacion', sourceKey: 'id_usuario', as: 'adminAsignacion' });
 AsignacionTrabajo.belongsTo(Usuario, { foreignKey: 'id_admin_asignacion', targetKey: 'id_usuario', as: 'adminAsignacion' });
 
+
+// Relación para el administrador que asignó el trabajo
+//Usuario.hasMany(AsignacionTrabajo, { foreignKey: 'id_admin_asignacion', sourceKey: 'id_usuario', as: 'asignacionesAdmin' });
+//AsignacionTrabajo.belongsTo(Usuario, { foreignKey: 'id_admin_asignacion', targetKey: 'id_usuario', as: 'adminAsignacion' });
 
 /*
 ==============================================
@@ -160,14 +165,21 @@ PagosFactura.belongsTo(FacturaServicioVehiculo, { foreignKey: 'id_factura', targ
 AsignacionTrabajo.hasMany(ObservacionesProcesoTrabajo, { foreignKey: 'id_asignacion', sourceKey: 'id_asignacion' });
 ObservacionesProcesoTrabajo.belongsTo(AsignacionTrabajo, { foreignKey: 'id_asignacion', targetKey: 'id_asignacion' });
 
-Usuario.hasMany(ObservacionesProcesoTrabajo, { foreignKey: 'id_usuario_registro', sourceKey: 'id_usuario' });
-ObservacionesProcesoTrabajo.belongsTo(Usuario, { foreignKey: 'id_usuario_registro', targetKey: 'id_usuario' });
+//Usuario.hasMany(ObservacionesProcesoTrabajo, { foreignKey: 'id_usuario_registro', sourceKey: 'id_usuario' });
+//ObservacionesProcesoTrabajo.belongsTo(Usuario, { foreignKey: 'id_usuario_registro', targetKey: 'id_usuario' });
 
 AsignacionTrabajo.hasMany(SintomasDetectados, { foreignKey: 'id_asignacion_trabajo', sourceKey: 'id_asignacion' });
 SintomasDetectados.belongsTo(AsignacionTrabajo, { foreignKey: 'id_asignacion_trabajo', targetKey: 'id_asignacion' });
 
-AsignacionTrabajo.hasMany(ImprevistosTrabajo, { foreignKey: 'id_asignacion_trabajo', sourceKey: 'id_asignacion' });
-ImprevistosTrabajo.belongsTo(AsignacionTrabajo, { foreignKey: 'id_asignacion_trabajo', targetKey: 'id_asignacion' });
+AsignacionTrabajo.hasMany(ImprevistosTrabajo, { 
+  foreignKey: 'id_asignacion_trabajo',   // FK en imprevistos_trabajo
+  sourceKey: 'id_asignacion'             // PK en asignacion_trabajo
+});
+
+ImprevistosTrabajo.belongsTo(AsignacionTrabajo, { 
+  foreignKey: 'id_asignacion_trabajo',   // FK en imprevistos_trabajo
+  targetKey: 'id_asignacion'             // PK en asignacion_trabajo
+});
 
 AsignacionTrabajo.hasMany(DaniosAdicionales, { foreignKey: 'id_asignacion_trabajo', sourceKey: 'id_asignacion' });
 DaniosAdicionales.belongsTo(AsignacionTrabajo, { foreignKey: 'id_asignacion_trabajo', targetKey: 'id_asignacion' });
@@ -205,8 +217,8 @@ DiagnosticoEspecialista.belongsTo(Usuario, { foreignKey: 'id_usuario_especialist
 DiagnosticoEspecialista.hasMany(DetalleDiagnostico, { foreignKey: 'id_diagnostico_especialista', sourceKey: 'id_diagnostico_especialista' });
 DetalleDiagnostico.belongsTo(DiagnosticoEspecialista, { foreignKey: 'id_diagnostico_especialista', targetKey: 'id_diagnostico_especialista' });
 
-Usuario.hasMany(PruebaTecnicaEspecialista, { foreignKey: 'id_usuario_especialista', sourceKey: 'id_usuario' });
-PruebaTecnicaEspecialista.belongsTo(Usuario, { foreignKey: 'id_usuario_especialista', targetKey: 'id_usuario' });
+Usuario.hasMany(PruebaTecnicaEspecialista, { foreignKey: 'id_especialista', sourceKey: 'id_usuario' });
+PruebaTecnicaEspecialista.belongsTo(Usuario, { foreignKey: 'id_especialista', targetKey: 'id_usuario' });
 AsignacionTrabajo.hasMany(PruebaTecnicaEspecialista, { foreignKey: 'id_asignacion_trabajo', sourceKey: 'id_asignacion' });
 PruebaTecnicaEspecialista.belongsTo(AsignacionTrabajo, { foreignKey: 'id_asignacion_trabajo', targetKey: 'id_asignacion' });
 
@@ -344,5 +356,6 @@ module.exports = {
   ArticulosSugeridos,
   CotizacionProductos,
   DetalleCotizacion,
-  Proveedor
+  Proveedor,
+  Inventario
 };

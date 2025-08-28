@@ -1,0 +1,41 @@
+// creacion de ruter para manejar las rutas de asignaciones de trabajo por usuario
+const empleadoController = require('../Controller/empleadoController');
+const express = require('express');
+const router = express.Router();        
+// Rutas para manejar las operaciones relacionadas con asignaciones de trabajo por usuario
+router.get('/asignaciones/:id_usuario', empleadoController.consultarAsignacionesPorUsuario);
+
+//ruta para registrar avance de trabajo
+router.post('/avance', empleadoController.registrarAvanceTrabajo);
+
+//ruta para actualizar el estado de una asignacion de trabajo
+router.put('/actualizar_estado',empleadoController.actualizarEstadoAsignacion);
+
+//ruta para consultar avances de trabajo por id_asignacion
+router.get('/avances/:id_asignacion', empleadoController.consultarAvancesPorAsignacion);
+
+//ruta para crear nueva observacion
+router.post('/observacion', empleadoController.crearObservacion);
+
+//Asignar imprevist 
+router.post('/imprevisto', empleadoController.asignarImprevisto);
+
+//danio adicional
+router.post('/danioAdicional', empleadoController.registrarDanioAdicional);
+
+//solicitud uso repuesto
+router.post('/solicitudUsoRepuesto', empleadoController.solicitarUsoRepuesto);
+
+//solicitud apoyo especialista
+router.post('/solicitudApoyoEspecialista', empleadoController.solicitarApoyoEspecialista);
+
+//ruta para obtener avances por usuario mecanico
+router.get('/avancesPorUsuario', empleadoController.getAvancesPorUsuario);
+
+//ruta para obtener observaciones por asignacion
+router.get('/observacionesPorAsignacion/:id_asignacion', empleadoController.getObservacionesPorAsignacion);
+
+//ruta para obtener observaciones por usuario
+router.get('/observacionesPorUsuario', empleadoController.getObservacionesPorUsuario);
+
+module.exports = router;

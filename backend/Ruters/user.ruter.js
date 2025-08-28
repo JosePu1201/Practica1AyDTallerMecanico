@@ -33,4 +33,6 @@ router.post('/logout', personaController.logout);
 router.put('/cambiar-contrasena', personaController.cambiarContrasena);
 // Listar usuarios clientes
 router.get('/listar-usuarios-clientes', personaController.listarUsuariosClientes);
+// Cambiar estado de autenticacion de dos factores
+router.put('/cambiar-autenticacion', personaController.cambiarAutenticacion);
 module.exports = router;

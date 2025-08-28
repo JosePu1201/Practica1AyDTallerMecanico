@@ -71,12 +71,14 @@ export default function VerifyCode() {
       setUser(data); // <- esto evita el “pantallazo” al navegar
 
       // Redirección directa por rol (opcional: si prefieres, navega a "/")
-      if (data.rol === 1) {
+      if (data.nombre_rol === 'ADMINISTRADOR') {
         navigate('/admin', { replace: true });
-      } else if (data.rol === 2) {
-        navigate('/empleado', { replace: true });
+      } else if (data.nombre_rol === 'EMPLEADO') {
+        navigate('/employee', { replace: true });
+      } else if (data.nombre_rol === 'ESPECIALISTA') {
+        navigate('/specialist', { replace: true });
       } else {
-        navigate('/no-autorizado', { replace: true });
+        navigate('/login', { replace: true });
       }
     } catch (err) {
       alert(err.response?.data?.error || 'Código inválido');

@@ -6,7 +6,7 @@ module.exports = {
     
     await queryInterface.createTable('diagnostico_especialista', {
       id_diagnostico_especialista: { type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true },
-      id_asignacion_trabajo: { type: Sequelize.INTEGER, allowNull: false, references: { model: 'asignacion_trabajo', key: 'id_asignacion_trabajo' }, onDelete: 'CASCADE' },
+      id_asignacion_trabajo: { type: Sequelize.INTEGER, allowNull: false, references: { model: 'asignacion_trabajo', key: 'id_asignacion' }, onDelete: 'CASCADE' },
       id_usuario_especialista: { type: Sequelize.INTEGER, allowNull: false, references: { model: 'usuario', key: 'id_usuario' } },
       fecha_diagnostico: { type: Sequelize.DATE, defaultValue: Sequelize.NOW },
       observaciones_generales: { type: Sequelize.TEXT }
@@ -24,7 +24,7 @@ module.exports = {
     await queryInterface.createTable('prueba_tecnica_especialista', {
       id_prueba_tecnica: { type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true },
       id_especialista: { type: Sequelize.INTEGER, allowNull: false, references: { model: 'usuario', key: 'id_usuario' } },
-      id_asignacion_trabajo: { type: Sequelize.INTEGER, allowNull: false, references: { model: 'asignacion_trabajo', key: 'id_asignacion_trabajo' }, onDelete: 'CASCADE' },
+      id_asignacion_trabajo: { type: Sequelize.INTEGER, allowNull: false, references: { model: 'asignacion_trabajo', key: 'id_asignacion' }, onDelete: 'CASCADE' },
       descripcion_prueba_tecnica: { type: Sequelize.TEXT, allowNull: false },
       fecha_prueba: { type: Sequelize.DATE, defaultValue: Sequelize.NOW }
     });
@@ -49,7 +49,7 @@ module.exports = {
 
     await queryInterface.createTable('comentarios_vehiculo_especialista', {
       id_comentario: { type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true },
-      id_asignacion_trabajo: { type: Sequelize.INTEGER, allowNull: false, references: { model: 'asignacion_trabajo', key: 'id_asignacion_trabajo' }, onDelete: 'CASCADE' },
+      id_asignacion_trabajo: { type: Sequelize.INTEGER, allowNull: false, references: { model: 'asignacion_trabajo', key: 'id_asignacion' }, onDelete: 'CASCADE' },
       id_especialista: { type: Sequelize.INTEGER, allowNull: false, references: { model: 'usuario', key: 'id_usuario' } },
       comentario: { type: Sequelize.TEXT, allowNull: false },
       fecha_comentario: { type: Sequelize.DATE, defaultValue: Sequelize.NOW },
@@ -59,7 +59,7 @@ module.exports = {
 
     await queryInterface.createTable('recomendaciones_vehiculo', {
       id_recomendacion: { type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true },
-      id_asignacion_trabajo: { type: Sequelize.INTEGER, allowNull: false, references: { model: 'asignacion_trabajo', key: 'id_asignacion_trabajo' }, onDelete: 'CASCADE' },
+      id_asignacion_trabajo: { type: Sequelize.INTEGER, allowNull: false, references: { model: 'asignacion_trabajo', key: 'id_asignacion' }, onDelete: 'CASCADE' },
       id_especialista: { type: Sequelize.INTEGER, allowNull: false, references: { model: 'usuario', key: 'id_usuario' } },
       recomendacion: { type: Sequelize.TEXT, allowNull: false },
       fecha_recomendacion: { type: Sequelize.DATE, defaultValue: Sequelize.NOW },
