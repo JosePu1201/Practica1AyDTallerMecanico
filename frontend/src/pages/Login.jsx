@@ -20,7 +20,12 @@ export default function Login() {
     try {
       const data = await login(email, password);
       console.log(data);
-      navigate('/verificacion', { replace: true });
+      if(data.autenticacion){
+        navigate('/verificacion', { replace: true });
+      }else{
+         navigate('/', { replace: true });
+      }
+      //navigate('/verificacion', { replace: true });
     } catch (err) {
       setError(err.response?.data?.error || 'Error al iniciar sesión');
     } finally {

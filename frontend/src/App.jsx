@@ -55,6 +55,8 @@ import SupportRequestForm from './pages/specialist/support/SupportRequestForm';
 import SupportRequestList from './pages/specialist/support/SupportRequestList';
 import PartsRequestList from './pages/specialist/parts/PartsRequestList';
 import SpecialistProfile from './pages/specialist/profile/SpecialistProfile';
+import EmployeeMisAvances from './pages/employee/EmployeeMisAvances';
+import EmployeeMisObservaciones from './pages/employee/EmployeeMisObservaciones';
 
 export default function App() {
   return (
@@ -108,6 +110,8 @@ export default function App() {
               <Route path="infopersonal" element={<InfoPersonal />} />
               <Route path="tasks" element={<EmployeeTasks />} />
               <Route path="tasks/:id/work" element={<EmployeeWork />} />
+              <Route path="/employee/mis-avances" element={<EmployeeMisAvances />} />
+              <Route path="/employee/mis-observaciones" element={<EmployeeMisObservaciones />} />
             </Route>
           </Route>
 

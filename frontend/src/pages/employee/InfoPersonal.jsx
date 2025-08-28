@@ -422,7 +422,7 @@ export default function EmployeeDashboard() {
             </div>
           </div>
 
-          <p className="fineprint">*Datos en tiempo real desde /api/empleados/asignaciones/:id_usuario.</p>
+          <p className="fineprint"></p>
         </div>
       )}
     </div>

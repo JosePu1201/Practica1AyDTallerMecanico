@@ -54,6 +54,10 @@ export default function EmployeeTasks() {
 
   const navigate = useNavigate();
 
+  // array de repuestos
+  const [repuestos, setRepuestos] = useState([]);
+
+
   useEffect(() => {
     const cargar = async () => {
       let user = null;
@@ -71,6 +75,7 @@ export default function EmployeeTasks() {
       }
 
       try {
+        // Asignaciones
         const res = await axios.get(`/api/empleados/asignaciones/${user.id_usuario}`);
         const data = res?.data ?? [];
         setServicios(Array.isArray(data) ? data : []);
@@ -78,10 +83,20 @@ export default function EmployeeTasks() {
         console.error("Error cargando asignaciones", err);
         setServicios([]);
       }
+
+      try {
+        // Repuestos (se consume con sesión de ADMIN)
+        const repRes = await axios.get(`/api/inventario/repuestos`);
+        setRepuestos(Array.isArray(repRes.data) ? repRes.data : []);
+      } catch (err) {
+        console.error("Error cargando repuestos", err);
+        setRepuestos([]);
+      }
     };
 
     cargar();
   }, []);
+
 
   const filtrados = useMemo(() => {
     const term = q.toLowerCase().trim();
@@ -339,7 +354,7 @@ export default function EmployeeTasks() {
 
   return (
     <>
-      <div className="card-head">
+      <div className="card-head" style={{ color: '#000' }}>
         <h2 className="card-title">Trabajos asignados</h2>
         <div className="filters">
           <div className="search">
@@ -680,23 +695,49 @@ export default function EmployeeTasks() {
               <>
                 <h3>Solicitud uso de repuesto — ASG-{modal.asgId}</h3>
                 <label>Descripción</label>
-                <input value={repForm.descripcion} onChange={e=>setRepForm(f=>({...f, descripcion:e.target.value}))} />
+                <input
+                  value={repForm.descripcion}
+                  onChange={e=>setRepForm(f=>({...f, descripcion:e.target.value}))}
+                />
                 <div className="grid2">
                   <div>
                     <label>Cantidad</label>
-                    <input type="number" min="1" value={repForm.cantidad} onChange={e=>setRepForm(f=>({...f, cantidad:e.target.value}))} />
+                    <input
+                      type="number"
+                      min="1"
+                      value={repForm.cantidad}
+                      onChange={e=>setRepForm(f=>({...f, cantidad:e.target.value}))}
+                    />
                   </div>
                   <div>
-                    <label>ID inventario repuesto</label>
-                    <input value={repForm.id_inventario_repuesto} onChange={e=>setRepForm(f=>({...f, id_inventario_repuesto:e.target.value}))} />
+                    <label>Seleccione repuesto</label>
+                    <select
+                      value={repForm.id_inventario_repuesto}
+                      onChange={e=>setRepForm(f=>({...f, id_inventario_repuesto:e.target.value}))}
+                    >
+                      <option value="">-- Seleccione --</option>
+                      {repuestos.map(r => (
+                        <option key={r.id_inventario_repuesto} value={r.id_inventario_repuesto}>
+                          {r.Repuesto?.nombre} — {r.Repuesto?.descripcion}  
+                          (Stock: {r.cantidad}, Precio: Q{r.precio_unitario})
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 </div>
                 <div className="modal-actions">
                   <button className="btn-ghost" onClick={cerrarModal}>Cancelar</button>
-                  <button className="btn" disabled={loading} onClick={submitRepuesto}>Enviar</button>
+                  <button
+                    className="btn"
+                    disabled={loading || !repForm.id_inventario_repuesto}
+                    onClick={submitRepuesto}
+                  >
+                    Enviar
+                  </button>
                 </div>
               </>
             )}
+
 
             {/* Apoyo a especialista */}
             {modal.type === "apoyo" && (
