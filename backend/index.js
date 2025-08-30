@@ -34,6 +34,8 @@ const startServer = async () => {
     const vehicleRouter = require('./Ruters/vehicle.ruter');
     const empleadoRouter = require('./Ruters/empleado.ruter');
     const inventarioRouter = require('./Ruters/inventario.ruter');
+    const facturaRouter = require('./Ruters/factura.ruter');
+    app.use('/api/facturas', facturaRouter); // Usar las rutas de factura
     app.use('/api/inventario', inventarioRouter); // Usar las rutas de
     app.use('/api/personas', userRouter); // Usar las rutas de usuario
     app.use('/api/vehiculos', vehicleRouter); // Usar las rutas de vehículo
@@ -44,10 +46,10 @@ const startServer = async () => {
 
     const servicesVehicle = require('./Ruters/services.router');
     app.use('/api/servicios', servicesVehicle);
-
+    
     const specialistRouter = require('./Ruters/specialist.router');
     app.use('/api/especialistas', specialistRouter);
-
+    
     const PORT = process.env.PORT || 3000;
     app.listen(PORT, () => {
     console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
