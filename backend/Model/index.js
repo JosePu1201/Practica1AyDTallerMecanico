@@ -359,4 +359,5 @@ module.exports = {
   Proveedor,
   Inventario,
   FacturaServicioVehiculo
+  
 };
