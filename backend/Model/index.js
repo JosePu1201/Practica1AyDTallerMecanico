@@ -360,4 +360,5 @@ module.exports = {
   Inventario,
   FacturaServicioVehiculo,
   PagosFactura
+
 };

@@ -35,6 +35,9 @@ const startServer = async () => {
     const empleadoRouter = require('./Ruters/empleado.ruter');
     const inventarioRouter = require('./Ruters/inventario.ruter');
     const facturaRouter = require('./Ruters/factura.ruter');
+    const proveedorRouter = require('./Ruters/proveedor.ruter');
+
+    app.use('/api/proveedores', proveedorRouter); // Usar las rutas de proveedor
     app.use('/api/facturas', facturaRouter); // Usar las rutas de factura
     app.use('/api/inventario', inventarioRouter); // Usar las rutas de
     app.use('/api/personas', userRouter); // Usar las rutas de usuario

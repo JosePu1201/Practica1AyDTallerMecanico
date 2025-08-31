@@ -193,6 +193,9 @@ const loginUsuario = async (req, res) => {
             });
             return res.status(401).json({ error: 'Las credenciales no son correctas, intenta de nuevo' });
         }
+        if(usuario.estado != "ACTIVO"){
+            return res.status(401).json({ error: 'El usuario no está activo' });
+        }
         if (usuario.factorAutenticacion) {
             console.log("factorAutenticacion", usuario.factorAutenticacion);
             // Obtener el correo del usuario desde ContactoPersona
