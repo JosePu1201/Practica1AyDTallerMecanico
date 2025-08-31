@@ -32,5 +32,9 @@ router.get('/listar_catalogos', proveedorController.listarRepuestosCatalogoProve
 //listar catalogos por proveedor 
 router.get('/listar_catalogos_proveedor/:id_proveedor', proveedorController.listarCatalogoProveedor);
 
+//actualizar catalogo
+router.put('/actualizar_catalogo/:id_catalogo', proveedorController.actualizarCatalogoProveedor);
 
+// listar pago proveedor
+router.get('/listar_pago_proveedor/:id_proveedor', proveedorController.listarPagosProveedor);
 module.exports = router;
