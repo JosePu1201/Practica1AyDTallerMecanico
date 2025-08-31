@@ -49,7 +49,10 @@ const startServer = async () => {
     
     const specialistRouter = require('./Ruters/specialist.router');
     app.use('/api/especialistas', specialistRouter);
-    
+
+    const clientRouter = require('./Ruters/client.router');
+    app.use('/api/clientes', clientRouter);
+
     const PORT = process.env.PORT || 3000;
     app.listen(PORT, () => {
     console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
