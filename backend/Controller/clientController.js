@@ -1,6 +1,6 @@
 const {Rol, TipoMantenimiento, Vehiculo, AsignacionTrabajo, RegistroServicioVehiculo} = require('../Model');
 const {Usuario, UsuarioEspecialista, TipoTecnico, AreaEspecialista, Persona, sequelize} = require('../Model');
-const {CotizacionServicioVehiculo, ComentariosSeguimientoCliente, ServiciosAdicionales, CotizacionServicioVehiculo } = require("../Model")
+const {CotizacionServicioVehiculo, ComentariosSeguimientoCliente, ServiciosAdicionales } = require("../Model")
 const {TrabajosCotizacion, FacturaServicioVehiculo, PagosFactura, Repuesto, SolicitudUsoRepuesto} = require("../Model")
 const {SintomasDetectados, DaniosAdicionales, Inventario, MantenimientoAdicional} = require('../Model');
 //VER MIS VEHICULOS
@@ -23,14 +23,13 @@ const getMyVehicles = async (req, res) => {
 
 
 //SERVICIOS ACTIVOS
-const getActiveServices = async (req, res) => {
+const getAllServices = async (req, res) => {
   try {
     const { id } = req.params;
 
     // Buscar registros de servicio activos para el cliente
     const activeServices = await RegistroServicioVehiculo.findAll({
-      attributes: ['id_registro', 'descripcion_problema', 'fecha_ingreso', 'fecha_estimada_finalizacion'],
-      where: { estado_servicio: 'EN_PROCESO' },
+      attributes: ['id_registro', 'descripcion_problema', 'fecha_ingreso', 'fecha_estimada_finalizacion', 'estado'],
       include: [
         {
           model: Vehiculo,
@@ -60,6 +59,53 @@ const getActiveServices = async (req, res) => {
     res.json(activeServices);
   } catch (error) {
     console.error("Error fetching active services:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+const authorizeService = async (req, res) => {
+  try {
+    //ID del servicio a autorizar
+    const { id } = req.params;
+
+    // Lógica para autorizar el servicio
+    const result = await RegistroServicioVehiculo.update(
+      { estado: 'EN_PROCESO' },
+      { where: { id_registro: id } }
+    );
+
+    res.json({ message: "Service authorized successfully", result });
+  } catch (error) {
+    console.error("Error authorizing service:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+const notAuthorizeService = async (req, res) => {
+  try {
+    //Empezamos una transaccion
+    const transaction = await sequelize.transaction();
+    //ID del servicio a no autorizar
+    const { id } = req.params;
+
+    // Lógica para no autorizar el servicio
+    const result = await RegistroServicioVehiculo.update(
+      { estado: 'CANCELADO' },
+      { where: { id_registro: id } },
+      transaction
+    );
+
+    //Modificamos todas las tareas asignadas en el servicio
+    await AsignacionTrabajo.update(
+      { estado: 'CANCELADO' },
+      { where: { id_registro: id }, transaction }
+    );
+
+    await transaction.commit();
+    res.json({ message: "Service not authorized successfully", result });
+  } catch (error) {
+    await transaction.rollback();
+    console.error("Error not authorizing service:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 };
@@ -108,8 +154,7 @@ const getServicesDetailByVehicle = async (req, res) => {
             },
             {
               model: SolicitudUsoRepuesto,
-              attributes: ['id_solicitud', 'descripcion', 'cantidad'],
-              where: { estado: 'APROBADO', estado: 'USADO' },
+              attributes: ['id_solicitud_uso_repuesto', 'descripcion', 'cantidad'],
               include: [
                 {
                   model: Inventario,
@@ -140,6 +185,7 @@ const getServicesDetailByVehicle = async (req, res) => {
 //Obtenemos los servicios con los comentarios de seguimiento
 const getServicesWithComments = async(req, res) => {
   try {
+    // Obtener el ID del cliente desde los parámetros de la solicitud
     const { id } = req.params;
 
     // Buscar registros de servicio con comentarios de seguimiento
@@ -207,6 +253,7 @@ const addFollowComment = async(req, res) => {
 //Obtener mis servicios adicionales
 const getMyAdditionalServices = async(req, res) => {
   try {
+    // Obtener el ID del cliente desde los parámetros de la solicitud
     const { id } = req.params;
 
     // Buscar servicios adicionales para el cliente
@@ -223,6 +270,9 @@ const getMyAdditionalServices = async(req, res) => {
                         where: { id_cliente: id }
                     }
                 ]
+            },{
+                model: TipoMantenimiento,
+                attributes: ['id_tipo_trabajo', 'nombre_tipo', 'descripcion', 'precio_base', 'tiempo_estimado']
             }
         ]
     });
@@ -273,6 +323,7 @@ const getMaintenanceTypes = async(req, res) => {
 //Obtener mis cotizaciones
 const getMyPriceServicesQuotes = async(req, res) => {
     try {
+        // Obtener el ID del cliente desde los parámetros de la solicitud
         const { id } = req.params;
 
         // Buscar cotizaciones para el cliente
@@ -472,7 +523,7 @@ const rateService = async (req, res) => {
 
 module.exports = {
     getMyVehicles,
-    getActiveServices,
+    getAllServices,
     getServicesDetailByVehicle,
     getServicesWithComments,
     addFollowComment,
@@ -483,5 +534,7 @@ module.exports = {
     requestQuote,
     getAllInvoices,
     payInvoice,
-    rateService
+    rateService,
+    authorizeService,
+    notAuthorizeService
 };

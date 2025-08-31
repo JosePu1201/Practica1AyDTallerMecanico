@@ -3,7 +3,9 @@ const express = require('express');
 const router = express.Router();
 
 router.get('/mis_vehiculos/:id', clientController.getMyVehicles);
-router.get('/servicios_activos/:id', clientController.getActiveServices);
+router.get('/mis_servicios/:id', clientController.getAllServices);
+router.put('/autorizar_servicio/:id', clientController.authorizeService);
+router.put('/no_autorizar_servicio/:id', clientController.notAuthorizeService);
 router.get('/detalle_servicios/:id', clientController.getServicesDetailByVehicle);
 router.get('/servicios_con_comentarios/:id', clientController.getServicesWithComments);
 router.post('/comentarios_seguimiento', clientController.addFollowComment);
