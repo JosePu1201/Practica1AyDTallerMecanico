@@ -55,7 +55,6 @@ const eliminarProveedor = async (req, res) => {
 //crear repuestos 
 const crearRepuesto = async (req, res) => {
     try {
-<<<<<<< HEAD
         const {id_proveedor} = req.params;
         const {nombre, descripcion, codigo_parte, marca_compatible} = req.body;
         const proveedor = await Proveedor.findOne({
@@ -67,17 +66,6 @@ const crearRepuesto = async (req, res) => {
         console.log(proveedor);
         if(proveedor.estodo === "INACTIVO"){
             return res.status(400).json({message: 'Proveedor no activo'});
-=======
-        const { id_proveedor } = req.params;
-        const { nombre, descripcion, codigo_parte, marca_compatible } = req.body;
-        const proveedor = await Proveedor.findByPk(id_proveedor);
-        if (!proveedor) {
-            return res.status(404).json({ message: 'Proveedor no encontrado' });
-        }
-        //console.log(proveedor.estado);
-        if (proveedor.estodo === "INACTIVO") {
-            return res.status(400).json({ message: 'Proveedor no activo' });
->>>>>>> a9a67450adf081c6b94958521673ea70d923a6c3
         }
         if (!nombre || !descripcion || !codigo_parte || !marca_compatible) {
             return res.status(400).json({ message: 'Faltan datos' });
@@ -154,18 +142,12 @@ const listarProveedores = async (req, res) => {
 //listar repuestos pro proveedor 
 const listarRepuestosProveedor = async (req, res) => {
     try {
-<<<<<<< HEAD
         const {id_proveedor} = req.params;
         const proveedor = await Proveedor.findOne({
             where: { id_usuario: id_proveedor }
         }); 
         const repuestos = await Repuesto.findAll({
             where: {id_proveedor:proveedor.id_proveedor}  
-=======
-        const { id_proveedor } = req.params;
-        const repuestos = await Repuesto.findAll({
-            where: { id_proveedor }
->>>>>>> a9a67450adf081c6b94958521673ea70d923a6c3
         });
         res.status(200).json({ message: 'Repuestos listados exitosamente', data: repuestos });
     } catch (error) {
@@ -258,7 +240,6 @@ const listarRepuestosCatalogoProveedor = async (req, res) => {
 //lista catalogo por id Proveedor
 const listarCatalogoProveedor = async (req, res) => {
     try {
-<<<<<<< HEAD
         const {id_proveedor} = req.params;
         const proveedor = await Proveedor.findOne({
             where: { id_usuario: id_proveedor }
@@ -266,12 +247,6 @@ const listarCatalogoProveedor = async (req, res) => {
         const catalogoProveedor = await CatalogoProveedor.findAll({
             where: {id_proveedor:proveedor.id_proveedor},
             attributes: ['id_catalogo','precio','cantidad_disponible','tiempo_entrega'],
-=======
-        const { id_proveedor } = req.params;
-        const catalogoProveedor = await CatalogoProveedor.findAll({
-            where: { id_proveedor },
-            attributes: ['id_catalogo', 'precio', 'cantidad_disponible', 'tiempo_entrega'],
->>>>>>> a9a67450adf081c6b94958521673ea70d923a6c3
             include: [
                 {
                     model: Repuesto,
