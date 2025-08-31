@@ -78,6 +78,8 @@ import RepuestosList from './pages/proveedor/RepuestosList';
 import ProveedoresList from './pages/admin/proveedores/ProveedoresList';
 import MiCatalogo from './pages/proveedor/MiCatalogo';
 import ProductosList from './pages/admin/proveedores/ProductosList';
+import PedidosList from './pages/admin/proveedores/PedidosList';
+import PedidosProveedoresList from './pages/proveedor/PedidosProveedoresList';
 
 export default function App() {
   return (
@@ -100,7 +102,7 @@ export default function App() {
               {/* User Management Routes */}
               <Route path="inventario/proveedores" element={<ProveedoresList />} />
               <Route path="inventario/repuestos" element={<ProductosList />} />
-
+              <Route path="inventario/pedidos" element={<PedidosList />} />
 
               <Route path="usuarios" element={<UserList />} />
               <Route path="usuarios/nuevo" element={<UserForm />} />
@@ -216,6 +218,7 @@ export default function App() {
             <Route index element={<div>Bienvenido, proveedor.</div>} />
             <Route path="repuestos" element={<RepuestosList />} />
             <Route path="catalogo" element={<MiCatalogo />} />
+            <Route path="pedidos" element={<PedidosProveedoresList />} />
            </Route>
           </Route>
 

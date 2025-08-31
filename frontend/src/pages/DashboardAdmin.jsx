@@ -187,6 +187,7 @@ export default function DashboardAdmin() {
             children={[
               { label: 'Repuestos', to: '/admin/inventario/repuestos' },
               { label: 'Proveedores', to: '/admin/inventario/proveedores' },
+              { label: 'Pedidos', to: '/admin/inventario/pedidos' }
             ]}
           />
           <SidebarItem

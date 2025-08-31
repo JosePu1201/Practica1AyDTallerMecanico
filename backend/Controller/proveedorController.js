@@ -237,12 +237,40 @@ const listarRepuestosCatalogoProveedor = async (req, res) => {
     }
 };
 
-//lista catalogo por id Proveedor
+//lista catalogo por id de usuario este endpoint carga los catalogos del proveeedor por meidio de su id de usuario
 const listarCatalogoProveedor = async (req, res) => {
     try {
         const {id_proveedor} = req.params;
         const proveedor = await Proveedor.findOne({
             where: { id_usuario: id_proveedor }
+        });  
+        const catalogoProveedor = await CatalogoProveedor.findAll({
+            where: {id_proveedor:proveedor.id_proveedor},
+            attributes: ['id_catalogo','precio','cantidad_disponible','tiempo_entrega'],
+            include: [
+                {
+                    model: Repuesto,
+                    attributes: ['id_repuesto', 'nombre', 'descripcion', 'marca_compatible'],
+                    where: {
+                        estado: 'ACTIVO',
+                    },
+                }
+            ],
+            order: [['precio', 'ASC']]
+
+        });
+        res.status(200).json({ message: 'Catalogo listados exitosamente', data: catalogoProveedor });
+    } catch (error) {
+        res.status(500).json({ message: 'Error al listar los catalogos', error: error.message });
+    }
+};
+
+//listar el catalogo de proveedor por medio de su id_proveedor
+const listarCatalogoProveedorByIdProveedor = async (req, res) => {
+    try {
+        const {id_proveedor} = req.params;
+        const proveedor = await Proveedor.findOne({
+            where: { id_proveedor: id_proveedor }
         });  
         const catalogoProveedor = await CatalogoProveedor.findAll({
             where: {id_proveedor:proveedor.id_proveedor},
@@ -378,5 +406,6 @@ module.exports = {
     listarRepuestosCatalogoProveedor,
     listarCatalogoProveedor,
     actualizarCatalogoProveedor,
-    listarPagosProveedor
+    listarPagosProveedor,
+    listarCatalogoProveedorByIdProveedor
 };

@@ -66,7 +66,7 @@ function AddToCatalogSelectModal({ open, onClose, onSubmit, repuestos }) {
         id_repuesto: Number(form.id_repuesto),
         precio: Number(form.precio),
         cantidad_disponible: Number(form.cantidad_disponible),
-        tiempo_entrega: Number(form.tiempo_entrega),
+        tiempo_entrega: form.tiempo_entrega,
       });
       onClose();
     } finally {
@@ -192,9 +192,106 @@ function AddQtyModal({ open, onClose, onSubmit, item }) {
   );
 }
 
+// EDITAR un item de catálogo (precio, cantidad, tiempo_entrega)
+function EditCatalogModal({ open, onClose, onSubmit, item }) {
+  const [form, setForm] = useState({
+    precio: "",
+    cantidad_disponible: "",
+    tiempo_entrega: "",
+  });
+  const [errors, setErrors] = useState({});
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (open && item) {
+      setForm({
+        precio: String(item?.precio ?? ""),
+        cantidad_disponible: String(item?.cantidad_disponible ?? ""),
+        tiempo_entrega: String(item?.tiempo_entrega ?? ""),
+      });
+      setErrors({});
+      setSaving(false);
+    }
+  }, [open, item]);
+
+  const validate = () => {
+    const e = {};
+    if (!required(form.precio) || Number(form.precio) < 0) e.precio = "Precio inválido";
+    if (!required(form.cantidad_disponible) || Number(form.cantidad_disponible) < 0) e.cantidad_disponible = "Cantidad inválida";
+    if (!required(form.tiempo_entrega)) e.tiempo_entrega = "Requerido";
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
+  const submit = async () => {
+    if (!validate()) return;
+    try {
+      setSaving(true);
+      await onSubmit({
+        id_catalogo: item.id_catalogo,
+        precio: Number(form.precio),
+        cantidad_disponible: Number(form.cantidad_disponible),
+        tiempo_entrega: form.tiempo_entrega,
+      });
+      onClose();
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (!open) return null;
+  return (
+    <div className="modal open" onClick={(e)=>{ if (e.target.classList.contains("modal")) onClose(); }}>
+      <div className="modal-card" role="dialog" aria-modal="true">
+        <h3 className="text-xl font-semibold mb-2">Editar catálogo</h3>
+
+        <div className="muted" style={{ marginBottom: 8 }}>
+          {item?.Repuesto?.nombre ?? "Repuesto"} (ID catálogo #{item?.id_catalogo})
+        </div>
+
+        <label className="label">Precio *</label>
+        <input
+          type="number" min="0" step="0.01"
+          className={cls("input", errors.precio && "input-error")}
+          value={form.precio}
+          onChange={(e)=>setForm(v=>({ ...v, precio: e.target.value }))}
+          placeholder="0.00"
+        />
+        {errors.precio && <small className="err">{errors.precio}</small>}
+
+        <label className="label">Cantidad disponible *</label>
+        <input
+          type="number" min="0" step="1"
+          className={cls("input", errors.cantidad_disponible && "input-error")}
+          value={form.cantidad_disponible}
+          onChange={(e)=>setForm(v=>({ ...v, cantidad_disponible: e.target.value }))}
+          placeholder="0"
+        />
+        {errors.cantidad_disponible && <small className="err">{errors.cantidad_disponible}</small>}
+
+        <label className="label">Tiempo de entrega *</label>
+        <input
+          className={cls("input", errors.tiempo_entrega && "input-error")}
+          value={form.tiempo_entrega}
+          onChange={(e)=>setForm(v=>({ ...v, tiempo_entrega: e.target.value }))}
+          placeholder="Ej. 2-3 días hábiles"
+        />
+        {errors.tiempo_entrega && <small className="err">{errors.tiempo_entrega}</small>}
+
+        <div className="modal-actions">
+          <button className="btn-ghost" onClick={onClose}>Cancelar</button>
+          <button className="btn" onClick={submit} disabled={saving}>
+            {saving ? "Guardando…" : "Guardar cambios"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ========== Tabla ========== */
 
-function TablaCatalogo({ items, onAddQty }) {
+function TablaCatalogo({ items, onAddQty, onEdit }) {
   if (!items?.length) return null;
   return (
     <div className="table-wrap">
@@ -222,6 +319,9 @@ function TablaCatalogo({ items, onAddQty }) {
               <td className="hide-sm">{it.tiempo_entrega || "—"}</td>
               <td className="actions-col">
                 <div className="flex">
+                  <button className="icon-btn" title="Editar" onClick={()=>onEdit(it)}>
+                    <i className="bi bi-pencil-square" />
+                  </button>
                   <button className="icon-btn" title="Agregar cantidad" onClick={()=>onAddQty(it)}>
                     <i className="bi bi-plus-circle" />
                   </button>
@@ -252,6 +352,10 @@ export default function MiCatalogo() {
   // para “Agregar cantidad”
   const [qtyOpen, setQtyOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
+
+  // para “Editar”
+  const [editOpen, setEditOpen] = useState(false);
+  const [editItem, setEditItem] = useState(null);
 
   const [flash, setFlash] = useState(null);
   const showFlash = (type, text, ms=2200) => {
@@ -326,11 +430,28 @@ export default function MiCatalogo() {
     setQtyOpen(true);
   };
 
-  // PUT actualizar cantidad (ajusta la ruta si tu backend usa otro nombre)
+  // PUT actualizar cantidad (suma a stock actual)
   const submitAddQty = async ({ id_catalogo, add, current }) => {
     const cantidad_disponible = Number(current) + Number(add);
     await axios.put(`${BASE_PATH}/actualizar_catalogo/${id_catalogo}`, { cantidad_disponible });
     showFlash("ok", "Cantidad actualizada");
+    await fetchCatalogo();
+  };
+
+  // Abrir modal “Editar”
+  const onEdit = (item) => {
+    setEditItem(item);
+    setEditOpen(true);
+  };
+
+  // PUT actualizar catálogo (precio, cantidad_disponible, tiempo_entrega)
+  const submitEdit = async ({ id_catalogo, precio, cantidad_disponible, tiempo_entrega }) => {
+    await axios.put(`${BASE_PATH}/actualizar_catalogo/${id_catalogo}`, {
+      precio,
+      cantidad_disponible,
+      tiempo_entrega,
+    });
+    showFlash("ok", "Catálogo actualizado");
     await fetchCatalogo();
   };
 
@@ -374,7 +495,7 @@ export default function MiCatalogo() {
           </div>
         )}
         {!loading && !error && !!filtered.length && (
-          <TablaCatalogo items={filtered} onAddQty={onAddQty} />
+          <TablaCatalogo items={filtered} onAddQty={onAddQty} onEdit={onEdit} />
         )}
       </div>
 
@@ -390,6 +511,13 @@ export default function MiCatalogo() {
         onClose={()=> setQtyOpen(false)}
         onSubmit={submitAddQty}
         item={selectedItem}
+      />
+
+      <EditCatalogModal
+        open={editOpen}
+        onClose={()=> setEditOpen(false)}
+        onSubmit={submitEdit}
+        item={editItem}
       />
 
       {flash && (
