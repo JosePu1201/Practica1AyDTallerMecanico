@@ -23,7 +23,20 @@ export default function Login() {
       if(data.autenticacion){
         navigate('/verificacion', { replace: true });
       }else{
-         navigate('/', { replace: true });
+        const dataUser = JSON.parse(localStorage.getItem('user'));
+        console.log(dataUser);
+        if (dataUser.nombre_rol === 'ADMINISTRADOR') {
+        navigate('/admin', { replace: true });
+      } else if (dataUser.nombre_rol === 'EMPLEADO') {
+        navigate('/employee', { replace: true });
+      } else if (dataUser.nombre_rol === 'ESPECIALISTA') {
+        navigate('/specialist', { replace: true });
+      } else if (dataUser.nombre_rol === 'CLIENTE') {
+        navigate('/client', { replace: true });
+      } else {
+        navigate('/login', { replace: true });
+      }
+         //navigate('/', { replace: true });
       }
       //navigate('/verificacion', { replace: true });
     } catch (err) {

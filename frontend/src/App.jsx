@@ -58,6 +58,22 @@ import SpecialistProfile from './pages/specialist/profile/SpecialistProfile';
 import EmployeeMisAvances from './pages/employee/EmployeeMisAvances';
 import EmployeeMisObservaciones from './pages/employee/EmployeeMisObservaciones';
 
+
+// client pages
+import DashboardCliente from './pages/DashboardCliente';
+import ClientDashboard from './pages/client/ClientDashboard';
+import VehiclesListClient from './pages/client/vehicles/VehiclesList';
+import VehicleHistoryClient from './pages/client/vehicles/VehicleHistory';
+import ServicesListClient from './pages/client/services/ServicesList';
+import ServiceDetailClient from './pages/client/services/ServiceDetail';
+import AdditionalServicesClient from './pages/client/services/AdditionalServices';
+import QuoteRequestClient from './pages/client/services/QuoteRequest';
+import QuoteListClient from './pages/client/services/QuoteList'; // Import the new component
+import CommentsListClient from './pages/client/comments/CommentsList';
+import RatingServiceClient from './pages/client/comments/RatingService';
+import InvoicesListClient from './pages/client/invoices/InvoicesList';
+import ClientProfile from './pages/client/profile/ClientProfile';
+
 export default function App() {
   return (
     <AuthProvider>
@@ -157,8 +173,39 @@ export default function App() {
             </Route>
           </Route>
 
+          {/*Rutas para clientes*/}
+          <Route element={<ProtectedRoute roles={'CLIENTE'} />}>
+            <Route path="/client" element={<DashboardCliente />}>
+              {/* Dashboard */}
+              <Route index element={<ClientDashboard />} />
+              
+              {/* Vehicles */}
+              <Route path="vehicles" element={<VehiclesListClient />} />
+              <Route path="vehicles/history/:id" element={<VehicleHistoryClient />} />
+              
+              {/* Services */}
+              <Route path="services" element={<ServicesListClient />} />
+              <Route path="services/detail/:id" element={<ServiceDetailClient />} />
+              <Route path="services/additional" element={<AdditionalServicesClient />} />
+              <Route path="services/quote" element={<QuoteRequestClient />} />
+              <Route path="services/quotes" element={<QuoteListClient />} /> {/* Add the new route */}
+              
+              {/* Comments & Ratings */}
+              <Route path="comments" element={<CommentsListClient />} />
+              <Route path="rating" element={<RatingServiceClient />} />
+              
+              {/* Invoices */}
+              <Route path="invoices" element={<InvoicesListClient />} />
+              
+              {/* Profile */}
+              <Route path="profile" element={<ClientProfile />} />
+            </Route>
+          </Route>
+
           {/* Raíz */}
           <Route path="/" element={<HomePague />} />
+
+          
 
           {/* Unauthorized route */}
           <Route path="/no-autorizado" element={
