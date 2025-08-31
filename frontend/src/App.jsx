@@ -73,6 +73,11 @@ import CommentsListClient from './pages/client/comments/CommentsList';
 import RatingServiceClient from './pages/client/comments/RatingService';
 import InvoicesListClient from './pages/client/invoices/InvoicesList';
 import ClientProfile from './pages/client/profile/ClientProfile';
+import DashboardProveedor from './pages/DashboardProveedor';
+import RepuestosList from './pages/proveedor/RepuestosList';
+import ProveedoresList from './pages/admin/proveedores/ProveedoresList';
+import MiCatalogo from './pages/proveedor/MiCatalogo';
+import ProductosList from './pages/admin/proveedores/ProductosList';
 
 export default function App() {
   return (
@@ -93,6 +98,10 @@ export default function App() {
           <Route element={<ProtectedRoute roles={'ADMINISTRADOR'} />}>
             <Route path="/admin" element={<DashboardAdmin />}>
               {/* User Management Routes */}
+              <Route path="inventario/proveedores" element={<ProveedoresList />} />
+              <Route path="inventario/repuestos" element={<ProductosList />} />
+
+
               <Route path="usuarios" element={<UserList />} />
               <Route path="usuarios/nuevo" element={<UserForm />} />
               <Route path="usuarios/editar/:id" element={<UserForm />} />
@@ -200,6 +209,14 @@ export default function App() {
               {/* Profile */}
               <Route path="profile" element={<ClientProfile />} />
             </Route>
+          </Route>
+
+          <Route element={<ProtectedRoute roles={'PROVEEDOR'} />}>
+           <Route path="/proveedor" element={<DashboardProveedor />}>
+            <Route index element={<div>Bienvenido, proveedor.</div>} />
+            <Route path="repuestos" element={<RepuestosList />} />
+            <Route path="catalogo" element={<MiCatalogo />} />
+           </Route>
           </Route>
 
           {/* Raíz */}

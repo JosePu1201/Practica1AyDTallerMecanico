@@ -57,11 +57,13 @@ const crearRepuesto = async (req, res) => {
     try {
         const {id_proveedor} = req.params;
         const {nombre, descripcion, codigo_parte, marca_compatible} = req.body;
-        const proveedor = await Proveedor.findByPk(id_proveedor);
+        const proveedor = await Proveedor.findOne({
+            where: { id_usuario: id_proveedor }
+        });      
         if(!proveedor){
             return res.status(404).json({message: 'Proveedor no encontrado'});
         }
-        //console.log(proveedor.estado);
+        console.log(proveedor);
         if(proveedor.estodo === "INACTIVO"){
             return res.status(400).json({message: 'Proveedor no activo'});
         }
@@ -69,7 +71,7 @@ const crearRepuesto = async (req, res) => {
             return res.status(400).json({message: 'Faltan datos'});
         }
         const nuevoRepuesto = await Repuesto.create({
-            id_proveedor,
+            id_proveedor:proveedor.id_proveedor,
             nombre,
             descripcion,
             codigo_parte,
@@ -141,8 +143,11 @@ const listarProveedores = async (req, res) => {
 const listarRepuestosProveedor = async (req, res) => {
     try {
         const {id_proveedor} = req.params;
+        const proveedor = await Proveedor.findOne({
+            where: { id_usuario: id_proveedor }
+        }); 
         const repuestos = await Repuesto.findAll({
-            where: {id_proveedor}  
+            where: {id_proveedor:proveedor.id_proveedor}  
         });
         res.status(200).json({message: 'Repuestos listados exitosamente', data: repuestos});    
     } catch (error) {
@@ -236,8 +241,11 @@ const listarRepuestosCatalogoProveedor = async (req, res) => {
 const listarCatalogoProveedor = async (req, res) => {
     try {
         const {id_proveedor} = req.params;
+        const proveedor = await Proveedor.findOne({
+            where: { id_usuario: id_proveedor }
+        });  
         const catalogoProveedor = await CatalogoProveedor.findAll({
-            where: {id_proveedor},
+            where: {id_proveedor:proveedor.id_proveedor},
             attributes: ['id_catalogo','precio','cantidad_disponible','tiempo_entrega'],
             include: [
                 {

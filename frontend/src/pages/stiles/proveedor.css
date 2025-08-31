@@ -1,0 +1,553 @@
+:root{
+  --bg: #0e1324;
+  --panel: #121933;
+  --panel-2: rgba(255,255,255,0.04);
+  --text: #eaf0ff;
+  --muted: #aeb8d4;
+  --primary: #2f7cf6;
+  --border: rgba(255,255,255,0.08);
+  --shadow: 0 10px 30px rgba(0,0,0,.35);
+}
+
+/* Admin Dashboard Layout (unificado) */
+.admin-layout{
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  min-height: 100vh;
+  background: var(--bg);
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ==== SIDEBAR ==== */
+.sidebar{
+  background: linear-gradient(180deg, #0f1a3a 0%, #0c142c 100%);
+  border-right: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  display: flex; flex-direction: column;
+  transition: width .25s ease; will-change: width;
+}
+.sidebar.collapsed{ width: 72px; }
+.sidebar:not(.collapsed){ width: 260px; }
+
+.sidebar-header{ display: flex; align-items: center; gap: .75rem; padding: 14px 12px; color: var(--text); }
+.toggle-btn{
+  border: 1px solid var(--border); background: transparent; color: var(--text);
+  width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+  transition: background .2s ease, border-color .2s ease;
+}
+.toggle-btn:hover{ background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.18); }
+
+.menu{ padding: 6px 8px; }
+.menu-link, .menu-btn{
+  display: flex; align-items: center; gap: .75rem;
+  color: var(--text); text-decoration: none;
+  padding: 10px 12px; border-radius: 10px;
+  transition: background .2s ease, color .2s ease, border-color .2s ease;
+  width: 100%;
+}
+.menu-link:hover, .menu-btn:hover{ background: rgba(255,255,255,.06); }
+.menu-link.active{
+  background: rgba(47,124,246,.15); color: #fff;
+  border: 1px solid rgba(47,124,246,.35);
+}
+.menu-btn{ border: 1px solid transparent; background: transparent; cursor: pointer; }
+.menu-item.open > .menu-btn{ background: rgba(255,255,255,.06); }
+
+/* Submenú */
+.submenu{
+  overflow: hidden; transition: height .25s ease;
+  margin: 2px 0 8px 38px; border-left: 1px dashed var(--border);
+}
+.submenu-link{ display: block; color: var(--muted); text-decoration: none; padding: 8px 12px; border-radius: 8px; }
+.submenu-link:hover{ background: rgba(255,255,255,.06); color: var(--text); }
+
+.sidebar-footer{ margin-top: auto; padding: 10px 14px; color: var(--muted); font-size: 12px; }
+
+/* ==== MAIN AREA ==== */
+.main{ display: flex; flex-direction: column; min-width: 0; }
+
+/* Topbar */
+.topbar{
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px; border-bottom: 1px solid var(--border);
+  background: rgba(0,0,0,.15); backdrop-filter: blur(6px);
+  position: sticky; top: 0; z-index: 20;
+}
+
+/* Buscador */
+.search{
+  display: flex; align-items: center; gap: 8px;
+  background: var(--panel-2); border: 1px solid var(--border);
+  border-radius: 14px; padding: 8px 12px; color: var(--muted);
+  min-width: 280px;
+}
+.search input{
+  background: transparent; border: none; outline: none; color: var(--text); width: 100%;
+}
+.search input::placeholder{ color: #96a1bf; }
+
+/* Acciones top-right */
+.top-actions{ position: relative; display: flex; align-items: center; gap: 10px; }
+.icon-btn{
+  width: 40px; height: 40px; border-radius: 10px;
+  border: 1px solid var(--border); background: transparent; color: var(--text);
+  display: grid; place-items: center;
+  transition: background .2s ease, border-color .2s ease;
+}
+.icon-btn:hover{ background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.18); }
+
+/* Avatar */
+.avatar{
+  width: 28px; height: 28px; border-radius: 50%;
+  display: grid; place-items: center; color: #fff;
+  background: radial-gradient(85% 85% at 30% 25%, #3b82f6, #1d4ed8);
+  font-size: 12px; font-weight: 700; flex: 0 0 auto;
+}
+
+/* Chip de perfil */
+.profile-chip{
+  display: inline-flex; align-items: center; gap: .5rem;
+  padding: .35rem .6rem; border: 1px solid var(--border);
+  border-radius: 9999px; background: #0f1a2f; color: var(--text);
+  cursor: pointer; transition: background .2s ease, border-color .2s ease, box-shadow .2s ease;
+}
+.profile-chip:hover{ background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.18); }
+.profile-name{ max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; font-size: 0.9rem; }
+
+/* Menú perfil */
+.profile-menu{
+  position: absolute; right: 0; top: calc(100% + .4rem); min-width: 200px;
+  background: #0f1a32; border: 1px solid var(--border);
+  border-radius: .75rem; box-shadow: 0 18px 30px rgba(0,0,0,.35);
+  padding: .25rem; z-index: 50; animation: menuIn .15s ease forwards;
+}
+@keyframes menuIn{ from{ transform: translateY(-6px); opacity: 0; } to{ transform: translateY(0); opacity: 1; } }
+.profile-item{
+  width: 100%; text-align: left; padding: .65rem .8rem; border-radius: .55rem;
+  background: transparent; border: 0; color: var(--text);
+  cursor: pointer; display: flex; align-items: center; gap: .5rem;
+  transition: background .15s ease;
+}
+.profile-item:hover{ background: rgba(255,255,255,.06); }
+
+/* Contenido */
+.content{ padding: 18px; min-width: 0; flex: 1; overflow: auto; }
+.card-surface{
+  background: var(--panel-2); border: 1px solid var(--border);
+  border-radius: 16px; padding: 16px; min-height: 220px; color: var(--text);
+  box-shadow: var(--shadow);
+}
+
+/* Scrollbar */
+.content::-webkit-scrollbar{ height: 10px; width: 10px; }
+.content::-webkit-scrollbar-thumb{ background: rgba(255,255,255,.12); border-radius: 10px; }
+.content::-webkit-scrollbar-track{ background: transparent; }
+
+/* Focus */
+.menu-link:focus, .menu-btn:focus, .icon-btn:focus, .profile-chip:focus, .profile-item:focus{
+  outline: 2px solid rgba(47,124,246,.7); outline-offset: 2px;
+}
+
+/* Responsive */
+@media (max-width: 992px){
+  .admin-layout{ grid-template-columns: 72px 1fr; }
+  .sidebar{ width: 72px !important; }
+  .search{ min-width: 180px; }
+  .profile-name{ max-width: 120px; }
+}
+@media (max-width: 768px) {
+  .sidebar { position: fixed; top: 0; left: 0; height: 100%; transform: translateX(-100%); z-index: 50; }
+  .sidebar.open { transform: translateX(0); }
+  .sidebar-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 40; }
+}
+
+/* Overrides */
+.table .btn-group-sm .btn { padding: 0.25rem 0.5rem; }
+.avatar-circle { width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold; }
+
+/* Badges */
+.badge{ display:inline-block; padding:.25rem .5rem; border-radius:.5rem; font-size:.8rem; font-weight:700; color:#fff; }
+.badge-warn{ background:#f59e0b; } .badge-info{ background:#3b82f6; } .badge-ok{ background:#10b981; }
+.badge-neutral{ background:#6b7280; } .badge-error{ background:#ef4444; }
+
+/* Card / filtros */
+.card-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px; }
+.card-title{ margin:0; color:#000403; font-size:1.2rem; font-weight:700; } /* Base (se sobreescribe abajo en report-page) */
+.filters{ display:flex; align-items:center; gap:8px; }
+.select{ background:var(--panel-2); color:var(--text); border:1px solid var(--border); border-radius:10px; padding:8px 10px; }
+
+/* Tabla */
+.table-wrap{
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  color: var(--text);
+  overflow: visible; /* para que el menú salga del borde */
+}
+.table{ width:100%; border-collapse:collapse; margin-top:0; color:var(--text); }
+.table th, .table td{ padding:10px 12px; text-align:left; border-bottom:1px solid var(--border); }
+.table th{ color:var(--text); }
+.table .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; font-weight:600; }
+/* Ajustado para tema oscuro */
+.table .muted{ color: var(--muted); }
+.table .empty{ text-align:center; color:var(--muted); padding:1rem; }
+
+/* Acciones */
+.actions{ display:flex; gap:.4rem; flex-wrap:wrap; }
+.table .actions .btn-ghost{
+  background:#0b0b0b; color:#fff; border:1px solid #222;
+  border-radius:8px; padding:.35rem .6rem; font-size:.8rem;
+  transition: background .2s ease, border-color .2s ease, opacity .2s ease; cursor:pointer;
+}
+.table .actions .btn-ghost:hover{ background:#141414; border-color:#333; }
+
+/* Dropdown de acciones (namespaced) */
+.dropdown{ position:relative; }
+.dropdown .btn-ghost{ width:32px; height:32px; padding:0; display:grid; place-items:center; }
+
+.action-menu{
+  position:absolute; right:0; top:calc(100% + .25rem);
+  background:#0b0b0b; color:#fff; border:1px solid #222;
+  border-radius:.5rem; box-shadow:0 12px 26px rgba(0,0,0,.6);
+  padding:.25rem; min-width:260px; max-height:60vh; overflow:auto;
+  z-index:9999; animation:actionMenuIn .15s ease forwards;
+}
+.action-menu-item{
+  width:100%; text-align:left; background:transparent; border:0;
+  color:#fff; cursor:pointer; padding:.55rem .8rem; border-radius:.45rem;
+  transition:background .15s ease; display:block;
+}
+.action-menu-item:hover{ background:rgba(255,255,255,.08); }
+@keyframes actionMenuIn{ from{ transform:translateY(-6px); opacity:0; } to{ transform:translateY(0); opacity:1; } }
+.action-menu.drop-up{ top:auto; bottom:calc(100% + .25rem); }
+
+/* Modales */
+.modal{ position:fixed; inset:0; background:rgba(0,0,0,.6); display:none; align-items:center; justify-content:center; padding:1rem; z-index:200; }
+.modal.open{ display:flex; }
+.modal-card{
+  background:var(--panel); color:var(--text); border:1px solid var(--border); border-radius:1rem;
+  padding:1.2rem; width:min(700px,96vw); max-height:90vh; overflow-y:auto; box-shadow:var(--shadow);
+  animation:modalIn .2s ease forwards;
+}
+@keyframes modalIn{ from{ transform:translateY(-10px); opacity:0; } to{ transform:translateY(0); opacity:1; } }
+.modal-card h3{ margin:0 0 .75rem; font-size:1.1rem; }
+.modal-card label{ font-size:.85rem; color:var(--muted); margin-top:.5rem; display:block; }
+.modal-card input,.modal-card textarea,.modal-card select{
+  width:100%; margin-top:.25rem; margin-bottom:.5rem; background:#0f1a2f; color:var(--text);
+  border:1px solid var(--border); border-radius:.5rem; padding:.5rem .65rem; font-size:.9rem;
+}
+.modal-card textarea{ resize:vertical; min-height:80px; }
+.modal-actions{ display:flex; justify-content:flex-end; gap:.5rem; margin-top:1rem; }
+
+.btn{ background:var(--primary); border:none; padding:.5rem 1rem; border-radius:.5rem; color:#fff; font-weight:600; cursor:pointer; transition:opacity .2s ease; }
+.btn:hover{ opacity:.85; }
+.btn:disabled{ opacity:.5; cursor:not-allowed; }
+
+/* Listas y utilidades */
+.list{ list-style:none; padding:0; margin:0; display:grid; gap:.6rem; }
+.list li{ border:1px solid var(--border); border-radius:.5rem; padding:.6rem; background:var(--panel-2); }
+.list .row{ display:flex; align-items:center; justify-content:space-between; }
+.grid2{ display:grid; grid-template-columns:1fr 1fr; gap:.75rem; }
+
+/* Nota al pie */
+.fineprint{ margin-top:10px; color:var(--muted); font-size:12px; }
+
+/* ==== Report pages (scroll interno) ==== */
+.report-page {
+  height: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Título específico del resumen (arregla el color) */
+.report-page .card-head > .card-title {
+  color: #000 !important;
+}
+
+/* Contenedor con scroll para el contenido del reporte (debajo del header/filtros) */
+.report-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 16px;
+  min-height: 0; /* clave para que el scroll funcione en contenedores flex/grid */
+}
+
+/* Asegura que la columna principal pueda hacer scroll interno */
+.main { 
+  min-height: 0; /* evita que el hijo desborde y permite overflow en .content/.report-scroll */
+}
+
+/* En layouts grid/flex con height:100vh, ayuda a liberar el scroll interno */
+.content {
+  overflow: auto;       /* ya lo tienes, lo reafirmamos */
+  min-height: 0;        /* importante para scroll en contenedores flex/grid */
+  max-height: none;     /* evita límites que corten el scroll */
+}
+
+/* ==== Tabla: viewport con scroll sin romper el dropdown ==== */
+/* Envuelve .table-wrap con .table-viewport cuando quieras limitar altura */
+.table-viewport {
+  max-height: 60vh;     /* ajusta a gusto (50–70vh suele ir bien) */
+  overflow: auto;       /* scroll vertical/ horizontal si es necesario */
+  border-radius: 16px;  /* coincide con tu tarjeta */
+}
+
+/* Mantén el menú de acciones por encima cuando haya scroll del viewport */
+.action-menu { 
+  z-index: 9999; 
+}
+
+/* Si notas que la tabla se corta en pantallas pequeñas, habilita scroll horizontal también */
+.table-viewport {
+  overflow: auto;       /* habilita ambos ejes */
+}
+
+/* ==== Ajustes utilitarios que ayudan al scroll interno ==== */
+.admin-layout { 
+  /* ya usas grid y overflow hidden, lo dejamos; el truco está en min-height:0 en hijos */
+  min-height: 100vh;
+}
+
+.topbar { 
+  position: sticky; top: 0; z-index: 20; 
+}
+
+/* Cuando la tabla sea muy ancha, evita que rompa el layout */
+.table { 
+  table-layout: auto; 
+  width: 100%;
+}
+
+/* Grids de charts (recharts) responsivos */
+.charts-grid {
+  display: grid; 
+  grid-template-columns: 1fr 1fr; 
+  gap: 16px;
+}
+@media (max-width: 992px){
+  .charts-grid { grid-template-columns: 1fr; }
+}
+
+/* Forzar textos en negro dentro de la página de reportes */
+.report-page,
+.report-page .card-head,
+.report-page .card-title,
+.report-page .filters,
+.report-page label,
+.report-page .kpi,
+.report-page .kpi-value,
+.report-page .kpi-label,
+.report-page .muted,
+.report-page table,
+.report-page th,
+.report-page td,
+.report-page .fineprint {
+  color: #000 !important;
+}
+
+/* ===== Mis Avances - Tarjetas, acordeón, timeline ===== */
+.asg-grid{
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 14px;
+}
+@media (max-width: 1200px){ .asg-grid{ grid-template-columns: repeat(8, 1fr); } }
+@media (max-width: 768px){ .asg-grid{ grid-template-columns: repeat(4, 1fr); } }
+
+.asg-card{
+  grid-column: span 6;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 12px;
+  color: var(--text);
+  box-shadow: var(--shadow);
+}
+@media (max-width: 1200px){ .asg-card{ grid-column: span 8; } }
+@media (max-width: 768px){ .asg-card{ grid-column: span 4; } }
+
+.asg-card-head{
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  cursor: pointer;
+}
+.asg-title{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.asg-id{ font-weight: 800; }
+.asg-meta{ display:flex; align-items:center; gap:10px; }
+.asg-date{ color: var(--muted); font-size: 12px; }
+
+.chip{
+  border:1px solid var(--border);
+  background: var(--panel-2);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 12px;
+  display:flex; align-items:center; gap:6px;
+}
+.chip.ghost{ background: transparent; }
+.chip i{ font-size: 14px; }
+
+.asg-desc{
+  margin: 8px 0 10px;
+  color: var(--muted);
+}
+
+.progress-wrap{ display:flex; align-items:center; gap:8px; }
+.progress{
+  position: relative;
+  width: 100%;
+  height: 10px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.progress.tiny{ height: 8px; }
+.progress-bar{
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--primary), #6aa8ff);
+  transition: width .25s ease;
+}
+.progress-label{
+  min-width: 42px; text-align: right; font-weight: 700; font-variant-numeric: tabular-nums;
+}
+
+.avance-list{ margin-top: 12px; display: grid; gap: 10px; }
+
+/* Tarjeta de cada avance con "timeline" */
+.avance-card{
+  display: grid;
+  grid-template-columns: 18px 1fr;
+  gap: 10px;
+  padding: 10px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.avance-line{ position: relative; }
+.avance-line .dot{
+  width: 12px; height: 12px; border-radius: 50%;
+  background: var(--primary);
+  margin-top: 6px;
+}
+.avance-line .line{
+  position: absolute; left: 5px; top: 18px; bottom: -8px; width: 2px;
+  background: rgba(255,255,255,.15);
+}
+.avance-body{ min-width: 0; }
+.avance-head{
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+}
+.avance-title{ font-size: 0.95rem; }
+.avance-date{ color: var(--muted); font-size: 12px; white-space: nowrap; }
+.avance-desc{ color: var(--text); opacity: .9; margin: 6px 0 8px; }
+
+.avance-foot{ display:flex; align-items:center; gap:8px; flex-wrap: wrap; margin-top: 6px; }
+.tag{
+  display:inline-flex; align-items:center; gap:6px;
+  background: rgba(255,255,255,.06); border: 1px solid var(--border);
+  color: var(--text);
+  padding: 2px 8px; border-radius: 999px; font-size: 12px;
+}
+.tag.muted{ color: var(--muted); }
+
+/* === Overrides: títulos negros en tarjetas/proveedor === */
+:root{
+  --title-color: #000;  /* fácilmente ajustable si luego querés otro tono */
+}
+
+/* Títulos en tarjetas (tu vista de Repuestos usa <h2 class="m-0">) */
+.card-surface h1,
+.card-surface h2,
+.card-surface h3,
+.card-surface .card-title {
+  color: var(--title-color) !important;
+  text-shadow: none;
+}
+
+/* Por si llevás enlaces dentro del título */
+.card-surface h1 a,
+.card-surface h2 a,
+.card-surface h3 a,
+.card-surface .card-title a {
+  color: var(--title-color) !important;
+}
+
+/* Subtítulo/ayuda debajo del título puede quedarse “muted” */
+.card-surface .muted {
+  color: #5b657d; /* opcional: un gris más legible sobre el panel claro */
+}
+
+/* Si usás encabezados dentro de la fila superior */
+.card-head > .card-title {
+  color: var(--title-color) !important;
+}
+
+/* === Card Light: tipografía negra y acciones visibles === */
+.card-light { color: #0b1228; }
+.card-light h1,
+.card-light h2,
+.card-light h3,
+.card-light .card-title { color: #000 !important; }
+
+/* Subtítulos/ayudas legibles */
+.card-light .muted { color: #4b5563; }
+
+/* Buscador dentro de tarjetas claras */
+.card-light .search {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+}
+.card-light .search input {
+  color: #000;
+}
+
+/* Tabla con texto oscuro */
+.card-light .table { color: #111827; }
+.card-light .table th { color: #111827; }
+.card-light .table td .muted { color: #4b5563; }
+
+/* Acciones (icon buttons) bien visibles */
+.card-light .icon-btn {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  color: #111827;
+  display: grid; place-items: center;
+}
+.card-light .icon-btn i { opacity: 1; color: inherit; }
+.card-light .icon-btn:hover {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+}
+
+/* Por si algún estilo global baja opacidad en celdas/acciones */
+.card-light td, .card-light th, .card-light .icon-btn { opacity: 1; }
+
+/* (opcional) ampliar ancho de columna Acciones si lo necesitas */
+.card-light th.actions-col,
+.card-light td.actions-col { width: 240px; }
+
+/* === Acciones en la tabla: SIEMPRE horizontales === */
+.table td.actions-col { 
+  white-space: nowrap;            /* evita salto de línea */
+  text-align: left;               /* por si hereda centrado */
+}
+
+.table td .flex {                 /* emula utilidades flex de Tailwind */
+  display: inline-flex !important;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;                       /* = gap-2 aprox */
+  flex-wrap: nowrap;              /* no romper a vertical */
+}
+
+.table td .flex .icon-btn {
+  display: inline-grid;           /* que no ocupe todo el ancho */
+  margin: 0;
+}

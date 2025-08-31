@@ -33,7 +33,9 @@ export default function Login() {
         navigate('/specialist', { replace: true });
       } else if (dataUser.nombre_rol === 'CLIENTE') {
         navigate('/client', { replace: true });
-      } else {
+      } else if (dataUser.nombre_rol === 'PROVEEDOR') {
+        navigate('/proveedor', { replace: true });
+      }else {
         navigate('/login', { replace: true });
       }
          //navigate('/', { replace: true });

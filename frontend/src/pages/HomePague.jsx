@@ -16,6 +16,8 @@ export default function HomePague() {
         navigate('/employee', { replace: true });
       } else if (user.nombre_rol === 'ESPECIALISTA') {
         navigate('/specialist', { replace: true });
+      }else if (user.nombre_rol === 'PROVEEDOR') {
+        navigate('/proveedor', { replace: true });
       }
       else {navigate("/no-autorizado", { replace: true })};
   }, [user, loading, navigate]);
