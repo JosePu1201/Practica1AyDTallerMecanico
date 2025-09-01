@@ -1,0 +1,155 @@
+/* Invoice Dashboard Styles */
+.invoice-stat-card {
+  transition: all 0.3s ease;
+  border: none;
+}
+
+.invoice-stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1) !important;
+}
+
+.stat-icon {
+  font-size: 2rem;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Invoice List Styles */
+.filter-btn {
+  border-radius: 30px;
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+.status-badge {
+  padding: 6px 10px;
+  border-radius: 20px;
+  font-weight: 500;
+}
+
+.table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Invoice Detail Styles */
+.invoice-container {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.invoice-header {
+  border-bottom: 2px solid #f0f0f0;
+  padding-bottom: 15px;
+  margin-bottom: 25px;
+}
+
+.invoice-company-details {
+  margin-bottom: 25px;
+}
+
+.invoice-to {
+  margin-bottom: 25px;
+}
+
+.invoice-items {
+  margin-top: 40px;
+}
+
+.invoice-items table {
+  width: 100%;
+}
+
+.invoice-total {
+  margin-top: 30px;
+  text-align: right;
+}
+
+.invoice-total .total {
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.invoice-notes {
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 1px solid #f0f0f0;
+}
+
+/* Print styles for invoice */
+@media print {
+  .invoice-container {
+    max-width: 100%;
+  }
+
+  .btn, .nav, header, footer, .sidebar {
+    display: none !important;
+  }
+
+  .card {
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  .card-header {
+    background-color: transparent !important;
+    border-bottom: 1px solid #ddd;
+  }
+
+  body {
+    padding: 0;
+    margin: 0;
+  }
+
+  .page-break {
+    page-break-before: always;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+}
+
+/* Invoice Create Styles */
+.service-selection-row {
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.service-selection-row:hover {
+  background-color: rgba(13, 110, 253, 0.1);
+}
+
+.service-selection-row.selected {
+  background-color: rgba(13, 110, 253, 0.2);
+}
+
+.price-summary {
+  background-color: #f8f9fa;
+  border-radius: 0.25rem;
+  padding: 1rem;
+  margin-top: 1rem;
+}
+
+.price-summary-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.price-summary-total {
+  font-size: 1.25rem;
+  font-weight: bold;
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid #dee2e6;
+}

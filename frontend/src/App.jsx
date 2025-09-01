@@ -97,6 +97,10 @@ import RequestsDashboard from './pages/admin/requests/RequestsDashboard';
 import AdditionalServicesManagement from './pages/admin/requests/AdditionalServicesManagement';
 import QuotationsManagement from './pages/admin/requests/QuotationsManagement';
 import AllRequestsManagement from './pages/admin/requests/AllRequestsManagement';
+import InvoiceDashboard from './pages/admin/invoices/InvoiceDashboard';
+import InvoiceList from './pages/admin/invoices/InvoiceList';
+import InvoiceDetail from './pages/admin/invoices/InvoiceDetail';
+import InvoiceCreate from './pages/admin/invoices/InvoiceCreate';
 
 export default function App() {
   return (
@@ -161,6 +165,12 @@ export default function App() {
               <Route path="requests/additional-services" element={<AdditionalServicesManagement />} />
               <Route path="requests/quotations" element={<QuotationsManagement />} />
               <Route path="requests/all" element={<AllRequestsManagement />} />
+              
+              {/* Invoice Management Routes */}
+              <Route path="invoices" element={<InvoiceDashboard />} />
+              <Route path="invoices/list" element={<InvoiceList />} />
+              <Route path="invoices/detail/:id" element={<InvoiceDetail />} />
+              <Route path="invoices/create" element={<InvoiceCreate />} />
               
               {/* Default admin page */}
               <Route index element={<div className="p-4"><h1>Panel de Administración</h1><p>Seleccione una opción del menú</p></div>} />

@@ -1,6 +1,32 @@
 const { parse } = require('dotenv');
-const { FacturaServicioVehiculo, ServiciosAdicionales, Inventario, SolicitudUsoRepuesto, AsignacionTrabajo, MantenimientoAdicional } = require('../Model')
+const { FacturaServicioVehiculo, ServiciosAdicionales, Inventario, SolicitudUsoRepuesto, AsignacionTrabajo, MantenimientoAdicional, Vehiculo } = require('../Model')
 const { RegistroServicioVehiculo, PagosFactura } = require('../Model');
+
+//Obtener los registro de servicios completados
+const obtenerServiciosCompletados = async (req, res) => {
+    try {
+        const servicios = await RegistroServicioVehiculo.findAll(
+            { 
+                where: { estado: 'COMPLETADO' },
+                attributes: ['id_registro', 'id_vehiculo', 'descripcion_problema', 'calificacion', 'estado', 'fecha_ingreso', 'fecha_estimada_finalizacion', 'fecha_finalizacion_real', 'observaciones_iniciales', 'prioridad'],
+                include: [
+                    {
+                        model: Vehiculo,
+                        attributes: ['id_vehiculo', 'marca', 'modelo', 'anio', 'color']
+                    },
+                    {
+                        model: AsignacionTrabajo,
+                        attributes: ['id_asignacion', 'descripcion', 'precio']
+                    }
+                ]
+            });
+        res.json(servicios);
+    } catch (error) {
+        console.error('Error al obtener los servicios completados:', error);
+        res.status(500).json({ message: 'Error al obtener los servicios completados' });
+    }
+};
+
 
 //hacer sumatoria para factura de servicios 
 const generarFacturaServicios = async (req, res) => {
@@ -234,6 +260,7 @@ module.exports = {
     listarFacturas,
     registrarPagoFactura,
     listarPagosFactura,
-    consultarSaldoPagos
+    consultarSaldoPagos,
+    obtenerServiciosCompletados
 
 }

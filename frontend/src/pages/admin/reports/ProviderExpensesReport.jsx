@@ -101,9 +101,9 @@ export default function ProviderExpensesReport() {
   // Filter payments based on search term
   const filteredPayments = reportData?.allPayments.filter(payment => {
     if (!searchTerm) return true;
-    
     const searchLower = searchTerm.toLowerCase();
     return (
+      
       payment.provider?.toLowerCase().includes(searchLower) ||
       payment.reference?.toLowerCase().includes(searchLower) ||
       payment.paymentMethod?.toLowerCase().includes(searchLower) ||
@@ -342,8 +342,6 @@ export default function ProviderExpensesReport() {
                   <tr>
                     <th>ID</th>
                     <th>Fecha</th>
-                    <th>Proveedor</th>
-                    <th>Referencia</th>
                     <th>Método</th>
                     <th>Registrado por</th>
                     <th className="text-end">Monto</th>
@@ -355,8 +353,6 @@ export default function ProviderExpensesReport() {
                       <tr key={payment.paymentId}>
                         <td>{payment.paymentId}</td>
                         <td>{formatDate(payment.date)}</td>
-                        <td>{payment.provider}</td>
-                        <td>{payment.reference}</td>
                         <td>{payment.paymentMethod}</td>
                         <td>{payment.registeredBy}</td>
                         <td className="text-end">{formatCurrency(payment.amount)}</td>

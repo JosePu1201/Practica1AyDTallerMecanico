@@ -253,12 +253,16 @@ const realizarPago = async (req, res) => {
             observaciones,
             referencia: referencia ?? null,
             monto:pedidoProveedor.total,
-            estado:"PENDIENTE",
+            estado:"PAGADO",
             id_usuario_registro:req.session.user.id_usuario,
             fecha_pago: new Date()
         });
         //actualizar el estado del pedido
+        pedidoProveedor.estado = "CONFIRMADO";
         await pedidoProveedor.save();
+
+
+
         res.status(201).json({message:"Pago realizado correctamente",pago});
     } catch (error) {
         res.status(500).json({ message: error.message });

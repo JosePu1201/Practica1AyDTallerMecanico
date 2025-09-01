@@ -463,7 +463,7 @@ const payInvoice = async (req, res) => {
         const { id_factura,monto_pago, metodo_pago, referencia_pago, id_usuario_registro, observaciones } = req.body;
 
         //Obtenemos la factura
-        const invoice = await FacturaServicioVehiculo.findByPk(id);
+        const invoice = await FacturaServicioVehiculo.findByPk(id_factura);
         if (!invoice) {
             return res.status(404).json({ error: "Invoice not found" });
         }
@@ -474,7 +474,7 @@ const payInvoice = async (req, res) => {
         }
 
         //insertamos pago factura
-        const payment = await PagoFactura.create({
+        const payment = await PagosFactura.create({
             id_factura,
             monto_pago,
             metodo_pago,
