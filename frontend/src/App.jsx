@@ -81,6 +81,18 @@ import ProductosList from './pages/admin/proveedores/ProductosList';
 import PedidosList from './pages/admin/proveedores/PedidosList';
 import PedidosProveedoresList from './pages/proveedor/PedidosProveedoresList';
 
+// Admin reports pages
+import ReportsDashboard from './pages/admin/reports/ReportsDashboard';
+import WorksByPeriodReport from './pages/admin/reports/WorksByPeriodReport';
+import ServiceRatingsReport from './pages/admin/reports/ServiceRatingsReport';
+import MaintenanceHistoryReport from './pages/admin/reports/MaintenanceHistoryReport';
+import CompletedWorksReport from './pages/admin/reports/CompletedWorksReport';
+import IncomeExpensesReport from './pages/admin/reports/IncomeExpensesReport';
+import ProviderExpensesReport from './pages/admin/reports/ProviderExpensesReport';
+import PartUsageReport from './pages/admin/reports/PartUsageReport';
+import MostUsedPartsReport from './pages/admin/reports/MostUsedPartsReport';
+import ClientHistoryReport from './pages/admin/reports/ClientHistoryReport';
+
 export default function App() {
   return (
     <AuthProvider>
@@ -125,6 +137,18 @@ export default function App() {
               <Route path="vehicles/new" element={<VehicleForm />} />
               <Route path="vehicles/:id/edit" element={<VehicleForm />} />
               <Route path="vehicles/:id/history" element={<VehicleHistory />} />
+              
+              {/* Reports Routes */}
+              <Route path="reportes" element={<ReportsDashboard />} />
+              <Route path="reportes/trabajos-por-periodo" element={<WorksByPeriodReport />} />
+              <Route path="reportes/calificaciones" element={<ServiceRatingsReport />} />
+              <Route path="reportes/historial-mantenimiento" element={<MaintenanceHistoryReport />} />
+              <Route path="reportes/trabajos-completados" element={<CompletedWorksReport />} />
+              <Route path="reportes/ingresos-egresos" element={<IncomeExpensesReport />} />
+              <Route path="reportes/gastos-proveedor" element={<ProviderExpensesReport />} />
+              <Route path="reportes/uso-repuestos" element={<PartUsageReport />} />
+              <Route path="reportes/repuestos-vehiculo" element={<MostUsedPartsReport />} />
+              <Route path="reportes/historial-cliente" element={<ClientHistoryReport />} />
               
               {/* Default admin page */}
               <Route index element={<div className="p-4"><h1>Panel de Administración</h1><p>Seleccione una opción del menú</p></div>} />

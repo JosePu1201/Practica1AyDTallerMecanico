@@ -1,0 +1,22 @@
+.reports-dashboard {
+  padding: 20px;
+}
+
+.report-category-card {
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.report-category-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.report-button {
+  padding: 12px 15px;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.report-button:hover {
+  transform: translateX(5px);
+}
