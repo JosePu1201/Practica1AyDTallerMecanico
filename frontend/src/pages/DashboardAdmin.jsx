@@ -204,9 +204,8 @@ export default function DashboardAdmin() {
             label="Facturación"
             collapsed={collapsed}
             children={[
-              { label: 'Facturas', to: '/admin/facturacion/facturas' },
-              { label: 'Pagos', to: '/admin/facturacion/pagos' },
-              { label: 'Reportes', to: '/admin/facturacion/reportes' },
+              { label: 'Facturas', to: '/admin/invoices/list' },
+              { label: 'Crear Factura', to: '/admin/invoices/create' }
             ]}
           />
 
@@ -238,6 +237,7 @@ export default function DashboardAdmin() {
           />
 
         </nav>
+
 
         {!collapsed && <div className="sidebar-footer">v1.0</div>}
       </aside>

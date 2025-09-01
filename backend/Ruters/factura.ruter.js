@@ -17,4 +17,7 @@ router.get('/listar-pagos/:id_factura', facturaController.listarPagosFactura);
 
 //consutlar saldo de pagos 
 router.get('/consultar-saldo/:id_factura', facturaController.consultarSaldoPagos);
+
+router.get('/obtener-servicios-completados', facturaController.obtenerServiciosCompletados);
+
 module.exports = router;

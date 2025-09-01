@@ -463,7 +463,7 @@ const getIncomeExpensesByPeriod = async (req, res) => {
     const totalIncome = invoices.reduce((sum, invoice) => sum + Number(invoice.total || 0), 0);
 
     // Calcular egresos totales
-    const totalExpenses = providerPayments.reduce((sum, payment) => sum + Number(payment.monto_pago || 0), 0);
+    const totalExpenses = providerPayments.reduce((sum, payment) => sum + Number(payment.monto || 0), 0);
 
     // Calcular utilidad neta
     const netProfit = totalIncome - totalExpenses;
@@ -479,7 +479,7 @@ const getIncomeExpensesByPeriod = async (req, res) => {
     const expensesByDay = {};
     providerPayments.forEach(payment => {
       const day = new Date(payment.fecha_pago).toISOString().split('T')[0];
-      expensesByDay[day] = (expensesByDay[day] || 0) + Number(payment.monto_pago || 0);
+      expensesByDay[day] = (expensesByDay[day] || 0) + Number(payment.monto || 0);
     });
 
     // Crear resumen diario para gráficos
@@ -628,12 +628,14 @@ const getProviderExpenses = async (req, res) => {
         };
       }
 
+      console.log(payment.monto);
+
       // Agrupamos los pagos por proveedor
-      paymentsByProvider[providerName].totalPaid += Number(payment.monto_pago || 0);
+      paymentsByProvider[providerName].totalPaid += Number(payment.monto || 0);
       paymentsByProvider[providerName].payments.push({
         paymentId: payment.id_pago_proveedor,
         date: payment.fecha_pago,
-        amount: payment.monto_pago,
+        amount: payment.monto,
         reference: payment.referencia_pago,
         paymentMethod: payment.metodo_pago,
         registeredBy: payment.Usuario?.nombre_usuario,
@@ -642,7 +644,7 @@ const getProviderExpenses = async (req, res) => {
     });
 
     // Calculamos el total de gastos
-    const totalExpenses = providerPayments.reduce((sum, payment) => sum + Number(payment.monto_pago || 0), 0);
+    const totalExpenses = providerPayments.reduce((sum, payment) => sum + Number(payment.monto || 0), 0);
 
     res.json({
       summary: {
@@ -658,7 +660,7 @@ const getProviderExpenses = async (req, res) => {
         paymentId: payment.id_pago_proveedor,
         date: payment.fecha_pago,
         provider: payment.PedidoProveedor?.Proveedor?.nombre,
-        amount: payment.monto_pago,
+        amount: payment.monto,
         reference: payment.referencia_pago,
         paymentMethod: payment.metodo_pago,
         registeredBy: payment.Usuario?.nombre_usuario,
