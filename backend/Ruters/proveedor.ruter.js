@@ -41,4 +41,13 @@ router.put('/actualizar_catalogo/:id_catalogo', proveedorController.actualizarCa
 
 // listar pago proveedor
 router.get('/listar_pago_proveedor/:id_proveedor', proveedorController.listarPagosProveedor);
+
+//cambiar estado de pedido 
+router.put('/pedido_entregado/:id_pedido', proveedorController.cambiarEstadoPedidoEntregado);
+
+//cambiar estado de pedido en transito 
+router.put('/pedido_en_transito/:id_pedido', proveedorController.cambiarEstadoPedidoTransito);
+
+
+
 module.exports = router;

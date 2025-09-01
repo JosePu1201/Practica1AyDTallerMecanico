@@ -1,4 +1,5 @@
-const { Proveedor, Usuario, Repuesto, CatalogoProveedor } = require('../Model');
+const { parse } = require('dotenv');
+const { Proveedor, Usuario, Repuesto, CatalogoProveedor, Inventario } = require('../Model');
 const { PedidoProveedor, DetallePedido, PagosProveedor, sequelize } = require('../Model');
 //crear un nuevo proveedor 
 const crearProveedor = async (req, res) => {
@@ -55,23 +56,23 @@ const eliminarProveedor = async (req, res) => {
 //crear repuestos 
 const crearRepuesto = async (req, res) => {
     try {
-        const {id_proveedor} = req.params;
-        const {nombre, descripcion, codigo_parte, marca_compatible} = req.body;
+        const { id_proveedor } = req.params;
+        const { nombre, descripcion, codigo_parte, marca_compatible } = req.body;
         const proveedor = await Proveedor.findOne({
             where: { id_usuario: id_proveedor }
-        });      
-        if(!proveedor){
-            return res.status(404).json({message: 'Proveedor no encontrado'});
+        });
+        if (!proveedor) {
+            return res.status(404).json({ message: 'Proveedor no encontrado' });
         }
         console.log(proveedor);
-        if(proveedor.estodo === "INACTIVO"){
-            return res.status(400).json({message: 'Proveedor no activo'});
+        if (proveedor.estodo === "INACTIVO") {
+            return res.status(400).json({ message: 'Proveedor no activo' });
         }
         if (!nombre || !descripcion || !codigo_parte || !marca_compatible) {
             return res.status(400).json({ message: 'Faltan datos' });
         }
         const nuevoRepuesto = await Repuesto.create({
-            id_proveedor:proveedor.id_proveedor,
+            id_proveedor: proveedor.id_proveedor,
             nombre,
             descripcion,
             codigo_parte,
@@ -142,12 +143,12 @@ const listarProveedores = async (req, res) => {
 //listar repuestos pro proveedor 
 const listarRepuestosProveedor = async (req, res) => {
     try {
-        const {id_proveedor} = req.params;
+        const { id_proveedor } = req.params;
         const proveedor = await Proveedor.findOne({
             where: { id_usuario: id_proveedor }
-        }); 
+        });
         const repuestos = await Repuesto.findAll({
-            where: {id_proveedor:proveedor.id_proveedor}  
+            where: { id_proveedor: proveedor.id_proveedor }
         });
         res.status(200).json({ message: 'Repuestos listados exitosamente', data: repuestos });
     } catch (error) {
@@ -240,13 +241,13 @@ const listarRepuestosCatalogoProveedor = async (req, res) => {
 //lista catalogo por id de usuario este endpoint carga los catalogos del proveeedor por meidio de su id de usuario
 const listarCatalogoProveedor = async (req, res) => {
     try {
-        const {id_proveedor} = req.params;
+        const { id_proveedor } = req.params;
         const proveedor = await Proveedor.findOne({
             where: { id_usuario: id_proveedor }
-        });  
+        });
         const catalogoProveedor = await CatalogoProveedor.findAll({
-            where: {id_proveedor:proveedor.id_proveedor},
-            attributes: ['id_catalogo','precio','cantidad_disponible','tiempo_entrega'],
+            where: { id_proveedor: proveedor.id_proveedor },
+            attributes: ['id_catalogo', 'precio', 'cantidad_disponible', 'tiempo_entrega'],
             include: [
                 {
                     model: Repuesto,
@@ -268,13 +269,13 @@ const listarCatalogoProveedor = async (req, res) => {
 //listar el catalogo de proveedor por medio de su id_proveedor
 const listarCatalogoProveedorByIdProveedor = async (req, res) => {
     try {
-        const {id_proveedor} = req.params;
+        const { id_proveedor } = req.params;
         const proveedor = await Proveedor.findOne({
             where: { id_proveedor: id_proveedor }
-        });  
+        });
         const catalogoProveedor = await CatalogoProveedor.findAll({
-            where: {id_proveedor:proveedor.id_proveedor},
-            attributes: ['id_catalogo','precio','cantidad_disponible','tiempo_entrega'],
+            where: { id_proveedor: proveedor.id_proveedor },
+            attributes: ['id_catalogo', 'precio', 'cantidad_disponible', 'tiempo_entrega'],
             include: [
                 {
                     model: Repuesto,
@@ -355,13 +356,16 @@ const cambiarEstadoPedidoTransito = async (req, res) => {
         if (!pedido) {
             return res.status(404).json({ message: 'Pedido no encontrado' });
         }
-        if (pedido.estado === 'EN_TRANSITO' ) {
+        if (pedido.estado === 'EN_TRANSITO') {
             return res.status(400).json({ message: 'Pedido ya enviado' });
         }
-        if(pedido.estado === "ENTREGADO"){
+        if (pedido.estado === "ENTREGADO") {
             return res.status(400).json({ message: 'Pedido ya entregado' });
         }
-        if(pedido.estado === "CANCELADO" || pedido.estado === "PENDIENTE"){
+        if (pedido.estado === "CANCELADO" || pedido.estado === "PENDIENTE") {
+            return res.status(400).json({ message: 'Pedido no puede ser enviado' });
+        }
+        if (pedido.estado === "PENDIENTE") {
             return res.status(400).json({ message: 'Pedido no puede ser enviado' });
         }
         pedido.estado = 'EN_TRANSITO';
@@ -375,24 +379,85 @@ const cambiarEstadoPedidoTransito = async (req, res) => {
 // cambiear estado a Entregado 
 const cambiarEstadoPedidoEntregado = async (req, res) => {
     const { id_pedido } = req.params;
+    const transaccion = await sequelize.transaction();
     try {
         const pedido = await PedidoProveedor.findByPk(id_pedido);
         if (!pedido) {
+            transaccion.rollback();
             return res.status(404).json({ message: 'Pedido no encontrado' });
+
         }
         if (pedido.estado === 'ENTREGADO' || pedido.estado === 'CANCELADO' || pedido.estado === 'PENDIENTE') {
+            transaccion.rollback();
             return res.status(400).json({ message: 'Pedido ya entregado' });
         }
-        if(pedido.estado === "EN_TRANSITO"){
+        if (pedido.estado === "EN_TRANSITO") {
             pedido.estado = 'ENTREGADO';
-            await   pedido.save();
+            agregarInventario(pedido, res, transaccion);
+            await pedido.save();
+            transaccion.commit();
             return res.status(200).json({ message: 'Pedido entregado exitosamente', pedido });
+        } else {
+            transaccion.rollback();
+            return res.status(400).json({ message: 'Pedido no puede ser entregado' });
         }
-        
+
     } catch (error) {
+        transaccion.rollback();
         return res.status(500).json({ message: 'Error al enviar el pedido', error: error.message });
     }
 };
+
+async function agregarInventario(pedido, res, transaccion) {
+    try {
+        //Consultar el detalle pedido
+        const detallePedido = await DetallePedido.findAll({
+            where: { id_pedido: pedido.id_pedido },
+            attributes: ['cantidad', 'precio_unitario'],
+            include: [
+                {
+                    model: CatalogoProveedor
+                }
+            ]
+        });
+
+        for (const detalle of detallePedido) {
+            const cantidad = detalle.cantidad;
+            const id_repuesto = detalle.CatalogoProveedor.id_repuesto;
+            const precio_unitario = detalle.precio_unitario;
+
+            //console.log("Buscando inventario con id_repuesto:", id_repuesto);
+
+            const inventario = await Inventario.findOne({
+                where: { id_repuesto: parseInt(id_repuesto, 10) }
+            });
+
+            if (!inventario) {
+                await Inventario.create({
+                    id_repuesto,
+                    cantidad: cantidad,
+                    precio_unitario: parseFloat(precio_unitario) * 1.10,
+                    fecha_actualizacion: new Date()
+                });
+                //console.log("Nuevo inventario creado:", id_repuesto);
+            } else {
+                inventario.cantidad = parseFloat(inventario.cantidad) + parseFloat(cantidad);
+                inventario.fecha_actualizacion = new Date();
+                await inventario.save();
+                //console.log("Inventario actualizado:", id_repuesto);
+            }
+        }
+
+        if (!detallePedido) {
+            transaccion.rollback();
+            return res.status(404).json({ message: 'Detalle de pedido no encontrado' });
+        }
+    }
+    catch (error) {
+        transaccion.rollback();
+        return res.status(500).json({ message: 'Error al agregar el inventario', error: error.message });
+    }
+}
 
 module.exports = {
     crearProveedor,
@@ -407,5 +472,7 @@ module.exports = {
     listarCatalogoProveedor,
     actualizarCatalogoProveedor,
     listarPagosProveedor,
-    listarCatalogoProveedorByIdProveedor
+    listarCatalogoProveedorByIdProveedor,
+    cambiarEstadoPedidoEntregado,
+    cambiarEstadoPedidoTransito
 };
