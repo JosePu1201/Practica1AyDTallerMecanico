@@ -27,6 +27,7 @@ router.get('/partes_mas_usadas', reportController.getMostUsedPartsByVehicleType)
 /*
 Reportes de Clientes y Atención
 */
+router.get('/clientes', reportController.getClients);
 router.get('/cliente_historial/:clientId', reportController.getServiceHistoryByClient);
 router.get('/cliente_calificaciones', reportController.getServiceRatings);
 
