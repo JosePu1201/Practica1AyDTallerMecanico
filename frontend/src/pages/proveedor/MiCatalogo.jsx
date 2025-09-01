@@ -66,7 +66,7 @@ function AddToCatalogSelectModal({ open, onClose, onSubmit, repuestos }) {
         id_repuesto: Number(form.id_repuesto),
         precio: Number(form.precio),
         cantidad_disponible: Number(form.cantidad_disponible),
-        tiempo_entrega: form.tiempo_entrega,
+        tiempo_entrega: Number(form.tiempo_entrega),
       });
       onClose();
     } finally {

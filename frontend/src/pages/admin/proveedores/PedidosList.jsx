@@ -118,6 +118,7 @@ function useDetallesPedido(id_pedido) {
       const { data } = await axios.get(`${PED_API}/detalle-pedido/${id_pedido}`);
       // Backend típico: { detallePedido: [...] }
       let list = [];
+      console.log(data);
       if (Array.isArray(data?.detallePedido)) list = data.detallePedido;
       else if (Array.isArray(data?.data)) list = data.data;
       else if (Array.isArray(data)) list = data;
