@@ -212,6 +212,15 @@ export default function DashboardAdmin() {
               { label: 'Reportes', to: '/admin/facturacion/reportes' },
             ]}
           />
+
+          <SidebarItem
+            icon="bi-file-earmark-text"
+            label="Reportes"
+            collapsed={collapsed}
+            children={[
+              { label: 'Reportes', to: '/admin/reportes' },
+            ]}
+          />
           <SidebarItem
             icon="bi-gear"
             label="Configuración"
