@@ -1,6 +1,7 @@
 const { parse } = require('dotenv');
 const { Proveedor, Usuario, Repuesto, CatalogoProveedor, Inventario } = require('../Model');
 const { PedidoProveedor, DetallePedido, PagosProveedor, sequelize } = require('../Model');
+const { Op } = require('sequelize');
 //crear un nuevo proveedor 
 const crearProveedor = async (req, res) => {
     try {
@@ -64,7 +65,7 @@ const crearRepuesto = async (req, res) => {
         if (!proveedor) {
             return res.status(404).json({ message: 'Proveedor no encontrado' });
         }
-        console.log(proveedor);
+        //console.log(proveedor);
         if (proveedor.estodo === "INACTIVO") {
             return res.status(400).json({ message: 'Proveedor no activo' });
         }
@@ -461,8 +462,44 @@ async function agregarInventario(pedido, res, transaccion) {
 
 //area de cotizaciones 
 
+//sugerir repuestos a admin (sugiere un repuesto del catalogo que no este en nigun detalle pedido)
+const sugerirRepuesto = async (req, res) => {
+    try {
+        const {id_proveedor} = req.params;
 
+        //consultar los poductos de un catalogo que no esten en ningun detalle pedido 
+        const catalogosSinPedido = await CatalogoProveedor.findAll({
+            where: {
+                id_proveedor: id_proveedor
+            },
+            include: [{
+                model: DetallePedido,
+                required: false, // Esto asegura que Sequelize use un LEFT JOIN
+                attributes: []   // No necesitamos los datos del detalle del pedido, solo queremos saber si existe
+            },{
+                model: Repuesto,
+                attributes: [ 'nombre','marca_compatible'],
+                where:{
+                    estado:'ACTIVO',
+                }
+            }],
+            // La condición para excluir es que la clave primaria de DetallePedido sea nula
+            where: {
+                id_proveedor: id_proveedor,
+                [Op.and]: [
+                    { '$DetallePedidos.id_detalle_pedido$': null }
+                ]
+            }
+        });
 
+        //console.log(catalogosSinPedido);
+        //devolver los productos 
+        return res.status(200).json({ message: 'Repuestos sugeridos',Detalle:'En base a tus compras anterirores y debido a que eres nuestro mejor cliente te sugerimos estas piezas que aun no adquieres con nosotros, recuerda que somos tu mejor opciom', catalogosSinPedido });
+
+    }catch (error) {
+        return res.status(500).json({ message: 'Error al sugerir repuesto', error: error.message });
+    }
+}
 module.exports = {
     crearProveedor,
     agregarRepuesto,
@@ -478,5 +515,6 @@ module.exports = {
     listarPagosProveedor,
     listarCatalogoProveedorByIdProveedor,
     cambiarEstadoPedidoEntregado,
-    cambiarEstadoPedidoTransito
+    cambiarEstadoPedidoTransito,
+    sugerirRepuesto
 };
