@@ -76,7 +76,6 @@ export default function PedidosProveedoresList() {
         p?.observaciones,
         String(p?.id_pedido),
         String(p?.id_proveedor),
-        // Algunos backends tienen PagosProveedor como array/objeto:
         ...(Array.isArray(p?.PagosProveedors) ? p.PagosProveedors.map(px => px?.estado) : [p?.PagosProveedor?.estado]),
       ]
         .join(" \u200b ")
@@ -122,12 +121,46 @@ export default function PedidosProveedoresList() {
     return detalles.reduce((acc, d) => acc + Number(d.subtotal ?? 0), 0);
   }, [detalles]);
 
-  // Flash mínimo (por si deseas mostrar notificaciones)
+  // Flash mínimo
   const [flash, setFlash] = useState(null);
   const showFlash = (type, text, ms = 2200) => {
     setFlash({ type, text });
     setTimeout(() => setFlash(null), ms);
   };
+
+  // === NUEVO: acción para cambio de estado ===
+  const [actBusyId, setActBusyId] = useState(null);
+
+  const cambiarEstado = async (p, target) => {
+    if (!p?.id_pedido) return;
+    const id = p.id_pedido;
+    // target: 'EN_TRANSITO' | 'ENTREGADO'
+    const ruta =
+      target === "EN_TRANSITO"
+        ? `${PROV_API}/pedido_en_transito/${id}`
+        : `${PROV_API}/pedido_entregado/${id}`;
+
+    const confirmMsg =
+      target === "EN_TRANSITO"
+        ? `¿Marcar pedido #${id} como EN_TRANSITO?`
+        : `¿Marcar pedido #${id} como ENTREGADO?`;
+
+    if (!window.confirm(confirmMsg)) return;
+
+    try {
+      setActBusyId(id);
+      await axios.put(ruta);
+      showFlash("ok", `Pedido #${id} actualizado a ${target}.`);
+      await refetch();
+    } catch (e) {
+      console.error(e);
+      showFlash("error", "No se pudo cambiar el estado. Intenta de nuevo.");
+    } finally {
+      setActBusyId(null);
+    }
+  };
+
+  const estadoNorm = (e) => (e ?? "").toString().trim().toUpperCase();
 
   return (
     <div className="card-surface card-light">
@@ -179,7 +212,7 @@ export default function PedidosProveedoresList() {
                       <th>Fecha solicitada</th>
                       <th>Estado</th>
                       <th>Pagos</th>
-                      <th style={{ width: 130 }}>Acciones</th>
+                      <th style={{ width: 240 }} className="actions-col">Acciones</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -192,6 +225,8 @@ export default function PedidosProveedoresList() {
                       const pagos = getPagos(p);
                       const pagosCount = pagos.length;
                       const pagosMonto = pagos.reduce((acc, x) => acc + Number(x?.monto ?? 0), 0);
+                      const est = estadoNorm(p?.estado);
+
                       return (
                         <tr key={p.id_pedido}>
                           <td className="mono">{p.id_pedido}</td>
@@ -214,11 +249,37 @@ export default function PedidosProveedoresList() {
                             <div className="font-semibold">{pagosCount} pago(s)</div>
                             <div className="muted text-sm">Total pagos: {currency(pagosMonto)}</div>
                           </td>
-                          <td>
-                            <button className="btn-pedido" onClick={() => verDetalle(p)}>
-                              <i className="bi bi-eye me-1" />
-                              Ver detalle
-                            </button>
+                          <td className="actions-col">
+                            <div className="inline-actions">
+                              <button className="btn-pedido" onClick={() => verDetalle(p)}>
+                                <i className="bi bi-eye me-1" />
+                                Ver
+                              </button>
+
+                              {est === "CONFIRMADO" && (
+                                <button
+                                  className="btn-ok"
+                                  disabled={actBusyId === p.id_pedido}
+                                  onClick={() => cambiarEstado(p, "EN_TRANSITO")}
+                                  title="Cambiar a EN_TRANSITO"
+                                >
+                                  <i className="bi bi-truck me-1" />
+                                  Marcar en tránsito
+                                </button>
+                              )}
+
+                              {est === "EN_TRANSITO" && (
+                                <button
+                                  className="btn-success"
+                                  disabled={actBusyId === p.id_pedido}
+                                  onClick={() => cambiarEstado(p, "ENTREGADO")}
+                                  title="Cambiar a ENTREGADO"
+                                >
+                                  <i className="bi bi-box-seam me-1" />
+                                  Marcar entregado
+                                </button>
+                              )}
+                            </div>
                           </td>
                         </tr>
                       );
@@ -256,7 +317,7 @@ export default function PedidosProveedoresList() {
           </div>
 
           <div className="split mt-3">
-            {/* Panel izquierdo: lista de pagos (opcional, solo visual) */}
+            {/* Panel izquierdo: lista de pagos (solo visual) */}
             <div>
               <div className="pane" style={{ padding: 16 }}>
                 <div className="pane-head">
@@ -287,8 +348,8 @@ export default function PedidosProveedoresList() {
                           );
                         }
                         return pagos.map(pg => (
-                          <tr key={pg.id_pago ?? `${pg.estado}-${pg.monto}-${pg.createdAt}`}>
-                            <td className="mono">{pg.id_pago ?? "—"}</td>
+                          <tr key={pg.id_pago_proveedor ?? `${pg.estado}-${pg.monto}-${pg.createdAt}`}>
+                            <td className="mono">{pg.id_pago_proveedor ?? "—"}</td>
                             <td className="mono">{currency(pg.monto ?? 0)}</td>
                             <td>
                               <span className={cls("pill", `state-${String(pg.estado || "").toLowerCase()}`)}>

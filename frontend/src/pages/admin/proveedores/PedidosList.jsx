@@ -270,7 +270,7 @@ export default function PedidosList() {
     // Si el pedido está PAGADO o CONFIRMADO -> solo lectura
     const st = String(pedido?.estado || "").toUpperCase();
     setPedidoSel(pedido);
-    if (st === "PAGADO" || st === "CONFIRMADO") setMode("detalle_ro");
+    if (st === "ENTREGADO" || st === "CONFIRMADO"||st==='EN_TRANSITO') setMode("detalle_ro");
     else setMode("detalle");
   };
 
@@ -544,7 +544,7 @@ export default function PedidosList() {
                                 {isReadOnly ? "Ver detalle" : "Ver detalle"}
                               </button>
                               {/* Realizar pago visible si NO está PAGADO; puedes limitarlo a CONFIRMADO/PENDIENTE */}
-                              {st !== "PAGADO" && (
+                              {(st == "PENDIENTE") && (
                                 <button className="btn" onClick={() => openPago(p)}>
                                   <i className="bi bi-cash-coin me-1" />
                                   Realizar pago

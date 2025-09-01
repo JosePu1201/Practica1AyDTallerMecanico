@@ -185,9 +185,10 @@ export default function DashboardAdmin() {
             label="Inventario"
             collapsed={collapsed}
             children={[
-              { label: 'Repuestos', to: '/admin/inventario/repuestos' },
+              { label: 'Catalogos', to: '/admin/inventario/catalogos' },
               { label: 'Proveedores', to: '/admin/inventario/proveedores' },
-              { label: 'Pedidos', to: '/admin/inventario/pedidos' }
+              { label: 'Pedidos', to: '/admin/inventario/pedidos' },
+              { label: 'Repuestos', to: '/admin/inventario/repuestos' }
             ]}
           />
           <SidebarItem

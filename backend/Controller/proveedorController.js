@@ -322,10 +322,12 @@ const actualizarCatalogoProveedor = async (req, res) => {
 //listar los pagos de proveedro marcados como  PAgado 
 const listarPagosProveedor = async (req, res) => {
     const { id_proveedor } = req.params;
-
+     const proveedor = await Proveedor.findOne({
+            where: { id_usuario: id_proveedor }
+        });
     try {
         const pedidoProveedor = await PedidoProveedor.findAll({
-            where: { id_proveedor },
+            where: { id_proveedor:proveedor.id_proveedor },
             include: [
                 {
                     model: PagosProveedor,

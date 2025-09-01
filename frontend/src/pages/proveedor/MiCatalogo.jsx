@@ -322,9 +322,6 @@ function TablaCatalogo({ items, onAddQty, onEdit }) {
                   <button className="icon-btn" title="Editar" onClick={()=>onEdit(it)}>
                     <i className="bi bi-pencil-square" />
                   </button>
-                  <button className="icon-btn" title="Agregar cantidad" onClick={()=>onAddQty(it)}>
-                    <i className="bi bi-plus-circle" />
-                  </button>
                 </div>
               </td>
             </tr>

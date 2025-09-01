@@ -77,9 +77,10 @@ import DashboardProveedor from './pages/DashboardProveedor';
 import RepuestosList from './pages/proveedor/RepuestosList';
 import ProveedoresList from './pages/admin/proveedores/ProveedoresList';
 import MiCatalogo from './pages/proveedor/MiCatalogo';
-import ProductosList from './pages/admin/proveedores/ProductosList';
 import PedidosList from './pages/admin/proveedores/PedidosList';
 import PedidosProveedoresList from './pages/proveedor/PedidosProveedoresList';
+import Catalogos from './pages/admin/proveedores/Catalogos';
+import RepuestosInventarioList from './pages/admin/proveedores/RepuestosInventarioList';
 
 export default function App() {
   return (
@@ -101,8 +102,9 @@ export default function App() {
             <Route path="/admin" element={<DashboardAdmin />}>
               {/* User Management Routes */}
               <Route path="inventario/proveedores" element={<ProveedoresList />} />
-              <Route path="inventario/repuestos" element={<ProductosList />} />
+              <Route path="inventario/catalogos" element={<Catalogos />} />
               <Route path="inventario/pedidos" element={<PedidosList />} />
+              <Route path="inventario/repuestos" element={<RepuestosInventarioList />} />
 
               <Route path="usuarios" element={<UserList />} />
               <Route path="usuarios/nuevo" element={<UserForm />} />

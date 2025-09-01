@@ -154,7 +154,7 @@ function useDetallesPedido(id_pedido) {
   return { rows, loading, error, refetch: fetchAll, setRows };
 }
 
-export default function ProductosList() {
+export default function Catalogos() {
   // modos: list -> form -> detalle
   const [mode, setMode] = useState("list");
 

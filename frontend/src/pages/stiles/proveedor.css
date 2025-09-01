@@ -551,3 +551,28 @@
   display: inline-grid;           /* que no ocupe todo el ancho */
   margin: 0;
 }
+
+/* === Acciones horizontales forzadas en la tabla === */
+.table td.actions-col { 
+  white-space: nowrap;      /* evita salto de línea */
+  text-align: left;
+}
+
+.inline-actions{
+  display: inline-flex;     /* ocupa solo lo necesario */
+  align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;        /* ¡no me hagás wrap! */
+}
+
+/* Asegura que los botones no sean block ni tomen 100% */
+.table td.actions-col .btn-pedido,
+.table td.actions-col .btn-ok,
+.table td.actions-col .btn-success,
+.table td.actions-col .btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: auto;
+  max-width: none;
+}
