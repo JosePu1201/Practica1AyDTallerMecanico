@@ -48,6 +48,8 @@ router.put('/pedido_entregado/:id_pedido', proveedorController.cambiarEstadoPedi
 //cambiar estado de pedido en transito 
 router.put('/pedido_en_transito/:id_pedido', proveedorController.cambiarEstadoPedidoTransito);
 
+//sugerir repuestos 
+router.post('/sugerir_repuestos/:id_proveedor', proveedorController.sugerirRepuesto);
 
 
 module.exports = router;
