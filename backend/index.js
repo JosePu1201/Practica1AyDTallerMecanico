@@ -61,6 +61,9 @@ const startServer = async () => {
     const reportRouter = require('./Ruters/report.router');
     app.use('/api/reportes', reportRouter);
 
+    const requestServices = require('./Ruters/requestClient.router');
+    app.use('/api/solicitudes', requestServices);
+
     const PORT = process.env.PORT || 3000;
     app.listen(PORT, () => {
     console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);

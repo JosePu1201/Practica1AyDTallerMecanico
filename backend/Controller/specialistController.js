@@ -21,7 +21,7 @@ const getWorksAssigned = async (req, res) => {
                     include: [
                         {
                             model: Vehiculo,
-                            attributes: ['marca', 'modelo', 'anio', 'placa']
+                            attributes: ['id_vehiculo','marca', 'modelo', 'anio', 'placa', 'color']
                         }
                     ],
                     attributes: ['id_registro', 'fecha_ingreso', 'descripcion_problema', 'observaciones_iniciales']
@@ -72,8 +72,16 @@ const getHistoryVehicle = async (req, res) => {
             where: { id_vehiculo: id },
             include: [
                 {
+                    model: Vehiculo,
+                    attributes: ['id_vehiculo', 'marca', 'modelo', 'anio', 'placa', 'color']
+                },
+                {
                     model: AsignacionTrabajo,
                     include: [
+                        {
+                            model: TipoMantenimiento,
+                            attributes: ['nombre_tipo', 'descripcion']
+                        },
                         {
                             model: DaniosAdicionales,
                             attributes: ['id_danio', 'descripcion_danio', 'fecha_danio', 'costo_estimado', 'requiere_autorizacion', 'autorizado']

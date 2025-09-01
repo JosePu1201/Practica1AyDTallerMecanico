@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Row, Col, Badge, Button, Spinner, Tab, Tabs, Table, Alert } from 'react-bootstrap';
+import { Card, Row, Col, Badge, Button, Spinner, Tab, Tabs, Table, Alert, Modal, Form } from 'react-bootstrap';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { serviceManagementService } from '../../../services/serviceManagementService';
 import './styles/ServiceDetail.css'; // Import the CSS
@@ -13,6 +13,17 @@ export default function ServiceDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('details');
+  
+  // States for employee reassignment
+  const [employees, setEmployees] = useState([]);
+  const [specialists, setSpecialists] = useState([]);
+  const [showReassignModal, setShowReassignModal] = useState(false);
+  const [selectedWork, setSelectedWork] = useState(null);
+  const [newEmployeeId, setNewEmployeeId] = useState('');
+  const [reassignLoading, setReassignLoading] = useState(false);
+  const [reassignSuccess, setReassignSuccess] = useState(false);
+  const [reassignError, setReassignError] = useState(null);
+  const [loadingEmployees, setLoadingEmployees] = useState(false);
 
   useEffect(() => {
     const fetchServiceDetail = async () => {
@@ -45,12 +56,75 @@ export default function ServiceDetail() {
     fetchServiceDetail();
   }, [id]);
 
+  // Load employees and specialists when reassign modal opens
+  const loadEmployeesData = async () => {
+    try {
+      setLoadingEmployees(true);
+      const [employeesList, specialistsList] = await Promise.all([
+        serviceManagementService.getEmployees(),
+        serviceManagementService.getSpecialists()
+      ]);
+      setEmployees(employeesList);
+      setSpecialists(specialistsList);
+      setLoadingEmployees(false);
+    } catch (err) {
+      console.error('Error loading employees and specialists:', err);
+      setReassignError('Error al cargar la lista de empleados y especialistas');
+      setLoadingEmployees(false);
+    }
+  };
+
   const handleStatusChange = async (newStatus) => {
     try {
       await serviceManagementService.updateServiceStatus(id, newStatus);
       setService({ ...service, estado: newStatus });
     } catch (err) {
       setError('Error al actualizar el estado: ' + err.message);
+    }
+  };
+
+  // Open reassign modal and load employee data
+  const openReassignModal = (work) => {
+    setSelectedWork(work);
+    setNewEmployeeId('');
+    setReassignError(null);
+    setReassignSuccess(false);
+    setShowReassignModal(true);
+    loadEmployeesData();
+  };
+
+  // Handle employee reassignment
+  const handleReassign = async () => {
+    if (!selectedWork || !newEmployeeId) {
+      setReassignError('Por favor seleccione un empleado');
+      return;
+    }
+
+    try {
+      setReassignLoading(true);
+      setReassignError(null);
+      
+      await serviceManagementService.changeEmployeeWork({
+        id_asignacion: selectedWork.id_asignacion,
+        id_usuario_empleado: parseInt(newEmployeeId)
+      });
+      
+      setReassignSuccess(true);
+      
+      // Refresh assigned works list
+      const works = await serviceManagementService.getWorksByServiceId(id);
+      setAssignedWorks(works);
+      
+      // Close modal after a delay
+      setTimeout(() => {
+        setShowReassignModal(false);
+        setReassignSuccess(false);
+      }, 1500);
+      
+    } catch (err) {
+      setReassignError('Error al reasignar el trabajo: ' + err.message);
+    } finally {
+      setReassignLoading(false);
     }
   };
 
@@ -352,6 +426,14 @@ export default function ServiceDetail() {
                                   {work.empleadoAsignado?.Persona?.nombre} {work.empleadoAsignado?.Persona?.apellido}
                                   <small className="d-block text-muted">{work.empleadoAsignado?.nombre_usuario}</small>
                                 </div>
+                                <Button 
+                                  variant="link" 
+                                  className="ms-2 p-0" 
+                                  onClick={() => openReassignModal(work)}
+                                  title="Cambiar empleado asignado"
+                                >
+                                  <i className="bi bi-pencil-square text-primary"></i>
+                                </Button>
                               </div>
                             </td>
                             <td>
@@ -424,6 +506,87 @@ export default function ServiceDetail() {
           </Card>
         </Tab>
       </Tabs>
+
+      {/* Reassign Employee Modal */}
+      <Modal show={showReassignModal} onHide={() => setShowReassignModal(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Cambiar Persona Asignada</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {reassignSuccess && (
+            <Alert variant="success" className="mb-3">
+              <i className="bi bi-check-circle me-2"></i>
+              Empleado cambiado exitosamente.
+            </Alert>
+          )}
+          
+          {reassignError && (
+            <Alert variant="danger" className="mb-3">
+              <i className="bi bi-exclamation-triangle me-2"></i>
+              {reassignError}
+            </Alert>
+          )}
+
+          {selectedWork && (
+            <>
+              <p>
+                <strong>Trabajo:</strong> {selectedWork.TipoMantenimiento?.nombre_tipo}
+              </p>
+              <p>
+                <strong>Actualmente asignado a:</strong> {selectedWork.empleadoAsignado?.Persona?.nombre} {selectedWork.empleadoAsignado?.Persona?.apellido}
+              </p>
+              
+              <Form.Group className="mb-3">
+                <Form.Label>Seleccione el nuevo empleado/especialista</Form.Label>
+                {loadingEmployees ? (
+                  <div className="text-center my-3">
+                    <Spinner size="sm" animation="border" className="me-2" />
+                    <span>Cargando empleados...</span>
+                  </div>
+                ) : (
+                  <Form.Select 
+                    value={newEmployeeId}
+                    onChange={(e) => setNewEmployeeId(e.target.value)}
+                    disabled={reassignLoading}
+                  >
+                    <option value="">Seleccione una persona</option>
+                    <optgroup label="Empleados">
+                      {employees.map(employee => (
+                        <option key={employee.id_usuario} value={employee.id_usuario}>
+                          {employee.Persona?.nombre} {employee.Persona?.apellido} ({employee.nombre_usuario})
+                        </option>
+                      ))}
+                    </optgroup>
+                    <optgroup label="Especialistas">
+                      {specialists.map(specialist => (
+                        <option key={specialist.Usuario.id_usuario} value={specialist.Usuario.id_usuario}>
+                          {specialist.Usuario.Persona?.nombre} {specialist.Usuario.Persona?.apellido} - 
+                          {specialist.TipoTecnico?.nombre_tipo}
+                        </option>
+                      ))}
+                    </optgroup>
+                  </Form.Select>
+                )}
+              </Form.Group>
+            </>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowReassignModal(false)} disabled={reassignLoading}>
+            Cancelar
+          </Button>
+          <Button variant="primary" onClick={handleReassign} disabled={reassignLoading || !newEmployeeId || loadingEmployees}>
+            {reassignLoading ? (
+              <>
+                <Spinner animation="border" size="sm" className="me-2" />
+                Cambiando...
+              </>
+            ) : (
+              'Confirmar Cambio'
+            )}
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 }

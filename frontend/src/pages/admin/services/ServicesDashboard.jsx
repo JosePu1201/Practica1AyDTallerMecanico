@@ -140,9 +140,7 @@ export default function ServicesDashboard() {
                   </div>
                   <h4>{loading ? '...' : stats.totalEmployees}</h4>
                   <p className="text-muted">Empleados</p>
-                  <Link to="/admin/services/employees" className="btn btn-sm btn-outline-info">
-                    Ver Empleados
-                  </Link>
+                  
                 </div>
                 <div className="text-center">
                   <div className="rounded-circle bg-secondary p-3 mx-auto mb-2" style={{ width: '60px', height: '60px' }}>
@@ -150,9 +148,6 @@ export default function ServicesDashboard() {
                   </div>
                   <h4>{loading ? '...' : stats.totalSpecialists}</h4>
                   <p className="text-muted">Especialistas</p>
-                  <Link to="/admin/services/specialists" className="btn btn-sm btn-outline-secondary">
-                    Ver Especialistas
-                  </Link>
                 </div>
               </div>
             </Card.Body>
@@ -172,22 +167,11 @@ export default function ServicesDashboard() {
                     <span>Listar Todos los Servicios</span>
                   </Link>
                 </Col>
-                <Col xs={6} className="mb-3">
-                  <Link to="/admin/services/assignments" className="btn btn-outline-dark w-100 h-100 d-flex flex-column align-items-center justify-content-center py-3">
-                    <i className="bi bi-person-check fs-3 mb-2"></i>
-                    <span>Gestionar Asignaciones</span>
-                  </Link>
-                </Col>
-                <Col xs={6}>
+                
+                <Col xs={6} className='mb-3'>
                   <Link to="/admin/services/maintenance-types" className="btn btn-outline-dark w-100 h-100 d-flex flex-column align-items-center justify-content-center py-3">
                     <i className="bi bi-wrench fs-3 mb-2"></i>
                     <span>Tipos de Mantenimiento</span>
-                  </Link>
-                </Col>
-                <Col xs={6}>
-                  <Link to="/admin/services/reports" className="btn btn-outline-dark w-100 h-100 d-flex flex-column align-items-center justify-content-center py-3">
-                    <i className="bi bi-bar-chart fs-3 mb-2"></i>
-                    <span>Reportes de Servicios</span>
                   </Link>
                 </Col>
               </Row>
