@@ -459,6 +459,10 @@ async function agregarInventario(pedido, res, transaccion) {
     }
 }
 
+//area de cotizaciones 
+
+
+
 module.exports = {
     crearProveedor,
     agregarRepuesto,
