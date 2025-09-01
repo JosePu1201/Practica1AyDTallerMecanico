@@ -1,4 +1,4 @@
-// /employee/DashboardEmpleado.jsx
+// /employee/DashboardEmpleado.jsx  (Especialista)
 import React, { useEffect, useRef, useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -26,18 +26,12 @@ function SidebarItem({ icon, label, to, children, collapsed }) {
           <i className={`bi ${icon} me-2`} />
           {!collapsed && <span>{label}</span>}
           {!collapsed && (
-            <i
-              className={`bi ms-auto ${
-                open ? "bi-chevron-up" : "bi-chevron-down"
-              }`}
-            />
+            <i className={`bi ms-auto ${open ? "bi-chevron-up" : "bi-chevron-down"}`} />
           )}
         </button>
         <div
           className="submenu"
-          style={{
-            height: open && !collapsed ? children.length * 40 : 0,
-          }}
+          style={{ height: open && !collapsed ? children.length * 40 : 0 }}
         >
           {children.map((ch) => (
             <NavLink key={ch.to} to={ch.to} end className="submenu-link">
@@ -71,6 +65,12 @@ export default function DashboardEmpleado() {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
 
+  // === Ajustes / autenticación (igual que Admin/Empleado) ===
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [autenticacion, setAutenticacion] = useState(false);
+  const [authPending, setAuthPending] = useState(false);
+  const [flash, setFlash] = useState(null); // {type:'ok'|'error', text:string}
+
   // Load user from localStorage
   useEffect(() => {
     const s = localStorage.getItem("user");
@@ -96,74 +96,80 @@ export default function DashboardEmpleado() {
     document.addEventListener("mousedown", onDown);
     return () => document.removeEventListener("mousedown", onDown);
   }, []);
+
   const toggleSidebar = () => {
     const newValue = !collapsed;
     setCollapsed(newValue);
     localStorage.setItem("specialistSidebarCollapsed", newValue ? "1" : "0");
   };
 
-  /*const handleLogout = () => {
-    axios.post('/api/personas/logout')
-      .then(() => {
-        localStorage.removeItem('user');
-        localStorage.removeItem('token');
-        localStorage.removeItem('specialistSidebarCollapsed');
-        navigate('/', { replace: true });
-      })
-      .catch(() => {
-        localStorage.removeItem('user');
-        localStorage.removeItem('token');
-        localStorage.removeItem('specialistSidebarCollapsed');
-        navigate('/', { replace: true });
-      });
-  };*/
+  // Cargar valor inicial autenticación
+  useEffect(() => {
+    const raw = localStorage.getItem("autenticacion");
+    setAutenticacion(String(raw) === "true");
+  }, []);
+
+  // PUT para cambiar autenticación (optimista con revert)
+  const toggleAutenticacion = async () => {
+    if (authPending) return;
+    setAuthPending(true);
+
+    const nuevoValor = !autenticacion;
+    setAutenticacion(nuevoValor); // optimista
+    localStorage.setItem("autenticacion", nuevoValor ? "true" : "false");
+
+    try {
+      const { data } = await axios.put(
+        "/api/personas/cambiar-autenticacion",
+        { autenticacion: nuevoValor }
+      );
+      const msg =
+        data?.mensaje || "Autenticación de dos factores actualizada correctamente";
+      setFlash({ type: "ok", text: msg });
+
+      setTimeout(() => {
+        setSettingsOpen(false);
+        setFlash(null);
+      }, 1800);
+    } catch (err) {
+      console.error("Error cambiando autenticación", err);
+      // revertir
+      setAutenticacion(!nuevoValor);
+      localStorage.setItem("autenticacion", !nuevoValor ? "true" : "false");
+      setFlash({ type: "error", text: "No se pudo actualizar la autenticación" });
+      setTimeout(() => setFlash(null), 2200);
+    } finally {
+      setAuthPending(false);
+    }
+  };
 
   const handleLogout = async () => {
-    // First clear all local storage items to ensure clean logout
     localStorage.removeItem("user");
     localStorage.removeItem("token");
+    localStorage.removeItem("autenticacion");
     localStorage.removeItem("specialistSidebarCollapsed");
-    
     try {
-      // Make logout request after clearing storage
-      // This way, even if the request fails, the user is still logged out locally
-      await axios({
-        method: 'post',
-        url: '/api/personas/logout',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-    } catch (error) {
-      console.log("Logout API error:", error);
-      // Silently fail - we've already cleared storage
+      await axios.post("/api/personas/logout");
+    } catch {
+      /* noop */
     }
-    
-    // Navigate after everything else
     navigate("/login", { replace: true });
   };
 
-  const getInitials = (name) => {
-    return name
-      ? name
-          .split(" ")
-          .map((n) => n[0])
-          .join("")
-          .toUpperCase()
-          .slice(0, 2)
-      : "SP";
-  };
+  const getInitials = (name = "") =>
+    name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2) || "SP";
 
   return (
     <div className="dashboard-layout">
       {/* Sidebar */}
       <aside className={`sidebar ${collapsed ? "collapsed" : ""}`}>
         <div className="sidebar-header">
-          <button
-            className="toggle-btn"
-            onClick={toggleSidebar}
-            title="Collapse sidebar"
-          >
+          <button className="toggle-btn" onClick={toggleSidebar} title="Collapse sidebar">
             <i className="bi bi-list" />
           </button>
           {!collapsed && <h5 className="mb-0">Panel Especialista</h5>}
@@ -241,9 +247,7 @@ export default function DashboardEmpleado() {
             icon="bi-boxes"
             label="Repuestos"
             collapsed={collapsed}
-            children={[
-              { label: "Solicitudes", to: "/specialist/parts/requests" },
-            ]}
+            children={[{ label: "Solicitudes", to: "/specialist/parts/requests" }]}
           />
 
           <SidebarItem
@@ -272,6 +276,14 @@ export default function DashboardEmpleado() {
             <button className="icon-btn" title="Ayuda">
               <i className="bi bi-question-circle" />
             </button>
+            {/* Nuevo: botón de Ajustes para abrir modal */}
+            <button
+              className="icon-btn"
+              title="Ajustes"
+              onClick={() => setSettingsOpen(true)}
+            >
+              <i className="bi bi-gear" />
+            </button>
 
             <button
               className="profile-chip"
@@ -279,10 +291,8 @@ export default function DashboardEmpleado() {
               aria-haspopup="true"
               aria-expanded={menuOpen}
             >
-              <div className="avatar">
-                {getInitials(user?.username)}
-              </div>
-              <span className="profile-name">{user?.username}</span>
+              <div className="avatar">{getInitials(user?.nombre_usuario)}</div>
+              <span className="profile-name">{user?.nombre_usuario}</span>
               <i className="bi bi-chevron-down" />
             </button>
 
@@ -292,15 +302,65 @@ export default function DashboardEmpleado() {
                   <i className="bi bi-person" />
                   Mi Perfil
                 </NavLink>
-                <NavLink to="/specialist/settings" className="profile-item">
+                {/* Cambiamos Configuración para abrir el mismo modal */}
+                <button
+                  className="profile-item"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    setSettingsOpen(true);
+                  }}
+                >
                   <i className="bi bi-gear" />
                   Configuración
-                </NavLink>
+                </button>
                 <div className="dropdown-divider"></div>
                 <button onClick={handleLogout} className="profile-item">
                   <i className="bi bi-box-arrow-right" />
                   Cerrar Sesión
                 </button>
+              </div>
+            )}
+
+            {/* Modal de Configuraciones */}
+            {settingsOpen && (
+              <div
+                className="modal open"
+                onClick={(e) => {
+                  if (e.target.classList.contains("modal")) setSettingsOpen(false);
+                }}
+              >
+                <div className="modal-card" role="dialog" aria-modal="true" aria-labelledby="cfg-title">
+                  <h3 id="cfg-title">Configuraciones</h3>
+
+                  <div className="list" style={{ marginTop: 10 }}>
+                    <div
+                      className="list-item"
+                      style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}
+                    >
+                      <div>
+                        <strong>Autenticación a dos pasos</strong>
+                        <div className="muted" style={{ marginTop: 4, fontSize: 12 }}>
+                          Activa o desactiva la autenticación a dos pasos.
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={toggleAutenticacion}
+                        className="btn"
+                        disabled={authPending}
+                        style={{ background: autenticacion ? "#10b981" : "#ef4444" }}
+                      >
+                        {authPending ? "Guardando..." : autenticacion ? "Desactivar" : "Activar"}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="modal-actions">
+                    <button className="btn-ghost" onClick={() => setSettingsOpen(false)}>
+                      Cerrar
+                    </button>
+                  </div>
+                </div>
               </div>
             )}
           </div>
@@ -310,6 +370,27 @@ export default function DashboardEmpleado() {
           <Outlet />
         </main>
       </div>
+
+      {/* Toast de feedback */}
+      {flash && (
+        <div
+          role="status"
+          style={{
+            position: "fixed",
+            right: 16,
+            bottom: 16,
+            background: flash.type === "error" ? "#b91c1c" : "#0f766e",
+            color: "#fff",
+            padding: "10px 14px",
+            borderRadius: 10,
+            boxShadow: "0 10px 25px rgba(0,0,0,.35)",
+            zIndex: 10000,
+            fontWeight: 600,
+          }}
+        >
+          {flash.text}
+        </div>
+      )}
     </div>
   );
 }

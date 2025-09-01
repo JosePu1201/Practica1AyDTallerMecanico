@@ -54,6 +54,12 @@ export default function EmployeeTasks() {
 
   const navigate = useNavigate();
 
+  // array de repuestos
+  const [repuestos, setRepuestos] = useState([]);
+
+  // === NUEVO: alertas de stock bajo ===
+  const [lowStock, setLowStock] = useState([]);
+
   useEffect(() => {
     const cargar = async () => {
       let user = null;
@@ -71,12 +77,21 @@ export default function EmployeeTasks() {
       }
 
       try {
+        // Asignaciones
         const res = await axios.get(`/api/empleados/asignaciones/${user.id_usuario}`);
         const data = res?.data ?? [];
         setServicios(Array.isArray(data) ? data : []);
       } catch (err) {
         console.error("Error cargando asignaciones", err);
         setServicios([]);
+      }
+
+      try {
+        const repRes = await axios.get(`/api/inventario/repuestos`);
+        setRepuestos(Array.isArray(repRes.data) ? repRes.data : []);
+      } catch (err) {
+        console.error("Error cargando repuestos", err);
+        setRepuestos([]);
       }
     };
 
@@ -109,7 +124,6 @@ export default function EmployeeTasks() {
     try {
       setBusy({ id: id_asignacion, action });
       // Ajusta método/URL/payload si tu backend difiere:
-      // Supuesto: POST /api/empleados/asignaciones/:id/{completar|pausar|cancelar|reanudar}
       await axios.put(`/api/empleados/actualizar_estado`, {id_asingnacion:id_asignacion, estado:nuevoEstado});
       actualizarLocal(id_asignacion, nuevoEstado);
     } catch (e) {
@@ -162,9 +176,7 @@ export default function EmployeeTasks() {
       };
       await axios.post(`/api/empleados/avance`, payload);
       const est = avanceForm.porcentaje==100? "COMPLETADO":"EN_PROCESO";
-      // Al registrar un avance -> marcar EN_PROCESO en UI
       actualizarLocal(modal.asgId, est);
-
       setModal({ open: false, type: null, asgId: null });
     } catch (e) {
       console.error("Error registrando avance", e);
@@ -337,10 +349,38 @@ export default function EmployeeTasks() {
     setMenuOpenId(asgId);
   };
 
+  // ===== NUEVO: abrir alerta de inventario bajo =====
+  const abrirAlertaStock = async () => {
+    setModal({ open: true, type: "alerta-stock", asgId: null });
+    setLoading(true);
+    try {
+      const { data } = await axios.get(`/api/inventario/alertaInventarioBajo`);
+      const list = Array.isArray(data) ? data : (Array.isArray(data?.items) ? data.items : []);
+      setLowStock(list);
+    } catch (e) {
+      console.error("Error consultando alerta de stock", e);
+      setLowStock([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <>
-      <div className="card-head">
+      <div className="card-head" style={{ color: '#000' }}>
         <h2 className="card-title">Trabajos asignados</h2>
+
+        {/* NUEVO: Botón de alerta bajo stock */}
+        <button
+          className="btn"
+          onClick={abrirAlertaStock}
+          title="Ver alerta de inventario bajo"
+          style={{ marginRight: 8 }}
+        >
+          <i className="bi bi-exclamation-triangle me-2" />
+          Alerta bajo stock
+        </button>
+
         <div className="filters">
           <div className="search">
             <i className="bi bi-search" />
@@ -395,139 +435,137 @@ export default function EmployeeTasks() {
                   <td>{fmtFecha(s.fecha_asignacion)}</td>
                   <td>
                     <div className="actions" style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-                      {/* Acciones según estado (según lo pedido) */}
-                    {e === "ASIGNADO" && (
-                      <>
-                        
-                        <button
-                          className="btn btn-danger"
-                          disabled={isBusy("cancelar")}
-                          onClick={() => confirmarCancelar(s.id_asignacion)}
-                        >
-                          {isBusy("cancelar") ? "Cancelando..." : "Cancelar"}
-                        </button>
-                        <button
-                          className="btn btn-warning"
-                          disabled={isBusy("pausar")}
-                          onClick={() => pausar(s.id_asignacion)}
-                        >
-                          {isBusy("pausar") ? "Pausando..." : "Pausar"}
-                        </button>
-                        <button
-                          className="btn btn-success"
-                          disabled={isBusy("completar")}
-                          onClick={() => completar(s.id_asignacion)}
-                        >
-                          {isBusy("completar") ? "Guardando..." : "Marcar como completado"}
-                        </button>
-                      </>
-                    )}
-
-                    {e === "EN_PROCESO" && (
-                      <>
-                        <button
-                          className="btn btn-danger"
-                          disabled={isBusy("cancelar")}
-                          onClick={() => confirmarCancelar(s.id_asignacion)}
-                        >
-                          {isBusy("cancelar") ? "Cancelando..." : "Cancelar"}
-                        </button>
-                        <button
-                          className="btn btn-warning"
-                          disabled={isBusy("pausar")}
-                          onClick={() => pausar(s.id_asignacion)}
-                        >
-                          {isBusy("pausar") ? "Pausando..." : "Pausar"}
-                        </button>
-                        <button
-                          className="btn btn-success"
-                          disabled={isBusy("completar")}
-                          onClick={() => completar(s.id_asignacion)}
-                        >
-                          {isBusy("completar") ? "Guardando..." : "Marcar como completado"}
-                        </button>
-                      </>
-                    )}
-
-                    {e === "PAUSADO" && (
-                      <>
-                        <button
-                          className="btn btn-danger"
-                          disabled={isBusy("cancelar")}
-                          onClick={() => confirmarCancelar(s.id_asignacion)}
-                        >
-                          {isBusy("cancelar") ? "Cancelando..." : "Cancelar"}
-                        </button>
-                        <button
-                          className="btn btn-primary"
-                          disabled={isBusy("reanudar")}
-                          onClick={() => reanudar(s.id_asignacion)}
-                        >
-                          {isBusy("reanudar") ? "Reanudando..." : "Reanudar"}
-                        </button>
-                      </>
-                    )}
-
-                    {e === "CANCELADO" && (
-                      <>
-                        <button
-                          className="btn btn-primary"
-                          disabled={isBusy("reanudar")}
-                          onClick={() => reanudar(s.id_asignacion)}
-                        >
-                          {isBusy("reanudar") ? "Reanudando..." : "Reanudar"}
-                        </button>
-                      </>
-                    )}
-
-
-                     {/* COMPLETADO u otros -> sin botones de estado */}
-
-                    <button
-                      className="btn-ghost"
-                      onClick={() => abrirVerAvances(s.id_asignacion)}
-                    >
-                      Ver avances
-                    </button>
-
-                    {(e === "ASIGNADO" || e === "EN_PROCESO") ? (
-                      // Mostrar menú ⋮ SOLO cuando está ASIGNADO o EN_PROCESO
-                      <div className="dropdown" style={{ position: "relative" }}>
-                        <button
-                          className={open ? "btn-ghost active" : "btn-ghost"}
-                          onClick={(evt) => toggleMenu(s.id_asignacion, evt)}
-                          aria-haspopup="menu"
-                          aria-expanded={open}
-                          title="Más acciones"
-                        >
-                          ⋮
-                        </button>
-                        {open && (
-                          <div
-                            className={`action-menu ${menuDropUp ? "drop-up" : ""}`}
-                            role="menu"
-                            onMouseLeave={() => setMenuOpenId(null)}
+                      {/* Acciones según estado */}
+                      {e === "ASIGNADO" && (
+                        <>
+                          <button
+                            className="btn btn-danger"
+                            disabled={isBusy("cancelar")}
+                            onClick={() => confirmarCancelar(s.id_asignacion)}
                           >
-                            <button className="action-menu-item" onClick={() => abrirRegistrarAvance(s.id_asignacion)}>Registrar avance</button>
-                            <button className="action-menu-item" onClick={() => abrirObservacion(s.id_asignacion)}>Registrar observación</button>
-                            <button className="action-menu-item" onClick={() => abrirVerObservaciones(s.id_asignacion)}>Ver observaciones</button>
-                            <button className="action-menu-item" onClick={() => abrirImprevisto(s.id_asignacion)}>Registrar imprevisto</button>
-                            <button className="action-menu-item" onClick={() => abrirDanio(s.id_asignacion)}>Registrar daño adicional</button>
-                            <button className="action-menu-item" onClick={() => abrirRepuesto(s.id_asignacion)}>Solicitar uso de repuesto</button>
-                            <button className="action-menu-item" onClick={() => abrirApoyo(s.id_asignacion)}>Solicitar apoyo a especialista</button>
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      // Para PAUSADO / CANCELADO / COMPLETADO: NO menú ⋮, mostrar botón "Ver observaciones"
+                            {isBusy("cancelar") ? "Cancelando..." : "Cancelar"}
+                          </button>
+                          <button
+                            className="btn btn-warning"
+                            disabled={isBusy("pausar")}
+                            onClick={() => pausar(s.id_asignacion)}
+                          >
+                            {isBusy("pausar") ? "Pausando..." : "Pausar"}
+                          </button>
+                          <button
+                            className="btn btn-success"
+                            disabled={isBusy("completar")}
+                            onClick={() => completar(s.id_asignacion)}
+                          >
+                            {isBusy("completar") ? "Guardando..." : "Marcar como completado"}
+                          </button>
+                        </>
+                      )}
+
+                      {e === "EN_PROCESO" && (
+                        <>
+                          <button
+                            className="btn btn-danger"
+                            disabled={isBusy("cancelar")}
+                            onClick={() => confirmarCancelar(s.id_asignacion)}
+                          >
+                            {isBusy("cancelar") ? "Cancelando..." : "Cancelar"}
+                          </button>
+                          <button
+                            className="btn btn-warning"
+                            disabled={isBusy("pausar")}
+                            onClick={() => pausar(s.id_asignacion)}
+                          >
+                            {isBusy("pausar") ? "Pausando..." : "Pausar"}
+                          </button>
+                          <button
+                            className="btn btn-success"
+                            disabled={isBusy("completar")}
+                            onClick={() => completar(s.id_asignacion)}
+                          >
+                            {isBusy("completar") ? "Guardando..." : "Marcar como completado"}
+                          </button>
+                        </>
+                      )}
+
+                      {e === "PAUSADO" && (
+                        <>
+                          <button
+                            className="btn btn-danger"
+                            disabled={isBusy("cancelar")}
+                            onClick={() => confirmarCancelar(s.id_asignacion)}
+                          >
+                            {isBusy("cancelar") ? "Cancelando..." : "Cancelar"}
+                          </button>
+                          <button
+                            className="btn btn-primary"
+                            disabled={isBusy("reanudar")}
+                            onClick={() => reanudar(s.id_asignacion)}
+                          >
+                            {isBusy("reanudar") ? "Reanudando..." : "Reanudar"}
+                          </button>
+                        </>
+                      )}
+
+                      {e === "CANCELADO" && (
+                        <>
+                          <button
+                            className="btn btn-primary"
+                            disabled={isBusy("reanudar")}
+                            onClick={() => reanudar(s.id_asignacion)}
+                          >
+                            {isBusy("reanudar") ? "Reanudando..." : "Reanudar"}
+                          </button>
+                        </>
+                      )}
+
+                      {/* COMPLETADO u otros -> sin botones de estado */}
+
                       <button
                         className="btn-ghost"
-                        onClick={() => abrirVerObservaciones(s.id_asignacion)}
+                        onClick={() => abrirVerAvances(s.id_asignacion)}
                       >
-                        Ver observaciones
+                        Ver avances
                       </button>
-                    )}
-                                        </div>
+
+                      {(e === "ASIGNADO" || e === "EN_PROCESO") ? (
+                        // Mostrar menú ⋮ SOLO cuando está ASIGNADO o EN_PROCESO
+                        <div className="dropdown" style={{ position: "relative" }}>
+                          <button
+                            className={open ? "btn-ghost active" : "btn-ghost"}
+                            onClick={(evt) => toggleMenu(s.id_asignacion, evt)}
+                            aria-haspopup="menu"
+                            aria-expanded={open}
+                            title="Más acciones"
+                          >
+                            ⋮
+                          </button>
+                          {open && (
+                            <div
+                              className={`action-menu ${menuDropUp ? "drop-up" : ""}`}
+                              role="menu"
+                              onMouseLeave={() => setMenuOpenId(null)}
+                            >
+                              <button className="action-menu-item" onClick={() => abrirRegistrarAvance(s.id_asignacion)}>Registrar avance</button>
+                              <button className="action-menu-item" onClick={() => abrirObservacion(s.id_asignacion)}>Registrar observación</button>
+                              <button className="action-menu-item" onClick={() => abrirVerObservaciones(s.id_asignacion)}>Ver observaciones</button>
+                              <button className="action-menu-item" onClick={() => abrirImprevisto(s.id_asignacion)}>Registrar imprevisto</button>
+                              <button className="action-menu-item" onClick={() => abrirDanio(s.id_asignacion)}>Registrar daño adicional</button>
+                              <button className="action-menu-item" onClick={() => abrirRepuesto(s.id_asignacion)}>Solicitar uso de repuesto</button>
+                              <button className="action-menu-item" onClick={() => abrirApoyo(s.id_asignacion)}>Solicitar apoyo a especialista</button>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        // Para PAUSADO / CANCELADO / COMPLETADO: NO menú ⋮, mostrar botón "Ver observaciones"
+                        <button
+                          className="btn-ghost"
+                          onClick={() => abrirVerObservaciones(s.id_asignacion)}
+                        >
+                          Ver observaciones
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               );
@@ -680,20 +718,45 @@ export default function EmployeeTasks() {
               <>
                 <h3>Solicitud uso de repuesto — ASG-{modal.asgId}</h3>
                 <label>Descripción</label>
-                <input value={repForm.descripcion} onChange={e=>setRepForm(f=>({...f, descripcion:e.target.value}))} />
+                <input
+                  value={repForm.descripcion}
+                  onChange={e=>setRepForm(f=>({...f, descripcion:e.target.value}))}
+                />
                 <div className="grid2">
                   <div>
                     <label>Cantidad</label>
-                    <input type="number" min="1" value={repForm.cantidad} onChange={e=>setRepForm(f=>({...f, cantidad:e.target.value}))} />
+                    <input
+                      type="number"
+                      min="1"
+                      value={repForm.cantidad}
+                      onChange={e=>setRepForm(f=>({...f, cantidad:e.target.value}))}
+                    />
                   </div>
                   <div>
-                    <label>ID inventario repuesto</label>
-                    <input value={repForm.id_inventario_repuesto} onChange={e=>setRepForm(f=>({...f, id_inventario_repuesto:e.target.value}))} />
+                    <label>Seleccione repuesto</label>
+                    <select
+                      value={repForm.id_inventario_repuesto}
+                      onChange={e=>setRepForm(f=>({...f, id_inventario_repuesto:e.target.value}))}
+                    >
+                      <option value="">-- Seleccione --</option>
+                      {repuestos.map(r => (
+                        <option key={r.id_inventario_repuesto} value={r.id_inventario_repuesto}>
+                          {r.Repuesto?.nombre} — {r.Repuesto?.descripcion}  
+                          (Stock: {r.cantidad}, Precio: Q{r.precio_unitario})
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 </div>
                 <div className="modal-actions">
                   <button className="btn-ghost" onClick={cerrarModal}>Cancelar</button>
-                  <button className="btn" disabled={loading} onClick={submitRepuesto}>Enviar</button>
+                  <button
+                    className="btn"
+                    disabled={loading || !repForm.id_inventario_repuesto}
+                    onClick={submitRepuesto}
+                  >
+                    Enviar
+                  </button>
                 </div>
               </>
             )}
@@ -730,6 +793,71 @@ export default function EmployeeTasks() {
                   <button className="btn" disabled={loading || !apoyoForm.id_usuario_especialista || !apoyoForm.descripcion_apoyo} onClick={submitApoyo}>
                     Enviar solicitud
                   </button>
+                </div>
+              </>
+            )}
+
+            {/* NUEVO: Alerta de stock bajo */}
+            {modal.type === "alerta-stock" && (
+              <>
+                <h3>Alerta de inventario bajo</h3>
+                {loading ? (
+                  <p>Cargando...</p>
+                ) : (
+                  <>
+                    {(!lowStock || !lowStock.length) ? (
+                      <p className="muted">No hay repuestos en bajo stock. Todo en orden ✅</p>
+                    ) : (
+                      <div className="table-wrap" style={{ marginTop: 8 }}>
+                        <table className="table">
+                          <thead>
+                            <tr>
+                              <th># Inv</th>
+                              <th>ID repuesto</th>
+                              <th>Nombre</th>
+                              <th>Descripción</th>
+                              <th>Cantidad</th>
+                              <th>Precio unitario</th>
+                              <th>Proveedor (NIT)</th>
+                              <th>Últ. act.</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {lowStock.map((it) => {
+                              const rep = it?.Repuesto || {};
+                              const prov = rep?.Proveedor || {};
+                              const precio = Number(it?.precio_unitario ?? 0);
+                              const qty = Number(it?.cantidad ?? 0);
+                              return (
+                                <tr key={it.id_inventario_repuesto ?? `${rep.id_repuesto}-${qty}-${precio}`}>
+                                  <td className="mono">{it.id_inventario_repuesto ?? "—"}</td>
+                                  <td className="mono">{rep.id_repuesto ?? it.id_repuesto ?? "—"}</td>
+                                  <td>{rep.nombre ?? "—"}</td>
+                                  <td className="muted">{rep.descripcion ?? "—"}</td>
+                                  <td>
+                                    <span className="badge badge-error">{qty}</span>
+                                  </td>
+                                  <td className="mono">Q. {precio.toFixed(2)}</td>
+                                  <td className="mono">{prov.nit ?? "—"}</td>
+                                  <td className="mono">
+                                    {it.fecha_ultima_actualizacion
+                                      ? new Date(it.fecha_ultima_actualizacion).toISOString().split("T")[0]
+                                      : "—"}
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                        <div className="table-tip">
+                          <i className="bi bi-info-circle" /> Revisa estos repuestos y genera un pedido al proveedor si corresponde.
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
+                <div className="modal-actions">
+                  <button className="btn" onClick={cerrarModal}>Cerrar</button>
                 </div>
               </>
             )}

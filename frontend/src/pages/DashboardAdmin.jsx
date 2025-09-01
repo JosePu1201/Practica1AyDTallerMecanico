@@ -3,7 +3,6 @@ import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import './stiles/admin.css';
 import axios from "axios";
 
-
 function SidebarItem({ icon, label, to, children, collapsed }) {
   const [open, setOpen] = useState(false);
   const location = useLocation();
@@ -48,15 +47,20 @@ export default function DashboardAdmin() {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
 
+  // === Ajustes / autenticación ===
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [autenticacion, setAutenticacion] = useState(false);
+  const [authPending, setAuthPending] = useState(false);
+  const [flash, setFlash] = useState(null); // {type:'ok'|'error', text:string}
+
+  // Cargar usuario de localStorage
   useEffect(() => {
-    // Carga usuario de localStorage
     const s = localStorage.getItem('user');
     if (s) {
       try {
         const parsed = JSON.parse(s);
         setUser(parsed);
       } catch {
-        // si hay algo corrupto, limpiar y salir al login
         localStorage.removeItem('user');
         navigate('/login', { replace: true });
       }
@@ -65,7 +69,13 @@ export default function DashboardAdmin() {
     }
   }, [navigate]);
 
-  // Cerrar menú al hacer clic fuera
+  // Cargar estado inicial de autenticación
+  useEffect(() => {
+    const raw = localStorage.getItem('autenticacion');
+    setAutenticacion(String(raw) === 'true');
+  }, []);
+
+  // Cerrar menú perfil al click fuera
   useEffect(() => {
     const onDown = (e) => {
       if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false);
@@ -90,24 +100,51 @@ export default function DashboardAdmin() {
 
   const onLogout = async() => {
     try {
-        const res = await axios.post("/api/personas/logout");
+      const res = await axios.post("/api/personas/logout");
+      console.log(res.data.mensaje);
+    } catch (error) {
+      console.error("Error cerrando sesión:", error);
+    } finally {
+      localStorage.removeItem("user");
+      localStorage.removeItem("autenticacion");
+      localStorage.removeItem("token");
+      localStorage.removeItem("adminSidebarCollapsed");
+      navigate("/", { replace: true });
+    }
+  };
 
-        console.log(res.data.mensaje); 
+  // Cambiar autenticación (optimista con revert en error)
+  const toggleAutenticacion = async () => {
+    if (authPending) return;
+    setAuthPending(true);
 
-        localStorage.removeItem("user");
-        localStorage.removeItem("token");
-        localStorage.removeItem("adminSidebarCollapsed");
+    const nuevoValor = !autenticacion;
+    setAutenticacion(nuevoValor); // optimista
+    localStorage.setItem('autenticacion', nuevoValor ? 'true' : 'false');
 
-        navigate("/", { replace: true });
+    try {
+      const { data } = await axios.put("/api/personas/cambiar-autenticacion", {
+        autenticacion: nuevoValor,
+      });
+      const msg = data?.mensaje || "Autenticación de dos factores actualizada correctamente";
+      setFlash({ type: 'ok', text: msg });
 
-      } catch (error) {
-        console.error("Error cerrando sesión:", error);
+      // Cerrar modal y ocultar toast
+      setTimeout(() => {
+        setSettingsOpen(false);
+        setFlash(null);
+      }, 1800);
+    } catch (err) {
+      console.error("Error cambiando autenticación", err);
+      // revertir
+      setAutenticacion(!nuevoValor);
+      localStorage.setItem('autenticacion', (!nuevoValor) ? 'true' : 'false');
+      setFlash({ type: 'error', text: "No se pudo actualizar la autenticación" });
 
-        localStorage.removeItem("user");
-        localStorage.removeItem("token");
-        localStorage.removeItem("adminSidebarCollapsed");
-        navigate("/", { replace: true });
-      }
+      setTimeout(() => setFlash(null), 2200);
+    } finally {
+      setAuthPending(false);
+    }
   };
 
   return (
@@ -139,8 +176,7 @@ export default function DashboardAdmin() {
             collapsed={collapsed}
             children={[
               { label: 'Listado', to: '/admin/vehicles' },
-              { label: 'Registro', to: '/admin/vehicles/new' },
-              { label: 'Servicios', to: '/admin/services' },
+              { label: 'Registro', to: '/admin/vehicles/new' }
             ]}
           />
           <SidebarItem
@@ -148,8 +184,10 @@ export default function DashboardAdmin() {
             label="Inventario"
             collapsed={collapsed}
             children={[
-              { label: 'Repuestos', to: '/admin/inventario/repuestos' },
+              { label: 'Catalogos', to: '/admin/inventario/catalogos' },
               { label: 'Proveedores', to: '/admin/inventario/proveedores' },
+              { label: 'Pedidos', to: '/admin/inventario/pedidos' },
+              { label: 'Repuestos', to: '/admin/inventario/repuestos' }
             ]}
           />
           <SidebarItem
@@ -158,9 +196,7 @@ export default function DashboardAdmin() {
             collapsed={collapsed}
             children={[
               { label: 'Servicios', to: '/admin/services' },
-              { label: 'Asignaciones', to: '/admin/trabajos/asignaciones' },
-              { label: 'Tipos', to: '/admin/trabajos/tipos' },
-              { label: 'Seguimiento', to: '/admin/trabajos/seguimiento' },
+              { label: 'Tipos', to: '/admin/services/maintenance-types' }
             ]}
           />
           <SidebarItem
@@ -168,9 +204,17 @@ export default function DashboardAdmin() {
             label="Facturación"
             collapsed={collapsed}
             children={[
-              { label: 'Facturas', to: '/admin/facturacion/facturas' },
-              { label: 'Pagos', to: '/admin/facturacion/pagos' },
-              { label: 'Reportes', to: '/admin/facturacion/reportes' },
+              { label: 'Facturas', to: '/admin/invoices/list' },
+              { label: 'Crear Factura', to: '/admin/invoices/create' }
+            ]}
+          />
+
+          <SidebarItem
+            icon="bi-file-earmark-text"
+            label="Reportes"
+            collapsed={collapsed}
+            children={[
+              { label: 'Reportes', to: '/admin/reportes' },
             ]}
           />
           <SidebarItem
@@ -179,7 +223,21 @@ export default function DashboardAdmin() {
             to="/admin/configuracion"
             collapsed={collapsed}
           />
+
+            <SidebarItem
+            icon="bi-file-earmark-text"
+            label="Solicitudes de Clientes"
+            collapsed={collapsed}
+            children={[
+              { label: 'Solicitudes', to: '/admin/requests' },
+              { label: 'Servicios Adicionales', to: '/admin/requests/additional-services' },
+              { label: 'Cotizaciones', to: '/admin/requests/quotations' },
+              { label: 'Todas las Solicitudes', to: '/admin/requests/all' },
+            ]}
+          />
+
         </nav>
+
 
         {!collapsed && <div className="sidebar-footer">v1.0</div>}
       </aside>
@@ -195,17 +253,19 @@ export default function DashboardAdmin() {
           {/* Perfil / menú */}
           <div className="top-actions" ref={menuRef}>
             <button className="icon-btn" title="Notificaciones"><i className="bi bi-bell" /></button>
-            <button className="icon-btn" title="Ajustes"><i className="bi bi-gear" /></button>
+            <button className="icon-btn" title="Ajustes" onClick={() => setSettingsOpen(true)}>
+              <i className="bi bi-gear" />
+            </button>
 
             <button
               className="profile-chip"
               onClick={() => setMenuOpen(v => !v)}
               aria-haspopup="menu"
               aria-expanded={menuOpen}
-              title={user?.username || 'Usuario'}
+              title={user?.nombre_usuario || 'Usuario'}
             >
-              <div className="avatar">{initials(user?.username)}</div>
-              <span className="profile-name">{user?.username || 'Usuario'}</span>
+              <div className="avatar">{initials(user?.nombre_usuario)}</div>
+              <span className="profile-name">{user?.nombre_usuario || 'Usuario'}</span>
               <i className={`bi ${menuOpen ? 'bi-caret-up-fill' : 'bi-caret-down-fill'}`} />
             </button>
 
@@ -217,6 +277,45 @@ export default function DashboardAdmin() {
                 </button>
               </div>
             )}
+
+            {/* Modal de Configuraciones */}
+            {settingsOpen && (
+              <div
+                className="modal open"
+                onClick={(e) => { if (e.target.classList.contains("modal")) setSettingsOpen(false); }}
+              >
+                <div className="modal-card" role="dialog" aria-modal="true" aria-labelledby="cfg-title">
+                  <h3 id="cfg-title">Configuraciones</h3>
+
+                  <div className="list" style={{ marginTop: 10 }}>
+                    <div
+                      className="list-item"
+                      style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}
+                    >
+                      <div>
+                        <strong>Autenticación a dos pasos</strong>
+                        <div className="muted" style={{ marginTop: 4, fontSize: 12 }}>
+                          Activa o desactiva la autenticación a dos pasos.
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={toggleAutenticacion}
+                        className="btn"
+                        disabled={authPending}
+                        style={{ background: autenticacion ? "#10b981" : "#ef4444" }}
+                      >
+                        {authPending ? "Guardando..." : (autenticacion ? "Desactivar" : "Activar")}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="modal-actions">
+                    <button className="btn-ghost" onClick={() => setSettingsOpen(false)}>Cerrar</button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </header>
 
@@ -226,6 +325,27 @@ export default function DashboardAdmin() {
           </div>
         </main>
       </div>
+
+      {/* Toast de feedback */}
+      {flash && (
+        <div
+          role="status"
+          style={{
+            position: "fixed",
+            right: 16,
+            bottom: 16,
+            background: flash.type === "error" ? "#b91c1c" : "#0f766e",
+            color: "#fff",
+            padding: "10px 14px",
+            borderRadius: 10,
+            boxShadow: "0 10px 25px rgba(0,0,0,.35)",
+            zIndex: 10000,
+            fontWeight: 600,
+          }}
+        >
+          {flash.text}
+        </div>
+      )}
     </div>
   );
 }

@@ -193,6 +193,9 @@ const loginUsuario = async (req, res) => {
             });
             return res.status(401).json({ error: 'Las credenciales no son correctas, intenta de nuevo' });
         }
+        if(usuario.estado != "ACTIVO"){
+            return res.status(401).json({ error: 'El usuario no está activo' });
+        }
         if (usuario.factorAutenticacion) {
             console.log("factorAutenticacion", usuario.factorAutenticacion);
             // Obtener el correo del usuario desde ContactoPersona
@@ -240,7 +243,8 @@ const loginUsuario = async (req, res) => {
             req.session.user = {
                 id_usuario: usuario.id_usuario,
                 rol: usuario.id_rol,
-                nombre_usuario: usuario.nombre_usuario
+                nombre_usuario: usuario.nombre_usuario,
+                factorAutenticacion: usuario.factorAutenticacion
             };
 
             //Guardar ultimo inicio de sesion
@@ -263,6 +267,7 @@ const loginUsuario = async (req, res) => {
                     rol: usuario.id_rol,
                     nombre_rol: (await Rol.findByPk(usuario.id_rol)).nombre_rol,
                     nombre_usuario: (await Usuario.findByPk(usuario.id_usuario)).nombre_usuario
+                   
                 }
             });
 
@@ -344,7 +349,8 @@ const autenticarCodigoVerificacion = async (req, res) => {
         req.session.user = {
             id_usuario: usuario.id_usuario,
             rol: usuario.id_rol,
-            nombre_usuario: usuario.nombre_usuario
+            nombre_usuario: usuario.nombre_usuario,
+            factorAutenticacion: usuario.factorAutenticacion
         };
 
         //Guardar ultimo inicio de sesion

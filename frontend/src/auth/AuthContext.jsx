@@ -49,18 +49,20 @@ export function AuthProvider({ children }) {
   const login = async (nombre_usuario, contrasena) => {
     const { data } = await api.post('/personas/login', { nombre_usuario, contrasena });
     // Suponiendo que tu API responde { token, user } (ajusta si difiere)
-    const token = data.token;
-    const u = normalizeUser(data.user ?? data); // por si tu API devuelve el user directo
+    const token = data.credenciales.token? data.credenciales.token: "";
+    const u = normalizeUser(data.credenciales); // por si tu API devuelve el user directo
+    const autenticacion = data.autenticacion.autenticacion;
 
     // Persistir
     localStorage.setItem('token', token);
     localStorage.setItem('user', JSON.stringify(u));
+    localStorage.setItem('autenticacion',autenticacion);
 
     // Hidratar axios + estado
     setAuthHeader(token);
     setUser(u);
 
-    return { token, user: u };
+    return { token, user: u, autenticacion:autenticacion };
   };
 
   // Útil cuando verifiques código u obtengas user desde otro endpoint

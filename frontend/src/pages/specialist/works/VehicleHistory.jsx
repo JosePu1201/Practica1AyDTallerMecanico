@@ -14,7 +14,9 @@ export default function VehicleHistory() {
     const fetchVehicleHistory = async () => {
       try {
         setLoading(true);
+        console.log('Fetching vehicle history for ID:', id);
         const historyData = await serviceSpecialistService.getVehicleHistory(id);
+        //console.log('Vehicle history data:', historyData);
         setHistory(historyData);
         
         // Set vehicle data from the first history item if available

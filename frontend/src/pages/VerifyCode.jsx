@@ -70,6 +70,7 @@ export default function VerifyCode() {
       localStorage.setItem('user', JSON.stringify(data));
       setUser(data); // <- esto evita el “pantallazo” al navegar
 
+
       // Redirección directa por rol (opcional: si prefieres, navega a "/")
       if (data.nombre_rol === 'ADMINISTRADOR') {
         navigate('/admin', { replace: true });
@@ -77,6 +78,8 @@ export default function VerifyCode() {
         navigate('/employee', { replace: true });
       } else if (data.nombre_rol === 'ESPECIALISTA') {
         navigate('/specialist', { replace: true });
+      } else if (data.nombre_rol === 'CLIENTE') {
+        navigate('/client', { replace: true });
       } else {
         navigate('/login', { replace: true });
       }

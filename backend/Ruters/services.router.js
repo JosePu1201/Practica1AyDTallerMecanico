@@ -14,6 +14,7 @@ router.get('/especialistas', servicesController.getAllSpecialists);
 router.post('/asignar_trabajo', servicesController.assignWork);
 router.get('/trabajos_empleados/:id', servicesController.getWorksEmployees);
 router.get('/trabajos_servicio/:id', servicesController.getWorksServicesId);
+router.put('/cambiar_empleado_trabajo', servicesController.changeEmployeeWork);
 
 
 module.exports = router;

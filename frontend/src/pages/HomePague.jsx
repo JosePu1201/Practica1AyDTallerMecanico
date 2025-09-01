@@ -10,9 +10,16 @@ export default function HomePague() {
   useEffect(() => {
     if (loading) return;
     if (!user) { navigate("/login", { replace: true }); return; }
-    if (user.rol === 1) navigate("/admin", { replace: true });
-    else if (user.rol === 2) navigate("/employee", { replace: true });
-    else navigate("/no-autorizado", { replace: true });
+    if (user.nombre_rol === 'ADMINISTRADOR') {
+        navigate('/admin', { replace: true });
+      } else if (user.nombre_rol === 'EMPLEADO') {
+        navigate('/employee', { replace: true });
+      } else if (user.nombre_rol === 'ESPECIALISTA') {
+        navigate('/specialist', { replace: true });
+      }else if (user.nombre_rol === 'PROVEEDOR') {
+        navigate('/proveedor', { replace: true });
+      }
+      else {navigate("/no-autorizado", { replace: true })};
   }, [user, loading, navigate]);
 
   return null;

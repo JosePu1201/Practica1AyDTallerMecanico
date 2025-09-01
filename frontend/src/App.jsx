@@ -55,6 +55,52 @@ import SupportRequestForm from './pages/specialist/support/SupportRequestForm';
 import SupportRequestList from './pages/specialist/support/SupportRequestList';
 import PartsRequestList from './pages/specialist/parts/PartsRequestList';
 import SpecialistProfile from './pages/specialist/profile/SpecialistProfile';
+import EmployeeMisAvances from './pages/employee/EmployeeMisAvances';
+import EmployeeMisObservaciones from './pages/employee/EmployeeMisObservaciones';
+
+
+// client pages
+import DashboardCliente from './pages/DashboardCliente';
+import ClientDashboard from './pages/client/ClientDashboard';
+import VehiclesListClient from './pages/client/vehicles/VehiclesList';
+import VehicleHistoryClient from './pages/client/vehicles/VehicleHistory';
+import ServicesListClient from './pages/client/services/ServicesList';
+import ServiceDetailClient from './pages/client/services/ServiceDetail';
+import AdditionalServicesClient from './pages/client/services/AdditionalServices';
+import QuoteRequestClient from './pages/client/services/QuoteRequest';
+import QuoteListClient from './pages/client/services/QuoteList'; // Import the new component
+import CommentsListClient from './pages/client/comments/CommentsList';
+import RatingServiceClient from './pages/client/comments/RatingService';
+import InvoicesListClient from './pages/client/invoices/InvoicesList';
+import ClientProfile from './pages/client/profile/ClientProfile';
+import DashboardProveedor from './pages/DashboardProveedor';
+import RepuestosList from './pages/proveedor/RepuestosList';
+import ProveedoresList from './pages/admin/proveedores/ProveedoresList';
+import MiCatalogo from './pages/proveedor/MiCatalogo';
+import PedidosList from './pages/admin/proveedores/PedidosList';
+import PedidosProveedoresList from './pages/proveedor/PedidosProveedoresList';
+import Catalogos from './pages/admin/proveedores/Catalogos';
+import RepuestosInventarioList from './pages/admin/proveedores/RepuestosInventarioList';
+
+// Admin reports pages
+import ReportsDashboard from './pages/admin/reports/ReportsDashboard';
+import WorksByPeriodReport from './pages/admin/reports/WorksByPeriodReport';
+import ServiceRatingsReport from './pages/admin/reports/ServiceRatingsReport';
+import MaintenanceHistoryReport from './pages/admin/reports/MaintenanceHistoryReport';
+import CompletedWorksReport from './pages/admin/reports/CompletedWorksReport';
+import IncomeExpensesReport from './pages/admin/reports/IncomeExpensesReport';
+import ProviderExpensesReport from './pages/admin/reports/ProviderExpensesReport';
+import PartUsageReport from './pages/admin/reports/PartUsageReport';
+import MostUsedPartsReport from './pages/admin/reports/MostUsedPartsReport';
+import ClientHistoryReport from './pages/admin/reports/ClientHistoryReport';
+import RequestsDashboard from './pages/admin/requests/RequestsDashboard';
+import AdditionalServicesManagement from './pages/admin/requests/AdditionalServicesManagement';
+import QuotationsManagement from './pages/admin/requests/QuotationsManagement';
+import AllRequestsManagement from './pages/admin/requests/AllRequestsManagement';
+import InvoiceDashboard from './pages/admin/invoices/InvoiceDashboard';
+import InvoiceList from './pages/admin/invoices/InvoiceList';
+import InvoiceDetail from './pages/admin/invoices/InvoiceDetail';
+import InvoiceCreate from './pages/admin/invoices/InvoiceCreate';
 
 export default function App() {
   return (
@@ -75,6 +121,11 @@ export default function App() {
           <Route element={<ProtectedRoute roles={'ADMINISTRADOR'} />}>
             <Route path="/admin" element={<DashboardAdmin />}>
               {/* User Management Routes */}
+              <Route path="inventario/proveedores" element={<ProveedoresList />} />
+              <Route path="inventario/catalogos" element={<Catalogos />} />
+              <Route path="inventario/pedidos" element={<PedidosList />} />
+              <Route path="inventario/repuestos" element={<RepuestosInventarioList />} />
+
               <Route path="usuarios" element={<UserList />} />
               <Route path="usuarios/nuevo" element={<UserForm />} />
               <Route path="usuarios/editar/:id" element={<UserForm />} />
@@ -97,6 +148,30 @@ export default function App() {
               <Route path="vehicles/:id/edit" element={<VehicleForm />} />
               <Route path="vehicles/:id/history" element={<VehicleHistory />} />
               
+              {/* Reports Routes */}
+              <Route path="reportes" element={<ReportsDashboard />} />
+              <Route path="reportes/trabajos-por-periodo" element={<WorksByPeriodReport />} />
+              <Route path="reportes/calificaciones" element={<ServiceRatingsReport />} />
+              <Route path="reportes/historial-mantenimiento" element={<MaintenanceHistoryReport />} />
+              <Route path="reportes/trabajos-completados" element={<CompletedWorksReport />} />
+              <Route path="reportes/ingresos-egresos" element={<IncomeExpensesReport />} />
+              <Route path="reportes/gastos-proveedor" element={<ProviderExpensesReport />} />
+              <Route path="reportes/uso-repuestos" element={<PartUsageReport />} />
+              <Route path="reportes/repuestos-vehiculo" element={<MostUsedPartsReport />} />
+              <Route path="reportes/historial-cliente" element={<ClientHistoryReport />} />
+              
+              {/* Requests Management Routes */}
+              <Route path="requests" element={<RequestsDashboard />} />
+              <Route path="requests/additional-services" element={<AdditionalServicesManagement />} />
+              <Route path="requests/quotations" element={<QuotationsManagement />} />
+              <Route path="requests/all" element={<AllRequestsManagement />} />
+              
+              {/* Invoice Management Routes */}
+              <Route path="invoices" element={<InvoiceDashboard />} />
+              <Route path="invoices/list" element={<InvoiceList />} />
+              <Route path="invoices/detail/:id" element={<InvoiceDetail />} />
+              <Route path="invoices/create" element={<InvoiceCreate />} />
+              
               {/* Default admin page */}
               <Route index element={<div className="p-4"><h1>Panel de Administración</h1><p>Seleccione una opción del menú</p></div>} />
             </Route>
@@ -108,6 +183,8 @@ export default function App() {
               <Route path="infopersonal" element={<InfoPersonal />} />
               <Route path="tasks" element={<EmployeeTasks />} />
               <Route path="tasks/:id/work" element={<EmployeeWork />} />
+              <Route path="/employee/mis-avances" element={<EmployeeMisAvances />} />
+              <Route path="/employee/mis-observaciones" element={<EmployeeMisObservaciones />} />
             </Route>
           </Route>
 
@@ -153,8 +230,48 @@ export default function App() {
             </Route>
           </Route>
 
+          {/*Rutas para clientes*/}
+          <Route element={<ProtectedRoute roles={'CLIENTE'} />}>
+            <Route path="/client" element={<DashboardCliente />}>
+              {/* Dashboard */}
+              <Route index element={<ClientDashboard />} />
+              
+              {/* Vehicles */}
+              <Route path="vehicles" element={<VehiclesListClient />} />
+              <Route path="vehicles/history/:id" element={<VehicleHistoryClient />} />
+              
+              {/* Services */}
+              <Route path="services" element={<ServicesListClient />} />
+              <Route path="services/detail/:id" element={<ServiceDetailClient />} />
+              <Route path="services/additional" element={<AdditionalServicesClient />} />
+              <Route path="services/quote" element={<QuoteRequestClient />} />
+              <Route path="services/quotes" element={<QuoteListClient />} /> {/* Add the new route */}
+              
+              {/* Comments & Ratings */}
+              <Route path="comments" element={<CommentsListClient />} />
+              <Route path="rating" element={<RatingServiceClient />} />
+              
+              {/* Invoices */}
+              <Route path="invoices" element={<InvoicesListClient />} />
+              
+              {/* Profile */}
+              <Route path="profile" element={<ClientProfile />} />
+            </Route>
+          </Route>
+
+          <Route element={<ProtectedRoute roles={'PROVEEDOR'} />}>
+           <Route path="/proveedor" element={<DashboardProveedor />}>
+            <Route index element={<div>Bienvenido, proveedor.</div>} />
+            <Route path="repuestos" element={<RepuestosList />} />
+            <Route path="catalogo" element={<MiCatalogo />} />
+            <Route path="pedidos" element={<PedidosProveedoresList />} />
+           </Route>
+          </Route>
+
           {/* Raíz */}
           <Route path="/" element={<HomePague />} />
+
+          
 
           {/* Unauthorized route */}
           <Route path="/no-autorizado" element={

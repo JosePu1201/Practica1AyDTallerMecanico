@@ -313,6 +313,25 @@ const getWorksEmployees = async (req, res) => {
     }
 }
 
+const changeEmployeeWork = async (req, res) => {
+    try {
+        const { id_asignacion, id_usuario_empleado } = req.body;
+
+        const asignacion = await AsignacionTrabajo.findByPk(id_asignacion);
+        if (!asignacion) {
+            return res.status(404).json({ error: 'Asignación no encontrada' });
+        }
+
+        asignacion.id_usuario_empleado = id_usuario_empleado;
+
+        await asignacion.save();
+        res.json(asignacion);
+    } catch (error) {
+        console.error('Error al cambiar empleado de trabajo:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+};
+
 const updateService = async (req, res) => {
     try {
         const { id_registro, descripcion_problema, estado, fecha_estimada_finalizacion, observaciones_iniciales, prioridad } = req.body;
@@ -349,5 +368,6 @@ module.exports = {
     assignWork,
     getWorksEmployees,
     updateService,
-    getWorksServicesId
+    getWorksServicesId,
+    changeEmployeeWork
 };

@@ -34,6 +34,13 @@ const startServer = async () => {
     const vehicleRouter = require('./Ruters/vehicle.ruter');
     const empleadoRouter = require('./Ruters/empleado.ruter');
     const inventarioRouter = require('./Ruters/inventario.ruter');
+    const facturaRouter = require('./Ruters/factura.ruter');
+    const proveedorRouter = require('./Ruters/proveedor.ruter');
+    const pedidoRouter = require('./Ruters/pedido.ruter');
+
+    app.use('/api/pedidos', pedidoRouter); // Usar las rutas de pedido
+    app.use('/api/proveedores', proveedorRouter); // Usar las rutas de proveedor
+    app.use('/api/facturas', facturaRouter); // Usar las rutas de factura
     app.use('/api/inventario', inventarioRouter); // Usar las rutas de
     app.use('/api/personas', userRouter); // Usar las rutas de usuario
     app.use('/api/vehiculos', vehicleRouter); // Usar las rutas de vehículo
@@ -44,9 +51,18 @@ const startServer = async () => {
 
     const servicesVehicle = require('./Ruters/services.router');
     app.use('/api/servicios', servicesVehicle);
-
+    
     const specialistRouter = require('./Ruters/specialist.router');
     app.use('/api/especialistas', specialistRouter);
+
+    const clientRouter = require('./Ruters/client.router');
+    app.use('/api/clientes', clientRouter);
+
+    const reportRouter = require('./Ruters/report.router');
+    app.use('/api/reportes', reportRouter);
+
+    const requestServices = require('./Ruters/requestClient.router');
+    app.use('/api/solicitudes', requestServices);
 
     const PORT = process.env.PORT || 3000;
     app.listen(PORT, () => {

@@ -88,7 +88,7 @@ const serviceSpecialistService = {
   // Get vehicle history
   getVehicleHistory: async (id) => {
     try {
-      const response = await specialistApi.get(`/historial_vehiculo/${id}`);
+     const response = await specialistApi.get(`/historial_vehiculo/${id}`);
       return response.data;
     } catch (error) {
       console.error('Error fetching vehicle history:', error);

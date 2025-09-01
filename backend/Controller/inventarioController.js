@@ -14,8 +14,8 @@ const getInventarioRepuesto = async (req, res) => {
 
         //Validar que el usuario sea admin y que si exista en la base de datos
         const usuario = await Usuario.findByPk(id_usuario);
-        if (!usuario || usuario.id_rol !== 1) {
-            return res.status(403).json({ message: 'Acceso denegado. Solo los administradores pueden acceder a esta ruta.' });
+        if (!usuario ) {
+            return res.status(403).json({ message: 'Acceso denegado.' });
         }
         // Obtener el inventario con los repuestos asociados ordenados por cantidad
         const inventario = await Inventario.findAll({
@@ -162,10 +162,14 @@ const getLowStockAlerts = async (req, res) => {
     }
 };
 
-//Actualizar precio unitatario de un repuesto (solo admin) --- IGNORE ---
+//Actualizar precio unitatario de un repuesto (solo admin) 
 const actualizarPrecioUnitarioRepuesto = async (req, res) => {
     try {
-        const { id_repuesto, precio_unitario } = req.body;
+        const { id_repuesto_inventario, precio_unitario } = req.body;
+        //validar que el incio de sesion sea de un usuario admin    
+        if (!req.session || !req.session.user || !req.session.user.id_usuario) {
+            return res.status(401).json({ message: 'No hay una sesión de usuario válida.' });
+        }
         const id_usuario = req.session.user.id_usuario;
         //Validar que el usuario sea admin y que si exista en la base de datos
         const usuario = await Usuario.findByPk(id_usuario);
@@ -173,14 +177,15 @@ const actualizarPrecioUnitarioRepuesto = async (req, res) => {
             return res.status(403).json({ message: 'Acceso denegado. Solo los administradores pueden acceder a esta ruta.' });
         }
         // Validar que el repuesto exista
-        const repuesto = await Repuesto.findByPk(id_repuesto);
-        if (!repuesto) {
-            return res.status(404).json({ message: 'Repuesto no encontrado' });
+        const inventario = await Inventario.findOne({ where: {id_repuesto: id_repuesto_inventario } });
+        if (!inventario) {  
+            return res.status(404).json({ message: 'Repuesto no encontrado en el inventario' });
         }
         // Actualizar el precio unitario
-        repuesto.precio_unitario = precio_unitario;
-        await repuesto.save();
-        res.json({ repuesto, message: 'Precio unitario actualizado correctamente' });
+        inventario.precio_unitario = precio_unitario;
+        inventario.fecha_ultima_actualizacion = new Date();
+        await inventario.save();
+        res.json({ inventario, message: 'Precio unitario actualizado correctamente' });
     } catch (error) {
         res.status(500).json({ message: 'Error al actualizar el precio unitario del repuesto', error: error.message });
     }
@@ -232,5 +237,6 @@ module.exports = {
     agregarRepuestoInventario,
     actualizarCantidadRepuesto,
     getLowStockAlerts,
-    historialMovimientosInventario
+    historialMovimientosInventario,
+    actualizarPrecioUnitarioRepuesto
 };

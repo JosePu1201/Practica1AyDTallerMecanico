@@ -357,5 +357,8 @@ module.exports = {
   CotizacionProductos,
   DetalleCotizacion,
   Proveedor,
-  Inventario
+  Inventario,
+  FacturaServicioVehiculo,
+  PagosFactura
+
 };

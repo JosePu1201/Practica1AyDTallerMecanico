@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Form, Button, Card, Row, Col, Spinner, Alert, Tabs, Tab } from 'react-bootstrap';
+import { Form, Button, Card, Row, Col, Spinner, Alert, Tabs, Tab, Table, Modal } from 'react-bootstrap';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { serviceManagementService } from '../../../services/serviceManagementService';
 
@@ -29,6 +29,16 @@ export default function AssignWork() {
     descripcion: '',
     precio: ''
   });
+
+  // State for assigned works and work reassignment functionality
+  const [assignedWorks, setAssignedWorks] = useState([]);
+  const [loadingWorks, setLoadingWorks] = useState(false);
+  const [showReassignModal, setShowReassignModal] = useState(false);
+  const [selectedWork, setSelectedWork] = useState(null);
+  const [newEmployeeId, setNewEmployeeId] = useState('');
+  const [reassignLoading, setReassignLoading] = useState(false);
+  const [reassignSuccess, setReassignSuccess] = useState(false);
+  const [reassignError, setReassignError] = useState(null);
 
   useEffect(() => {
     const fetchServiceDetails = async () => {
@@ -73,8 +83,21 @@ export default function AssignWork() {
       }
     };
     
+    const fetchAssignedWorks = async () => {
+      try {
+        setLoadingWorks(true);
+        const works = await serviceManagementService.getWorksByServiceId(id);
+        setAssignedWorks(works);
+      } catch (err) {
+        console.error('Error fetching assigned works:', err);
+      } finally {
+        setLoadingWorks(false);
+      }
+    };
+    
     fetchServiceDetails();
     fetchFormLists();
+    fetchAssignedWorks();
   }, [id]);
 
   const handleChange = (e) => {
@@ -127,22 +150,73 @@ export default function AssignWork() {
       
       await serviceManagementService.assignWork(dataToSubmit);
       
-      // Mark service as in progress
-      if (service.estado === 'PENDIENTE') {
-        await serviceManagementService.updateServiceStatus(id, 'EN_PROCESO');
-      }
-      
       setSuccess(true);
       
-      // Redirect after success
+      // Refresh assigned works list
+      const works = await serviceManagementService.getWorksByServiceId(id);
+      setAssignedWorks(works);
+      
+      // Reset form
+      setFormData({
+        id_tipo_trabajo: '',
+        id_registro: id,
+        id_usuario_empleado: '',
+        id_admin_asignacion: JSON.parse(localStorage.getItem('user'))?.id_usuario || '',
+        descripcion: '',
+        precio: ''
+      });
+      
+      // Clear success message after a delay
       setTimeout(() => {
-        navigate(`/admin/services/detail/${id}`);
-      }, 1500);
+        setSuccess(false);
+      }, 3000);
       
     } catch (err) {
       setError('Error al asignar el trabajo: ' + err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Functions for employee reassignment
+  const openReassignModal = (work) => {
+    setSelectedWork(work);
+    setNewEmployeeId('');
+    setReassignError(null);
+    setReassignSuccess(false);
+    setShowReassignModal(true);
+  };
+
+  const handleReassign = async () => {
+    if (!selectedWork || !newEmployeeId) {
+      setReassignError('Por favor seleccione un empleado');
+      return;
+    }
+
+    try {
+      setReassignLoading(true);
+      setReassignError(null);
+      
+      await serviceManagementService.changeEmployeeWork({
+        id_asignacion: selectedWork.id_asignacion,
+        id_usuario_empleado: parseInt(newEmployeeId)
+      });
+      
+      setReassignSuccess(true);
+      
+      // Refresh assigned works list
+      const works = await serviceManagementService.getWorksByServiceId(id);
+      setAssignedWorks(works);
+      
+      // Close modal after a delay
+      setTimeout(() => {
+        setShowReassignModal(false);
+      }, 1500);
+      
+    } catch (err) {
+      setReassignError('Error al reasignar el trabajo: ' + err.message);
+    } finally {
+      setReassignLoading(false);
     }
   };
 
@@ -191,12 +265,12 @@ export default function AssignWork() {
       {success && (
         <Alert variant="success" className="mb-4">
           <i className="bi bi-check-circle me-2"></i>
-          Trabajo asignado exitosamente. Redirigiendo...
+          Trabajo asignado exitosamente.
         </Alert>
       )}
       
       {error && (
-        <Alert variant="danger" className="mb-4">
+        <Alert variant="danger" className="mb-4" onClose={() => setError(null)} dismissible>
           <i className="bi bi-exclamation-triangle me-2"></i>
           {error}
         </Alert>
@@ -238,11 +312,95 @@ export default function AssignWork() {
           </Row>
         </Card.Body>
       </Card>
+
+      {/* Current Assigned Works */}
+      {assignedWorks.length > 0 && (
+        <Card className="mb-4">
+          <Card.Header>
+            <h5 className="mb-0">Trabajos Asignados Actualmente</h5>
+          </Card.Header>
+          <Card.Body>
+            {loadingWorks ? (
+              <div className="text-center py-3">
+                <Spinner animation="border" size="sm" className="me-2" />
+                <span>Cargando trabajos asignados...</span>
+              </div>
+            ) : (
+              <div className="table-responsive">
+                <Table hover>
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Tipo de Trabajo</th>
+                      <th>Persona Asignada</th>
+                      <th>Estado</th>
+                      <th>Descripción</th>
+                      <th>Precio</th>
+                      <th>Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {assignedWorks.map(work => (
+                      <tr key={work.id_asignacion}>
+                        <td>#{work.id_asignacion}</td>
+                        <td>{work.TipoMantenimiento?.nombre_tipo}</td>
+                        <td>
+                          <div className="d-flex align-items-center">
+                            <div>
+                              {work.empleadoAsignado?.Persona?.nombre} {work.empleadoAsignado?.Persona?.apellido}
+                              <div className="text-muted small">@{work.empleadoAsignado?.nombre_usuario}</div>
+                            </div>
+                            <Button 
+                              variant="link" 
+                              className="ms-2 p-0" 
+                              onClick={() => openReassignModal(work)}
+                              title="Cambiar empleado asignado"
+                            >
+                              <i className="bi bi-pencil-square text-primary"></i>
+                            </Button>
+                          </div>
+                        </td>
+                        <td>
+                          <span className={`badge bg-${
+                            work.estado === 'ASIGNADO' ? 'warning' :
+                            work.estado === 'EN_PROCESO' ? 'primary' :
+                            work.estado === 'COMPLETADO' ? 'success' :
+                            'secondary'
+                          }`}>
+                            {work.estado || 'ASIGNADO'}
+                          </span>
+                        </td>
+                        <td>
+                          <div style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {work.descripcion}
+                          </div>
+                        </td>
+                        <td className="text-end">Q{parseFloat(work.precio).toFixed(2)}</td>
+                        <td>
+                          <Button 
+                            variant="outline-info" 
+                            size="sm"
+                            as={Link}
+                            to={`/admin/services/detail/${id}`}
+                            title="Ver detalles"
+                          >
+                            <i className="bi bi-eye"></i>
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </Table>
+              </div>
+            )}
+          </Card.Body>
+        </Card>
+      )}
       
       {/* Assignment Form */}
       <Card>
         <Card.Header>
-          <h5 className="mb-0">Asignación de Trabajo</h5>
+          <h5 className="mb-0">Asignar Nuevo Trabajo</h5>
         </Card.Header>
         <Card.Body>
           <Form onSubmit={handleSubmit}>
@@ -378,6 +536,80 @@ export default function AssignWork() {
           </Form>
         </Card.Body>
       </Card>
+
+      {/* Reassign Employee Modal */}
+      <Modal show={showReassignModal} onHide={() => setShowReassignModal(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Cambiar Persona Asignada</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {reassignSuccess && (
+            <Alert variant="success" className="mb-3">
+              <i className="bi bi-check-circle me-2"></i>
+              Empleado cambiado exitosamente.
+            </Alert>
+          )}
+          
+          {reassignError && (
+            <Alert variant="danger" className="mb-3">
+              <i className="bi bi-exclamation-triangle me-2"></i>
+              {reassignError}
+            </Alert>
+          )}
+
+          {selectedWork && (
+            <>
+              <p>
+                <strong>Trabajo:</strong> {selectedWork.TipoMantenimiento?.nombre_tipo}
+              </p>
+              <p>
+                <strong>Actualmente asignado a:</strong> {selectedWork.empleadoAsignado?.Persona?.nombre} {selectedWork.empleadoAsignado?.Persona?.apellido}
+              </p>
+              
+              <Form.Group className="mb-3">
+                <Form.Label>Seleccione el nuevo empleado/especialista</Form.Label>
+                <Form.Select 
+                  value={newEmployeeId}
+                  onChange={(e) => setNewEmployeeId(e.target.value)}
+                  disabled={reassignLoading}
+                >
+                  <option value="">Seleccione una persona</option>
+                  <optgroup label="Empleados">
+                    {employees.map(employee => (
+                      <option key={employee.id_usuario} value={employee.id_usuario}>
+                        {employee.Persona?.nombre} {employee.Persona?.apellido} ({employee.nombre_usuario})
+                      </option>
+                    ))}
+                  </optgroup>
+                  <optgroup label="Especialistas">
+                    {specialists.map(specialist => (
+                      <option key={specialist.Usuario.id_usuario} value={specialist.Usuario.id_usuario}>
+                        {specialist.Usuario.Persona?.nombre} {specialist.Usuario.Persona?.apellido} - 
+                        {specialist.TipoTecnico?.nombre_tipo}
+                      </option>
+                    ))}
+                  </optgroup>
+                </Form.Select>
+              </Form.Group>
+            </>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowReassignModal(false)} disabled={reassignLoading}>
+            Cancelar
+          </Button>
+          <Button variant="primary" onClick={handleReassign} disabled={reassignLoading || !newEmployeeId}>
+            {reassignLoading ? (
+              <>
+                <Spinner animation="border" size="sm" className="me-2" />
+                Cambiando...
+              </>
+            ) : (
+              'Confirmar Cambio'
+            )}
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 }
