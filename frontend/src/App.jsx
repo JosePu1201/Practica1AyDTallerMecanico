@@ -93,6 +93,10 @@ import ProviderExpensesReport from './pages/admin/reports/ProviderExpensesReport
 import PartUsageReport from './pages/admin/reports/PartUsageReport';
 import MostUsedPartsReport from './pages/admin/reports/MostUsedPartsReport';
 import ClientHistoryReport from './pages/admin/reports/ClientHistoryReport';
+import RequestsDashboard from './pages/admin/requests/RequestsDashboard';
+import AdditionalServicesManagement from './pages/admin/requests/AdditionalServicesManagement';
+import QuotationsManagement from './pages/admin/requests/QuotationsManagement';
+import AllRequestsManagement from './pages/admin/requests/AllRequestsManagement';
 
 export default function App() {
   return (
@@ -151,6 +155,12 @@ export default function App() {
               <Route path="reportes/uso-repuestos" element={<PartUsageReport />} />
               <Route path="reportes/repuestos-vehiculo" element={<MostUsedPartsReport />} />
               <Route path="reportes/historial-cliente" element={<ClientHistoryReport />} />
+              
+              {/* Requests Management Routes */}
+              <Route path="requests" element={<RequestsDashboard />} />
+              <Route path="requests/additional-services" element={<AdditionalServicesManagement />} />
+              <Route path="requests/quotations" element={<QuotationsManagement />} />
+              <Route path="requests/all" element={<AllRequestsManagement />} />
               
               {/* Default admin page */}
               <Route index element={<div className="p-4"><h1>Panel de Administración</h1><p>Seleccione una opción del menú</p></div>} />

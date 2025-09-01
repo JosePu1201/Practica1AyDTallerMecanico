@@ -176,8 +176,7 @@ export default function DashboardAdmin() {
             collapsed={collapsed}
             children={[
               { label: 'Listado', to: '/admin/vehicles' },
-              { label: 'Registro', to: '/admin/vehicles/new' },
-              { label: 'Servicios', to: '/admin/services' },
+              { label: 'Registro', to: '/admin/vehicles/new' }
             ]}
           />
           <SidebarItem
@@ -197,9 +196,7 @@ export default function DashboardAdmin() {
             collapsed={collapsed}
             children={[
               { label: 'Servicios', to: '/admin/services' },
-              { label: 'Asignaciones', to: '/admin/trabajos/asignaciones' },
-              { label: 'Tipos', to: '/admin/trabajos/tipos' },
-              { label: 'Seguimiento', to: '/admin/trabajos/seguimiento' },
+              { label: 'Tipos', to: '/admin/services/maintenance-types' }
             ]}
           />
           <SidebarItem
@@ -227,6 +224,19 @@ export default function DashboardAdmin() {
             to="/admin/configuracion"
             collapsed={collapsed}
           />
+
+            <SidebarItem
+            icon="bi-file-earmark-text"
+            label="Solicitudes de Clientes"
+            collapsed={collapsed}
+            children={[
+              { label: 'Solicitudes', to: '/admin/requests' },
+              { label: 'Servicios Adicionales', to: '/admin/requests/additional-services' },
+              { label: 'Cotizaciones', to: '/admin/requests/quotations' },
+              { label: 'Todas las Solicitudes', to: '/admin/requests/all' },
+            ]}
+          />
+
         </nav>
 
         {!collapsed && <div className="sidebar-footer">v1.0</div>}

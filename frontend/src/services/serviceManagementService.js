@@ -183,7 +183,18 @@ const serviceManagementService = {
       console.error(`Error fetching works for service ${id}:`, error);
       throw error;
     }
-  }
+  },
+
+  // Change employee work
+  changeEmployeeWork: async (data) => {
+    try {
+      const response = await serviceApi.put('/cambiar_empleado_trabajo', data);
+      return response.data;
+    } catch (error) {
+      console.error('Error changing employee:', error);
+      throw error;
+    }
+  },
 };
 
 export { serviceManagementService };

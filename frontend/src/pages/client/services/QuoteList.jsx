@@ -297,7 +297,7 @@ export default function QuoteList() {
 
               <h5 className="border-bottom pb-2 mb-3">Trabajos Cotizados</h5>
               
-              {selectedQuote.TrabajosCotizacion?.length > 0 ? (
+              {selectedQuote.TrabajosCotizacions?.length > 0 ? (
                 <Table bordered responsive className="mb-4">
                   <thead className="table-light">
                     <tr>
@@ -308,7 +308,7 @@ export default function QuoteList() {
                     </tr>
                   </thead>
                   <tbody>
-                    {selectedQuote.TrabajosCotizacion.map(trabajo => (
+                    {selectedQuote.TrabajosCotizacions.map(trabajo => (
                       <tr key={trabajo.id_trabajo_cotizacion}>
                         <td>{trabajo.TipoMantenimiento?.nombre_tipo}</td>
                         <td>{trabajo.descripcion_trabajo}</td>
@@ -322,7 +322,7 @@ export default function QuoteList() {
                       <td colSpan="3" className="text-end fw-bold">Total:</td>
                       <td className="text-end fw-bold">
                         {formatCurrency(selectedQuote.total_cotizacion || 
-                          selectedQuote.TrabajosCotizacion.reduce(
+                          selectedQuote.TrabajosCotizacions.reduce(
                             (sum, trabajo) => sum + Number(trabajo.precio || 0), 0
                           )
                         )}
@@ -344,7 +344,7 @@ export default function QuoteList() {
                 </Alert>
               )}
               
-              {selectedQuote.estado === 'PENDIENTE' && !isQuoteExpired(selectedQuote) && (
+              {selectedQuote.estado === 'ENVIADO' && !isQuoteExpired(selectedQuote) && (
                 <div className="d-flex justify-content-end gap-2 mt-3">
                   <Button 
                     variant="success"

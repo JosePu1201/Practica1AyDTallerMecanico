@@ -188,8 +188,7 @@ export default function DashboardEmpleado() {
             label="Mis Vehículos"
             collapsed={collapsed}
             children={[
-              { label: "Lista de Vehículos", to: "/client/vehicles" },
-              { label: "Historial de Servicios", to: "/client/vehicles/history" }
+              { label: "Lista de Vehículos", to: "/client/vehicles" }
             ]}
           />
           
@@ -201,7 +200,7 @@ export default function DashboardEmpleado() {
               { label: "Servicios Activos", to: "/client/services" },
               { label: "Servicios Adicionales", to: "/client/services/additional" },
               { label: "Solicitar Cotización", to: "/client/services/quote" },
-              { label: "Mis Cotizaciones", to: "/client/services/quotes" } // Add this line
+              { label: "Mis Cotizaciones", to: "/client/services/quotes" }
             ]}
           />
           

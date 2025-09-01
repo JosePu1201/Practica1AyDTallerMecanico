@@ -1,0 +1,137 @@
+.quote-item {
+  transition: all 0.2s ease;
+}
+
+.quote-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.quote-status {
+  width: 8px;
+  height: 100%;
+  border-radius: 4px;
+  margin-right: 15px;
+}
+
+.quote-status.pending {
+  background-color: #ffc107;
+}
+
+.quote-status.approved {
+  background-color: #28a745;
+}
+
+.quote-status.rejected {
+  background-color: #dc3545;
+}
+
+.quote-status.sent {
+  background-color: #17a2b8;
+}
+
+.service-card {
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.service-card:hover {
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  transform: translateY(-3px);
+}
+
+.service-card .card-header {
+  border-bottom: none;
+  padding-bottom: 0.5rem;
+}
+
+.service-card .card-body {
+  padding-top: 0.5rem;
+}
+
+.service-icon {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+.dashboard-stats .card {
+  transition: all 0.3s ease;
+}
+
+.dashboard-stats .card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+}
+
+.quick-actions-btn {
+  transition: all 0.2s ease;
+}
+
+.quick-actions-btn:hover {
+  transform: translateY(-2px);
+}
+
+/* Styles for the badges */
+.badge-counter {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  font-size: 0.6rem;
+  padding: 0.25rem 0.5rem;
+}
+
+/* Tab styles */
+.nav-tabs .nav-link {
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: #6c757d;
+  font-weight: 500;
+}
+
+.nav-tabs .nav-link:hover:not(.active) {
+  border-bottom: 3px solid #e9ecef;
+}
+
+.nav-tabs .nav-link.active {
+  border: none;
+  border-bottom: 3px solid #0d6efd;
+  color: #0d6efd;
+}
+
+/* Empty state styles */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+}
+
+.empty-state-icon {
+  font-size: 4rem;
+  color: #adb5bd;
+  margin-bottom: 1rem;
+}
+
+.empty-state-text {
+  font-size: 1.1rem;
+  color: #6c757d;
+  text-align: center;
+}
+
+/* Search inputs */
+.search-input {
+  max-width: 300px;
+  transition: all 0.3s ease;
+}
+
+.search-input:focus {
+  max-width: 350px;
+}
+
+/* Filter buttons */
+.filter-btn {
+  border-radius: 20px;
+  padding: 0.25rem 1rem;
+}
