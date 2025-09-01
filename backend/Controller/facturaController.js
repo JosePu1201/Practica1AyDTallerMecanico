@@ -1,12 +1,12 @@
 const { parse } = require('dotenv');
-const { FacturaServicioVehiculo,ServiciosAdicionales, Inventario, SolicitudUsoRepuesto, AsignacionTrabajo, MantenimientoAdicional } = require('../Model')
-const { RegistroServicioVehiculo } = require('../Model');
+const { FacturaServicioVehiculo, ServiciosAdicionales, Inventario, SolicitudUsoRepuesto, AsignacionTrabajo, MantenimientoAdicional } = require('../Model')
+const { RegistroServicioVehiculo, PagosFactura } = require('../Model');
 
 //hacer sumatoria para factura de servicios 
 const generarFacturaServicios = async (req, res) => {
     try {
         // console.log('generarFacturaServicios');
-        const { id_registro,impuestos,descuento,observaciones } = req.body;
+        const { id_registro, impuestos, descuento, observaciones, metodo_pago } = req.body;
         if (!id_registro) {
             return res.status(400).json({ message: 'El id_registro es obligatorio' });
         }
@@ -61,8 +61,8 @@ const generarFacturaServicios = async (req, res) => {
         }
 
         // Devolver el total y los detalles de los servicios
-        console.log (req)
-        const facturaNueva = await generarFactura(total,id_registro,impuestos,descuento,observaciones);
+        console.log(req)
+        const facturaNueva = await generarFactura(total, id_registro, impuestos, descuento, observaciones, metodo_pago);
         console.log('facturaNueva:', facturaNueva);
         //console.log('total:', total);
         //console.log('detalles:', detalles);
@@ -95,11 +95,11 @@ async function totalPorAsignacion(id_asignacion) {
 
 }
 
-async function generarFactura (total,id_registro,impuestos,descuento,obsercvaciones){
+async function generarFactura(total, id_registro, impuestos, descuento, obsercvaciones, metodo_pago) {
     const ultimaFactura = await FacturaServicioVehiculo.findOne({ order: [['id_factura', 'DESC']], limit: 1 });
-    const numeroFactura = 'F-'+(ultimaFactura ? parseInt(ultimaFactura.id_factura) + 1 : 1).toString();
-    const impuestosCalculdados = parseFloat(total)*parseFloat(impuestos);
-    const descuentoCalculado = parseFloat(total)*parseFloat(descuento);
+    const numeroFactura = 'F-' + (ultimaFactura ? parseInt(ultimaFactura.id_factura) + 1 : 1).toString();
+    const impuestosCalculdados = parseFloat(total) * parseFloat(impuestos);
+    const descuentoCalculado = parseFloat(total) * parseFloat(descuento);
     const totalFactura = parseFloat(total) - parseFloat(descuentoCalculado) - parseFloat(impuestosCalculdados);
     const fechaEmision = new Date();
     const fechaVEncimiento = new Date(fechaEmision);
@@ -115,9 +115,125 @@ async function generarFactura (total,id_registro,impuestos,descuento,obsercvacio
         descuentos: descuentoCalculado,
         total: totalFactura,
         observaciones: obsercvaciones,
+        metodo_pago_preferido: metodo_pago
     });
     return factura;
 }
+
+const listarFacturas = async (req, res) => {
+    try {
+        const facturas = await FacturaServicioVehiculo.findAll();
+        res.json(facturas);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error al obtener las facturas' });
+    }
+
+}
+
+//Reigstrar Pago FActura
+const registrarPagoFactura = async (req, res) => {
+    try {
+        const { id_factura, monto_pago, metodo_pago, referencia_pago, observaciones, id_usuario_registro } = req.body;
+
+        const facturas = await FacturaServicioVehiculo.findOne({ where: { id_factura } });
+        //valida que la fechade pago faactura sea menor o igual a la fecha actual 
+        const fechaActual = new Date();
+        let fecha_pago = new Date(facturas.fecha_vencimiento);
+        if (fecha_pago < fechaActual) {
+            facturas.estado = 'VENCIDO';
+            await facturas.save();
+            return res.status(400).json({ message: 'La factura ya vencio' });
+        }
+        //consultar los pagos de la factura
+        const pagos = await PagosFactura.findAll({ where: { id_factura } });
+
+        //sumar todos los monto_pago de cada pago Factura y verificar si es igual al de la factura
+        let totalPago = parseFloat(monto_pago);
+        for (const pagoFactura of pagos) {
+            totalPago += parseFloat(pagoFactura.monto_pago);
+        }
+        if (parseFloat(facturas.total) === totalPago) {
+            facturas.estado_pago = 'PAGADO';
+            const pago = await PagosFactura.create({
+                id_factura,
+                monto_pago,
+                fecha_pago,
+                metodo_pago,
+                referencia_pago,
+                observaciones,
+                id_usuario_registro
+            });
+            await facturas.save();
+            return res.status(200).json({ message: 'El pago de la factura fue registrado correctamente y has completado el pago', pago, facturas });
+        } else if (totalPago < facturas.total) {
+            facturas.estado_pago = 'PARCIAL';
+            const pago = await PagosFactura.create({
+                id_factura,
+                monto_pago,
+                fecha_pago,
+                metodo_pago,
+                referencia_pago,
+                observaciones,
+                id_usuario_registro
+            });
+
+            await facturas.save();
+            return res.status(200).json({ message: 'El monto de los pagos no es igual al total de la factura', pago, facturas })
+        } else {
+            return res.status(400).json({ message: 'El monto de los pagos es mayor al total de la factura', facturas });
+        }
+        //console.log('totalPago:',totalPago
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            message: 'Error al registrar el pago de la factura'
+        });
+    }
+};
+
+//listar pago factura por id factura 
+const listarPagosFactura = async (req, res) => {
+    try {
+        const { id_factura } = req.params;
+        const pagos = await PagosFactura.findAll({ where: { id_factura } });
+
+        res.status(200).json(pagos);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error al listar los pagos de la factura' });
+    }
+};
+//consultar saldo de pagos 
+const consultarSaldoPagos = async (req, res) => {
+    try {
+        const { id_factura } = req.params;
+        const facturas = await FacturaServicioVehiculo.findOne({ where: { id_factura } });
+        if (!facturas) {
+            return res.status(404).json({ message: 'Factura no encontrada' });
+        }
+
+        const pagos = await PagosFactura.findAll({ where: { id_factura } });
+        let totalPagos = 0;
+        for (const pago of pagos) {
+            totalPagos += parseFloat(pago.monto_pago);
+        }
+
+        const saldo = parseFloat(facturas.total) - totalPagos;
+
+        return res.status(200).json({ message: 'Saldo de pagos consultado exitosamente', saldo: saldo });
+
+    } catch (error) {
+
+        return res.status(500).json({ message: 'Error al consultar el saldo de pagos' });
+    }
+
+};
 module.exports = {
-    generarFacturaServicios
+    generarFacturaServicios,
+    listarFacturas,
+    registrarPagoFactura,
+    listarPagosFactura,
+    consultarSaldoPagos
+
 }

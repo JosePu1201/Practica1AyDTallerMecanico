@@ -20,5 +20,10 @@ router.get('/listar-pedidos', pedidoController.listarPedidos);
 //realizar pago
 router.post('/realizar-pago/:id_pedido', pedidoController.realizarPago);
 
+//Actualizar pago 
+router.put('/actualizar-pago/:id_pago_proveedor', pedidoController.actualizarPago);
+
+//listar pagos proveedor
+router.get('/listar-pagos-proveedor', pedidoController.listarPagosProveedor);
 
 module.exports = router;

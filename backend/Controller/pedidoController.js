@@ -34,7 +34,17 @@ const crearPedido = async (req, res) => {
 const crearDetallePedido = async (req, res) => {
     const transaction = await sequelize.transaction();
     try {
+        //validar que el pedido no este asignado a un pagoProveedor
+
         const {id_pedido,id_catalogo,cantidad} = req.body;
+
+        //validar que el pedido no este asignado a un pagoProveedor
+        const pagoProveedor = await PagosProveedor.findOne({where: {id_pedido}});
+        if(pagoProveedor){
+            await transaction.rollback();
+            return res.status(400).json({message: 'El pedido ya tiene un pago asignado, por lo tanto no puedes seguir agregando productos'});
+        }
+        
         const pedido = await PedidoProveedor.findOne({where: {id_pedido}},transaction);
         if(!pedido){
              await transaction.rollback();
@@ -100,7 +110,7 @@ const actualizarDetallePedido = async (req, res) => {
     const { cantidad } = req.body;
     const transaction = await sequelize.transaction();
     try {
-        
+        //validar que no exista un pagoProveedor asignado al 
         const detallePedido = await DetallePedido.findByPk(id_detalle_pedido, { transaction });
         if (!detallePedido) {
             await transaction.rollback();
@@ -221,6 +231,11 @@ const realizarPago = async (req, res) => {
             return res.status(401).json({message: 'No autorizado'});
         }
         const {id_pedido} = req.params;
+        //validar que no exista un pagoProveedor con el mismo id_pedido
+        const pagoExistente = await PagosProveedor.findOne({where: {id_pedido}});
+        if(pagoExistente){
+            return res.status(400).json({message: 'Ya existe un pago para este pedido'});
+        }
         //validar que el pedido exista
         const pedidoProveedor = await PedidoProveedor.findOne({where: {id_pedido}});
         if(!pedidoProveedor){
@@ -236,24 +251,69 @@ const realizarPago = async (req, res) => {
             id_pedido,
             metodo_pago,
             observaciones,
-            referencia,
+            referencia: referencia ?? null,
             monto:pedidoProveedor.total,
-            estado:"PAGADO",
+            estado:"PENDIENTE",
             id_usuario_registro:req.session.user.id_usuario,
             fecha_pago: new Date()
         });
         //actualizar el estado del pedido
-        pedidoProveedor.estado="CONFIRMADO";
         await pedidoProveedor.save();
         res.status(201).json({message:"Pago realizado correctamente",pago});
     } catch (error) {
         res.status(500).json({ message: error.message });
 }};  
+
+// Actualziar pago proveedor a PAGADO 
+const actualizarPago = async (req, res) => {
+    try {
+        const { id_pago_proveedor } = req.params;
+        const { referencia } = req.body;    
+        const pago = await PagosProveedor.findByPk(id_pago_proveedor);
+        if (!pago) {
+            return res.status(404).json({ message: 'Pago no encontrado' });
+        }
+        if(pago.estado === "PAGADO"){
+            return res.status(400).json({ message: 'El pago ya ha sido realizado' });
+        }
+        if(pago.estado === "RECHAZADO"){
+            return res.status(400).json({ message: 'El pago ya ha sido rechazado, intenta haciendo otro pedido' });
+        }
+        pago.estado = "PAGADO";
+        pago.referencia = referencia;
+        pago.fecha_pago = new Date();
+
+        const pedido = await PedidoProveedor.findByPk(pago.id_pedido);
+        if (!pedido) {
+            return res.status(404).json({ message: 'Pedido no encontrado' });
+        }
+        pedido.estado = "CONFIRMADO";
+        await pedido.save();
+        await pago.save();
+        res.status(200).json({ message: 'Pago actualizado exitosamente', pago });
+    } catch (error) {
+        res.status(500).json({ message: 'Error al actualizar el pago', error: error.message });
+    }
+};
+        
+
+//listar todos los pagos Proveedor 
+const listarPagosProveedor = async (req, res) => {
+    try {
+        const pagos = await PagosProveedor.findAll();
+        res.status(200).json(pagos);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 module.exports = {
     crearPedido,
     crearDetallePedido,
     actualizarDetallePedido,
     obtenerDetallePedido,
     listarPedidos,
-    realizarPago
+    realizarPago,
+    actualizarPago,
+    listarPagosProveedor
 };
